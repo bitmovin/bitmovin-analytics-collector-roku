@@ -1,0 +1,2 @@
+function emptyFunction()
+end function
