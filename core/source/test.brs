@@ -1,2 +1,0 @@
-function emptyFunction()
-end function
