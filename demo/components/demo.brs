@@ -6,8 +6,8 @@ function init()
   m.bitmovinAdapterLib = createObject("roSgNode", "componentLibrary")
   m.bitmovinAdapterLib.id = "bitmovinPlayerAdapter"
   m.bitmovinAdapterLib.uri = "http://192.168.1.48:8080/roku/adapters/bitmovinPlayerAdapter.zip"
-  'm.bitmovinAdapterLib.uri = "http://192.168.1.48:8080/roku/analytics/core.zip"
-  'm.bitmovinAdapterLib.uri = "https://cdn.bitmovin.com/player/roku/1/bitmovinPlayer.zip"
+  ' m.bitmovinAdapterLib.uri = "http://192.168.1.48:8080/roku/analytics/core.zip"
+  ' m.bitmovinAdapterLib.uri = "https://cdn.bitmovin.com/player/roku/1/bitmovinPlayer.zip"
   m.top.appendChild(m.bitmovinAdapterLib)
   m.bitmovinAdapterLib.observeField("loadStatus", "onLoadStatusChanged")
 
@@ -34,10 +34,10 @@ sub onAdapterReady()
     m.top.appendChild(m.bitmovinPlayer)
     m.bitmovinFunctions = m.bitmovinPlayer.bitmovinFunctions
     m.bitmovinFields = m.bitmovinPlayer.bitmovinFields
-    'm.bitmovinPlayer.observeField(m.bitmovinFields.ERROR, "catchVideoError")
-    'm.bitmovinPlayer.observeField(m.bitmovinFields.WARNING, "catchVideoWarning")
-    'm.bitmovinPlayer.observeField(m.bitmovinFields.SEEK, "onSeek")
-    'm.bitmovinPlayer.observeField(m.bitmovinFields.SEEKED, "onSeeked")
+    ' m.bitmovinPlayer.observeField(m.bitmovinFields.ERROR, "catchVideoError")
+    ' m.bitmovinPlayer.observeField(m.bitmovinFields.WARNING, "catchVideoWarning")
+    ' m.bitmovinPlayer.observeField(m.bitmovinFields.SEEK, "onSeek")
+    ' m.bitmovinPlayer.observeField(m.bitmovinFields.SEEKED, "onSeeked")
     m.adapter.callFunc("initializePlayer", m.bitmovinPlayer)
     m.bitmovinPlayer.callFunc(m.bitmovinFunctions.setup, m.config)
   end if
