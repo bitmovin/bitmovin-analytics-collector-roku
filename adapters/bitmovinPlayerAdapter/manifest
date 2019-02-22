@@ -1,11 +1,11 @@
 # Channel Details
-title = Bitmovin Analytics Adapter
-major_version = 0
-minor_version = 1
-build_version = 0
+title=Bitmovin Analytics Adapter
+major_version=0
+minor_version=1
+build_version=0
 
-sg_component_libs_provided = bitmovinPlayerAdapter
-hidden = 1
+sg_component_libs_provided=bitmovinPlayerAdapter
+hidden=1
 
 # Resolution
-ui_resolutions = sd,hd,fhd
+ui_resolutions=sd,hd,fhd
