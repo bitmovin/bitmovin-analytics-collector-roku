@@ -1,12 +1,12 @@
 sub init()
   m.tag = "[analyticsDataTask]"
 
-  'HACK use hardcoded data'
+  ' HACK use hardcoded data
   m.top.eventData = {
     ad: 0,
     analyticsVersion: "0.1.0",
     audioBitrate: 0,
-    'autoplay: "",
+    ' autoplay: "",
     buffered: 0,
     cdnProvider: "",
     customData1: "",
@@ -17,12 +17,12 @@ sub init()
     customUserId: "",
     domain: "com.bitmovin.player.roku",
     downloadSpeedInfo: {},
-    'drmLoadTime: 0,
-    'drmType: "",
+    ' drmLoadTime: 0,
+    ' drmType: "",
     droppedFrames: 0,
     duration: 0,
-    'errorCode: "",
-    'errorMessage: "",
+    ' errorCode: "",
+    ' errorMessage: "",
     experimentName: "HACKATHON",
     impressionId: "7c16cab6-f263-43b7-8001-256256be12e6",
     isCasting: false,
@@ -39,7 +39,7 @@ sub init()
     platform: "roku",
     played: 0,
     player: "",
-    'playerKey: "",
+    ' playerKey: "",
     playerStartupTime: 0,
     playerTech: "",
     progUrl: "",
@@ -148,7 +148,7 @@ sub sendAnalyticsData()
   url = "https://analytics-ingress-global.bitmovin.com/analytics"
 
   http = createObject("roUrlTransfer")
-  http.setCertificatesFile("common:/certs/ca-bundle.crt")
+  http.SetCertificatesFile("common:/certs/ca-bundle.crt")
   port = createObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
