@@ -1,7 +1,9 @@
 sub init()
   m.sample = setupSample()
   m.backendUrl = ""
-  m.analyticsRequest = m.top.findNode("AnalyticsRequest")
+  m.analyticsDataTask = m.top.findNode("AnalyticsDataTask")
+
+
 end sub
 
 function setupSample()
@@ -136,8 +138,4 @@ end function
 
 'sub sendAnalyticsRequest(data)
 sub sendAnalyticsRequest()
-  print "in sendAnalyticsRequest"
-  
-  'm.sample.append(data)
-  'm.analyticsRequest.doLicensingRequest = true
 end sub

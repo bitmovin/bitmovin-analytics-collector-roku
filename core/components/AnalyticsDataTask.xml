@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<component name="AnalyticsRequest" extends="Task" >
-  <script type="text/brightscript" uri="pkg:/components/AnalyticsRequest.brs" />
+<component name="AnalyticsDataTask" extends="Task" >
+  <script type="text/brightscript" uri="pkg:/components/AnalyticsDataTask.brs" />
   <interface>
     <field id="url" type="string" />
     <field id="response" type="string" />
