@@ -3,8 +3,8 @@
   <script type="text/brightscript" uri="pkg:/components/AnalyticsDataTask.brs" />
   <interface>
     <field id="url" type="string" />
-    <field id="response" type="assocarray" />
-    <field id="data" type="assocarray" />
+    <field id="licensingData" type="assocarray" />
+    <field id="eventData" type="assocarray" />
 
     <field id="sendData" type="Boolean" alwaysNotify="true" />
     <field id="licensingState" type="string" />
