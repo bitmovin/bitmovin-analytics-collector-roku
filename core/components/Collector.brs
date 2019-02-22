@@ -138,4 +138,5 @@ end function
 
 'sub sendAnalyticsRequest(data)
 sub sendAnalyticsRequest()
+  m.analyticsDataTask.sendData = true
 end sub
