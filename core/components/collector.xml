@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="collector" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/collector.brs"/>
+  <script type="text/brightscript" uri="pkg:/source/utils/uuidGenerator.brs"/>
+  <children>
+    <analyticsDataTask id="analyticsDataTask"/>
+  </children>
+  <interface>
+    <!--<function name="getPlayerInformationFromAdapter" /> replaced by setPlayerInformation-->
+    <function name="clearValues"/>
+    <function name="createBackend"/> <!-- unfinished -->
+    <function name="createImpressionId"/>
+    <function name="getCurrentImpressionId"/>
+    <function name="getVersion"/>
+    <function name="sendAnalyticsRequest"/>  <!--unfinished-->
+    <function name="setConfigParameters"/>
+    <function name="setCustomData"/>
+    <function name="setPlayerInformation"/>
+    <function name="setState"/>
+    <function name="setupSample"/>
+  </interface>
+</component>
