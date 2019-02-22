@@ -1,8 +1,8 @@
 # Channel Details
-title=Bitmovin Analytics Collector for Roku
+title = Bitmovin Analytics Collector for Roku
 major_version = 0
 minor_version = 1
 build_version = 0
 
-sg_component_libs_provided=core
-hidden=1
+sg_component_libs_provided = core
+hidden = 1
