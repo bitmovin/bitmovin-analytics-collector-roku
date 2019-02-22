@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="collector" extends="group">
+<component name="collector" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/collector.brs"/>
   <script type="text/brightscript" uri="pkg:/source/utils/uuidGenerator.brs"/>
   <children>

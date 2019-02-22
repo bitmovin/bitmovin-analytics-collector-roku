@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component extends="task" name="loadCoreTask">
+<component name="loadCoreTask" extends="Task">
   <children>
     <!--<componentLibrary id="core" uri="https://bitmovin.com/files/player/core.zip"/>-->
     <componentLibrary id="core" uri="https://bitmovin.com/files/player/supercore.zip"/>
