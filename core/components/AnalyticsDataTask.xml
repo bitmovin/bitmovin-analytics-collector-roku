@@ -5,5 +5,8 @@
     <field id="url" type="string" />
     <field id="response" type="string" />
     <field id="data" type="assocarray" />
+
+    <field id="sendData" type="Boolean" alwaysNotify="true" />
+    <field id="licensingState" type="string" />
   </interface>
 </component>
