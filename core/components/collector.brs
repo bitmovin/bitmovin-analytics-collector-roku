@@ -1,9 +1,7 @@
 sub init()
   m.sample = setupSample()
   m.backendUrl = ""
-  m.analyticsDataTask = m.top.findNode("AnalyticsDataTask")
-
-
+  m.analyticsDataTask = m.top.findNode("analyticsDataTask")
 end sub
 
 function setupSample()
@@ -90,17 +88,17 @@ sub clearSample()
 end sub
 
 sub createImpressionId()
- m.sample.impressionId = Lcase(GenerateGuid())
+ m.sample.impressionId = lcase(generateGuid())
 end sub
 
-'TODO: Errorhandling if the keys are invalid. Accepted ones are customdata 1 to 5 and experimentName'
+' TODO: Error handling if the keys are invalid. Accepted ones are custom data 1 to 5 and experimentName
 sub setCustomData(values)
   for each v in values
     m.sample.append(values)
   end for
 end sub
 
-'TODO: add option for opitional fields as well as error handling'
+' TODO: Add option for optional fields as well as error handling
 sub setConfigParameters(config)
   m.backendUrl = config.backendUrl
   m.sample.key = config.key
@@ -120,23 +118,22 @@ function setState(state)
   m.sample.state = state
 end function
 
-'TODO'
+' TODO
 function createBackend()
-
 end function
 
 function setPlayerInformation(values)
-  'TODO'
+  ' TODO
   for each v in values
     m.sample.append(values)
   end for
 end function
 
 function getVersion()
-  'TODO'
+  ' TODO
 end function
 
-'sub sendAnalyticsRequest(data)
+' sub sendAnalyticsRequest(data)
 sub sendAnalyticsRequest()
   m.analyticsDataTask.sendData = true
 end sub
