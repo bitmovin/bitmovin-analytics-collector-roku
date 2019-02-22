@@ -1,18 +1,19 @@
 sub init()
+  m.tag = "[bitmovinAdapter]"
   m.previousState = ""
   m.player = invalid
   m.top.adapterReady = false
   m.top.findNode("loadCoreTask").findNode("core").observeField("loadStatus", "onCoreLoaded")
-  print m.top.findNode("loadCoreTask").findNode("core").loadStatus
+  print m.tag; m.top.findNode("loadCoreTask").findNode("core").loadStatus
 end sub
 
 sub onCoreLoaded()
-  print "LOAD STATUS FOR THE ANALYTICS CORE :"; m.top.findNode("loadCoreTask").findNode("core").loadStatus
+  print m.tag; "Load status for the analytics core: "; m.top.findNode("loadCoreTask").findNode("core").loadStatus
   if m.top.findNode("loadCoreTask").findNode("core").loadStatus = "ready"
-    m.bitmovinAnalyticsCore = createObject("roSGNode", "core:Collector")
+    m.bitmovinAnalyticsCore = createObject("roSgNode", "core:Collector")
     m.bitmovinAnalyticsCore.id = "core"
 
-    ' m.timer = CreateObject("roSGNode", "Timer")
+    ' m.timer = createObject("roSgNode", "timer")
     ' m.timer.duration = 10
     ' m.top.appendChild(m.timer)
     ' m.timer.observeField("fire", "onThresholdReached")
@@ -30,34 +31,34 @@ end sub
 sub onPlayerStateChanged()
   if m.player.playerState = "playing"
     appInfo = createObject("roAppInfo")
-    print "Adapter Event cought ";m.player.playerState
+    print m.tag; "Adapter event caught "; m.player.playerState
   else if m.player.playerState = "stalling"
-    print "Adapter Event cought ";m.player.playerState
+    print m.tag; "Adapter event caught "; m.player.playerState
   else if m.player.playerState = "paused"
-    print "Adapter Event cought ";m.player.playerState
+    print m.tag; "Adapter event caught "; m.player.playerState
   else if m.player.playerState = "finished"
-    print "Adapter Event cought ";m.player.playerState
+    print m.tag; "Adapter event caught "; m.player.playerState
   else if m.player.playerState = "error"
-    print "Adapter Event cought ";m.player.playerState
+    print m.tag; "Adapter event caught "; m.player.playerState
   else if m.player.playerState = "none"
-    print "Adapter Event cought ";m.player.playerState
+    print m.tag; "Adapter event caught "; m.player.playerState
   else if m.player.playerState = "setup"
-    print "Adapter Event cought ";m.player.playerState
+    print m.tag; "Adapter event caught "; m.player.playerState
   else if m.player.playerState = "ready"
-    print "Adapter Event cought ";m.player.playerState
+    print m.tag; "Adapter event caught "; m.player.playerState
   end if
 end sub
 
 ' sub onThresholdReached()
-'   print "threshold reached"
+'   print m.tag; "Threshold reached"
 '   sendAnalyticsRequest()
 '   m.timer.duration = 60
 '   m.timer.control = "start"
 ' end sub
 
 sub sendAnalyticsRequest()
-  'collect all the necessary data here and call the cores method
-  'm.bitmovinAnalyticsCore.callFunc("sendAnalyticsRequest", data)
+  ' Collect all the necessary data here and call the core's method
+  ' m.bitmovinAnalyticsCore.callFunc("sendAnalyticsRequest", data)
 
   m.bitmovinAnalyticsCore.callFunc("sendAnalyticsRequest")
 end sub
