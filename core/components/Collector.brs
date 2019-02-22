@@ -137,6 +137,7 @@ end function
 'sub sendAnalyticsRequest(data)
 sub sendAnalyticsRequest()
   print "in sendAnalyticsRequest"
+  
   'm.sample.append(data)
-  m.analyticsRequest.callFunc("doLicensingRequest")
+  'm.analyticsRequest.doLicensingRequest = true
 end sub

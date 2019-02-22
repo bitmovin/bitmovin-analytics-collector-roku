@@ -21,7 +21,6 @@ sub onLoadStatusChanged()
   print "Load Status for Player: " ;m.bitmovinPlayerSDK.loadStatus
   if m.bitmovinPlayerSDK.loadStatus = "ready" and m.bitmovinAdapterLib.loadStatus = "ready"
     m.adapter = CreateObject("roSGNode", "bitmovinPlayerAdapter:bitmovinAdapter")
-    m.top.appendChild(m.adapter)
     m.adapter.observeField("adapterReady", "onAdapterReady")
   end if
 end sub

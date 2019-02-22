@@ -12,8 +12,6 @@ sub onCoreLoaded()
     m.bitmovinAnalyticsCore = createObject("roSGNode", "core:Collector")
     m.bitmovinAnalyticsCore.id = "core"
 
-    m.top.appendChild(m.bitmovinAnalyticsCore)
-
     m.timer = CreateObject("roSGNode", "Timer")
     m.timer.duration = 10
     m.top.appendChild(m.timer)
@@ -52,7 +50,7 @@ end sub
 
 sub onThresholdReached()
   print "threshold reached"
-  'sendAnalyticsRequest()
+  sendAnalyticsRequest()
   m.timer.duration = 60
   m.timer.control = "start"
 end sub
