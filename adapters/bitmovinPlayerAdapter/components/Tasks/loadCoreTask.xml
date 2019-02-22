@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component extends="Task" name="loadCoreTask">
   <children>
-    <ComponentLibrary id="core" uri="http://192.168.1.48:8080/roku/analytics/core.zip" />
+    <ComponentLibrary id="core" uri="http://192.168.1.48:8080/roku/analytics/core.zip" />    
   </children>
 </component>

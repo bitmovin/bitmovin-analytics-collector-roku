@@ -1,10 +1,10 @@
 sub init()
   m.sample = setupSample()
   m.backendUrl = ""
+  m.analyticsRequest = m.top.findNode("AnalyticsRequest")
 end sub
 
 function setupSample()
-  print "D:"
   return {
     ad: 0,
     analyticsVersion: "",
@@ -133,3 +133,10 @@ end function
 function getVersion()
   'TODO'
 end function
+
+'sub sendAnalyticsRequest(data)
+sub sendAnalyticsRequest()
+  print "in sendAnalyticsRequest"
+  'm.sample.append(data)
+  m.analyticsRequest.callFunc("doLicensingRequest")
+end sub

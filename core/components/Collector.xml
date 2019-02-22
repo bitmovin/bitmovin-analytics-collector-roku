@@ -3,8 +3,8 @@
   <script type="text/brightscript" uri="pkg:/components/Collector.brs" />
   <script type="text/brightscript" uri="pkg:/source/enums/adapterEnums.brs" />
   <script type="text/brightscript" uri="pkg:/source/utils/uuidGenerator.brs" />
+
   <interface>
-    <function name="sendAnalyticsRequest" />
     <!--<function name="getPlayerInformationFromAdapter" /> replaced by setPlayerInformation-->
 
 
@@ -13,6 +13,7 @@
     <function name="createImpressionId" />
     <function name="getCurrentImpressionId" />
     <function name="getVersion" />
+    <function name="sendAnalyticsRequest" />  <!--unfinished-->
     <function name="setConfigParameters" />
     <function name="setCustomData" />
     <function name="setPlayerInformation" />

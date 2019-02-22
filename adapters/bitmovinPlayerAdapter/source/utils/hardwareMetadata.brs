@@ -1,4 +1,5 @@
 function getDeviceInfo()
-  'deviceInfo = createObject("roDeviceInfo")
-  'info = deviceInfo.
+  deviceInfo = createObject("roDeviceInfo")
+  print deviceInfo
+  return deviceInfo
 end function

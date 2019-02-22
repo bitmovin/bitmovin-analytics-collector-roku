@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="AnalyticsRequest" extends="Task" >
+  <script type="text/brightscript" uri="pkg:/components/tasks/AnalyticsRequest.brs" />
+  <interface>
+    <field id="url" type="string" />
+    <field id="response" type="string" />
+    <field id="data" type="assocarray" />
+    <function name="doLicensingRequest" />
+  </interface>
+</component>
