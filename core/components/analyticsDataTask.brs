@@ -1,4 +1,6 @@
 sub init()
+  m.tag = "[analyticsDataTask]"
+
   'HACK use hardcoded data'
   m.top.eventData = {
     ad: 0,
@@ -75,7 +77,7 @@ sub init()
     analyticsVersion : "0.1.0"
   }
   m.licensingResponse = {}
-  print "in analyticsRequest"
+  print m.tag; "in analyticsRequest"
   m.top.functionName = "execute"
   m.top.control = "RUN"
 end sub
@@ -84,34 +86,34 @@ sub execute()
   url = m.top.url
 
   http = createObject("roUrlTransfer")
-  http.SetCertificatesFile("common:/certs/ca-bundle.crt")
+  http.setCertificatesFile("common:/certs/ca-bundle.crt")
   port = createObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
-  http.AddHeader("Origin", "https://com.bitmovin.player.roku")
+  http.addHeader("Origin", "https://com.bitmovin.player.roku")
 
-  data = FormatJson(m.top.licensingData)
+  data = formatJson(m.top.licensingData)
 
-  if http.AsyncPostFromString(data)
+  if http.asyncPostFromString(data)
     msg = wait(0, port)
     if type(msg) = "roUrlEvent"
       if msg.getResponseCode() >= 200 and msg.getResponseCode() < 300
-        m.licensingResponse = ParseJson(msg.getString())
+        m.licensingResponse = parseJson(msg.getString())
         if m.licensingResponse.status = "granted"
           m.licensingState = m.licensingResponse.status
         end if
       else
-        print "analytics request failed: "; msg.getfailurereason();" "; msg.getresponsecode();" "; m.top.url
+        print m.tag; "Analytics request failed: "; msg.getfailurereason(); " "; msg.getresponsecode(); " "; m.top.url
         m.licensingResponse = {}
       end if
       http.asyncCancel()
     else if msg = invalid
-      print "analytics request failed"
+      print m.tag; "Analytics request failed"
       m.licensingResponse = {}
       http.asyncCancel()
     end if
   end if
-  print "response: "; m.licensingResponse
+  print m.tag; "response: "; m.licensingResponse
 
   if m.licensingState <> "granted"
     return
@@ -141,12 +143,12 @@ sub execute()
 end sub
 
 sub sendAnalyticsData()
-  print "in send Analytics data"
+  print m.tag; "in send Analytics data"
 
   url = "https://analytics-ingress-global.bitmovin.com/analytics"
 
   http = createObject("roUrlTransfer")
-  http.SetCertificatesFile("common:/certs/ca-bundle.crt")
+  http.setCertificatesFile("common:/certs/ca-bundle.crt")
   port = createObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
@@ -154,21 +156,21 @@ sub sendAnalyticsData()
 
   data = FormatJson(m.top.eventData)
 
-  if http.AsyncPostFromString(data)
+  if http.asyncPostFromString(data)
     msg = wait(0, port)
     if type(msg) = "roUrlEvent"
       if msg.getResponseCode() >= 200 and msg.getResponseCode() < 300
-        print "Event Data request successful"
+        print m.tag; "Event data request successful"
       else
-        print "Event Data request failed: "; msg.getfailurereason();" "; msg.getresponsecode();" "; url
-        'TODO handle retry'
+        print m.tag; "Event data request failed: "; msg.getfailurereason();" "; msg.getresponsecode();" "; url
+        ' TODO handle retry
       end if
       http.asyncCancel()
     else if msg = invalid
-      print "Event Data request failed"
+      print m.tag; "Event data request failed"
       http.asyncCancel()
     end if
   end if
 
-  m.timer.Mark()
+  m.timer.mark()
 end sub
