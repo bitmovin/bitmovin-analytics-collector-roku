@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component extends="Task" name="loadCoreTask">
+<component extends="task" name="loadCoreTask">
   <children>
-    <ComponentLibrary id="core" uri="https://bitmovin.com/files/player/core.zip" />    
+    <componentLibrary id="core" uri="https://bitmovin.com/files/player/core.zip"/>
   </children>
 </component>
