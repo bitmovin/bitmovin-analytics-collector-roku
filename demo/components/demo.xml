@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<component name="demo" extends="Scene" >
+<component name="demo" extends="scene" >
   <script type="text/brightscript" uri="pkg:/components/demo.brs" />
   <script type="text/brightscript" uri="pkg:/components/demoConfig.brs" />
 </component>
