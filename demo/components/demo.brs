@@ -5,7 +5,8 @@ function init()
 
   m.bitmovinAdapterLib = createObject("roSgNode", "componentLibrary")
   m.bitmovinAdapterLib.id = "bitmovinPlayerAdapter"
-  m.bitmovinAdapterLib.uri = "http://192.168.1.48:8080/roku/adapters/bitmovinPlayerAdapter.zip"
+  ' m.bitmovinAdapterLib.uri = "http://192.168.1.48:8080/roku/adapters/bitmovinPlayerAdapter.zip"
+  m.bitmovinAdapterLib.uri = "https://bitmovin.com/files/player/superadapter.zip"
   ' m.bitmovinAdapterLib.uri = "http://192.168.1.48:8080/roku/analytics/core.zip"
   ' m.bitmovinAdapterLib.uri = "https://cdn.bitmovin.com/player/roku/1/bitmovinPlayer.zip"
   m.top.appendChild(m.bitmovinAdapterLib)
