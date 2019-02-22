@@ -1,22 +1,22 @@
-Function GenerateGuid() As String
-    ' Ex. {5EF8541E-C9F7-CFCD-4BD4-036AF6C145DA}
-    Return "{" + GetRandomHexString(8) + "-" + GetRandomHexString(4) + "-" + "4" + GetRandomHexString(3) + "-" + GetRandomHexStringFourthByte(1) + GetRandomHexString(3) + "-" + GetRandomHexString(12) + "}"
-End Function
+function generateGuid() as string
+    ' Example {5EF8541E-C9F7-CFCD-4BD4-036AF6C145DA}
+    return "{" + getRandomHexString(8) + "-" + getRandomHexString(4) + "-" + "4" + getRandomHexString(3) + "-" + getRandomHexStringFourthByte(1) + getRandomHexString(3) + "-" + getRandomHexString(12) + "}"
+end function
 
-Function GetRandomHexString(length As Integer) As String
+function getRandomHexString(length as integer) as string
     hexChars = "0123456789ABCDEF"
     hexString = ""
-    For i = 1 to length
-        hexString = hexString + hexChars.Mid(Rnd(16) - 1, 1)
-    Next
-    Return hexString
-End Function
+    for i = 1 to length
+        hexString = hexString + hexChars.mid(rnd(16) - 1, 1)
+    next
+    return hexString
+end function
 
-Function GetRandomHexStringFourthByte(length As Integer) As String
+function getRandomHexStringFourthByte(length as integer) as string
     hexChars = "89AB"
     hexString = ""
-    For i = 1 to length
-        hexString = hexString + hexChars.Mid(Rnd(4) - 1, 1)
-    Next
-    Return hexString
-End Function
+    for i = 1 to length
+        hexString = hexString + hexChars.mid(rnd(4) - 1, 1)
+    next
+    return hexString
+end function
