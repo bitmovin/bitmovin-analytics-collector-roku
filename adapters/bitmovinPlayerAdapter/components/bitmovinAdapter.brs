@@ -12,11 +12,11 @@ sub onCoreLoaded()
     m.bitmovinAnalyticsCore = createObject("roSGNode", "core:Collector")
     m.bitmovinAnalyticsCore.id = "core"
 
-    m.timer = CreateObject("roSGNode", "Timer")
-    m.timer.duration = 10
-    m.top.appendChild(m.timer)
-    m.timer.observeField("fire", "onThresholdReached")
-    m.timer.control = "start"
+    ' m.timer = CreateObject("roSGNode", "Timer")
+    ' m.timer.duration = 10
+    ' m.top.appendChild(m.timer)
+    ' m.timer.observeField("fire", "onThresholdReached")
+    ' m.timer.control = "start"
 
     m.top.adapterReady = true
   end if
@@ -48,12 +48,12 @@ sub onPlayerStateChanged()
   end if
 end sub
 
-sub onThresholdReached()
-  print "threshold reached"
-  sendAnalyticsRequest()
-  m.timer.duration = 60
-  m.timer.control = "start"
-end sub
+' sub onThresholdReached()
+'   print "threshold reached"
+'   sendAnalyticsRequest()
+'   m.timer.duration = 60
+'   m.timer.control = "start"
+' end sub
 
 sub sendAnalyticsRequest()
   'collect all the necessary data here and call the cores method
