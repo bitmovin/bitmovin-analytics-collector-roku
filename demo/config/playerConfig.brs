@@ -1,4 +1,4 @@
-function getDemoConfig()
+function getPlayerConfig()
   return {
     playback: {
       autoplay: true,
