@@ -1,5 +1,5 @@
 homeLocation=`pwd`
-adapterLocation="${homeLocation}/adapters/bitmovinPlayerAdapter/"
+adapterLocation="${homeLocation}/bitmovinPlayerAdapter/"
 collectorCoreLocation="${homeLocation}/collectorCore/"
 lftpPass='' # TODO: insert password here
 
