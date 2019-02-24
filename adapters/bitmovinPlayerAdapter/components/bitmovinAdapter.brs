@@ -5,7 +5,6 @@ sub init()
   m.top.adapterReady = false
   m.config = getAdapterConfig()
 
-
   m.bitmovinAnalyticsCoreLib = createObject("roSgNode", "componentLibrary")
   m.bitmovinAnalyticsCoreLib.id = "core"
   m.bitmovinAnalyticsCoreLib.uri = m.config.dependencies.analyticsCoreLib
