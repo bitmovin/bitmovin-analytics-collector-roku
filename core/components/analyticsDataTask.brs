@@ -25,7 +25,7 @@ sub init()
     ' errorCode: "",
     ' errorMessage: "",
     experimentName: "HACKATHON",
-    impressionId: "7c16cab6-f263-43b7-8001-256256be12e6",
+    impressionId: generateGuid(),
     isCasting: false,
     isLive: false,
     isMuted: false,

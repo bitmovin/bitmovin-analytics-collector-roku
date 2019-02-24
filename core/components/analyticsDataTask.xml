@@ -2,6 +2,7 @@
 <component name="analyticsDataTask" extends="Task">
   <script type="text/brightscript" uri="pkg:/components/analyticsDataTask.brs"/>
   <script type="text/brightscript" uri="pkg:/config/collectorConfig.brs"/>
+  <script type="text/brightscript" uri="pkg:/source/utils/uuidGenerator.brs"/>
   <interface>
     <field id="url" type="string"/>
     <field id="licensingData" type="assocarray"/>
