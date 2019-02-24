@@ -2,8 +2,8 @@
 <component name="bitmovinAdapter" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/bitmovinAdapter.brs"/>
   <script type="text/brightscript" uri="pkg:/source/utils/hardwareMetadata.brs"/>
+  <script type="text/brightscript" uri="pkg:/config/adapterConfig.brs"/>
   <children>
-    <loadCoreTask id="loadCoreTask"/>
   </children>
   <interface>
     <field id="adapterReady" type="bool"/>

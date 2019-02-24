@@ -3,13 +3,22 @@ sub init()
   m.previousState = ""
   m.player = invalid
   m.top.adapterReady = false
-  m.top.findNode("loadCoreTask").findNode("core").observeField("loadStatus", "onCoreLoaded")
-  print m.tag; m.top.findNode("loadCoreTask").findNode("core").loadStatus
+  m.config = getAdapterConfig()
+
+
+  m.bitmovinAnalyticsCoreLib = createObject("roSgNode", "componentLibrary")
+  m.bitmovinAnalyticsCoreLib.id = "core"
+  m.bitmovinAnalyticsCoreLib.uri = m.config.dependencies.analyticsCoreLib
+  m.bitmovinAnalyticsCoreLib.observeField("loadStatus", "onCoreLoaded")
+
+  m.coreLoadingTask = createObject("roSgNode", "Task")
+  m.coreLoadingTask.appendChild(m.bitmovinAnalyticsCoreLib)
+  m.top.appendChild(m.coreLoadingTask)
 end sub
 
 sub onCoreLoaded()
-  print m.tag; "Load status for the analytics core: "; m.top.findNode("loadCoreTask").findNode("core").loadStatus
-  if m.top.findNode("loadCoreTask").findNode("core").loadStatus = "ready"
+  print m.tag; "Load status for the analytics core: "; m.bitmovinAnalyticsCoreLib.loadStatus
+  if m.bitmovinAnalyticsCoreLib.loadStatus = "ready"
     m.bitmovinAnalyticsCore = createObject("roSgNode", "core:Collector")
     m.bitmovinAnalyticsCore.id = "core"
 
