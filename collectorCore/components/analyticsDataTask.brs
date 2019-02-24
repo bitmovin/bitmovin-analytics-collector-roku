@@ -1,6 +1,6 @@
 sub init()
   m.tag = "[analyticsDataTask]"
-  m.config = getCollectorConfig()
+  m.config = getCollectorCoreConfig()
 
   ' HACK use hardcoded data
   m.top.eventData = {

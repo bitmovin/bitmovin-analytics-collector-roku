@@ -1,7 +1,7 @@
 function getAdapterConfig()
   return {
     dependencies: {
-      analyticsCoreLib: "https://bitmovin.com/files/player/supercore.zip"
+      collectorCoreLib: "https://bitmovin.com/files/player/collectorCore.zip"
     }
   }
 end function

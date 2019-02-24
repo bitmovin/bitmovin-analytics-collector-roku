@@ -5,21 +5,21 @@ sub init()
   m.top.adapterReady = false
   m.config = getAdapterConfig()
 
-  m.bitmovinAnalyticsCoreLib = createObject("roSgNode", "componentLibrary")
-  m.bitmovinAnalyticsCoreLib.id = "core"
-  m.bitmovinAnalyticsCoreLib.uri = m.config.dependencies.analyticsCoreLib
-  m.bitmovinAnalyticsCoreLib.observeField("loadStatus", "onCoreLoaded")
+  m.collectorCoreLib = createObject("roSgNode", "componentLibrary")
+  m.collectorCoreLib.id = "collectorCoreLib"
+  m.collectorCoreLib.uri = m.config.dependencies.collectorCoreLib
+  m.collectorCoreLib.observeField("loadStatus", "onCollectorCoreLoaded")
 
-  m.coreLoadingTask = createObject("roSgNode", "Task")
-  m.coreLoadingTask.appendChild(m.bitmovinAnalyticsCoreLib)
-  m.top.appendChild(m.coreLoadingTask)
+  m.collectorCoreLoadingTask = createObject("roSgNode", "Task")
+  m.collectorCoreLoadingTask.appendChild(m.collectorCoreLib)
+  m.top.appendChild(m.collectorCoreLoadingTask)
 end sub
 
-sub onCoreLoaded()
-  print m.tag; "Load status for the analytics core: "; m.bitmovinAnalyticsCoreLib.loadStatus
-  if m.bitmovinAnalyticsCoreLib.loadStatus = "ready"
-    m.bitmovinAnalyticsCore = createObject("roSgNode", "core:Collector")
-    m.bitmovinAnalyticsCore.id = "core"
+sub onCollectorCoreLoaded()
+  print m.tag; "Load status for the collector core: "; m.collectorCoreLib.loadStatus
+  if m.collectorCoreLib.loadStatus = "ready"
+    m.collectorCore = createObject("roSgNode", "collectorCoreLib:collectorCore")
+    m.collectorCore.id = "collectorCore"
 
     ' m.timer = createObject("roSgNode", "timer")
     ' m.timer.duration = 10
@@ -65,8 +65,8 @@ end sub
 ' end sub
 
 sub sendAnalyticsRequest()
-  ' Collect all the necessary data here and call the core's method
-  ' m.bitmovinAnalyticsCore.callFunc("sendAnalyticsRequest", data)
+  ' Collect all the necessary data here and call the collector core's method
+  ' m.collectorCore.callFunc("sendAnalyticsRequest", data)
 
-  m.bitmovinAnalyticsCore.callFunc("sendAnalyticsRequest")
+  m.collectorCore.callFunc("sendAnalyticsRequest")
 end sub

@@ -1,4 +1,4 @@
-function getCollectorConfig()
+function getCollectorCoreConfig()
   return {
     serviceEndpoints: {
       analyticsData:  "https://analytics-ingress-global.bitmovin.com/analytics"
