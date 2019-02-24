@@ -7,6 +7,8 @@
   </children>
   <interface>
     <field id="adapterReady" type="bool"/>
+    <field id="optionalAnalyticsData" type="assocarray"/>
+
     <function name="initializePlayer"/>
   </interface>
 </component>
