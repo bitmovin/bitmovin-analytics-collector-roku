@@ -1,5 +1,5 @@
 function init()
-  m.tag = "[demo]"
+  m.tag = "[demo] "
 
   m.config = getDemoConfig()
   m.playerConfig = getPlayerConfig()
