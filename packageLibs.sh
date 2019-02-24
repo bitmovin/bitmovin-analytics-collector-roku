@@ -1,5 +1,5 @@
 homeLocation=`pwd`
-adapterLocation="${homeLocation}/bitmovinPlayerAdapter/"
+bitmovinCollectorLocation="${homeLocation}/bitmovinPlayerCollector/"
 collectorCoreLocation="${homeLocation}/collectorCore/"
 lftpPass='' # TODO: insert password here
 
@@ -32,5 +32,5 @@ packageAndUploadLibrary () {
     uploadLibrary $2
 }
 
-packageAndUploadLibrary "$adapterLocation" "adapter"
+packageAndUploadLibrary "$bitmovinCollectorLocation" "bitmovinPlayerCollector"
 packageAndUploadLibrary "$collectorCoreLocation" "collectorCore"

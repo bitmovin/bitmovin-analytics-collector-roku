@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="bitmovinAdapter" extends="Group">
-  <script type="text/brightscript" uri="pkg:/components/bitmovinAdapter.brs"/>
+<component name="bitmovinPlayerCollector" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/bitmovinPlayerCollector.brs"/>
   <script type="text/brightscript" uri="pkg:/source/utils/hardwareMetadata.brs"/>
-  <script type="text/brightscript" uri="pkg:/config/adapterConfig.brs"/>
+  <script type="text/brightscript" uri="pkg:/config/collectorConfig.brs"/>
   <children>
   </children>
   <interface>
-    <field id="adapterReady" type="bool"/>
+    <field id="collectorReady" type="bool"/>
     <field id="optionalAnalyticsData" type="assocarray"/>
-
     <function name="initializePlayer"/>
   </interface>
 </component>

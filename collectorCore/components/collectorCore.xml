@@ -6,7 +6,6 @@
     <analyticsDataTask id="analyticsDataTask"/>
   </children>
   <interface>
-    <!--<function name="getPlayerInformationFromAdapter" /> replaced by setPlayerInformation-->
     <function name="clearValues"/>
     <function name="createBackend"/> <!-- unfinished -->
     <function name="createImpressionId"/>

@@ -1,9 +1,9 @@
 sub init()
-  m.tag = "[bitmovinAdapter]"
+  m.tag = "[bitmovinPlayerCollector]"
   m.previousState = ""
   m.player = invalid
-  m.top.adapterReady = false
-  m.config = getAdapterConfig()
+  m.top.collectorReady = false
+  m.config = getCollectorConfig()
 
   m.collectorCoreLib = createObject("roSgNode", "componentLibrary")
   m.collectorCoreLib.id = "collectorCoreLib"
@@ -27,7 +27,7 @@ sub onCollectorCoreLoaded()
     ' m.timer.observeField("fire", "onThresholdReached")
     ' m.timer.control = "start"
 
-    m.top.adapterReady = true
+    m.top.collectorReady = true
   end if
 end sub
 
@@ -39,21 +39,21 @@ end sub
 sub onPlayerStateChanged()
   if m.player.playerState = "playing"
     appInfo = createObject("roAppInfo")
-    print m.tag; "Adapter event caught "; m.player.playerState
+    print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "stalling"
-    print m.tag; "Adapter event caught "; m.player.playerState
+    print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "paused"
-    print m.tag; "Adapter event caught "; m.player.playerState
+    print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "finished"
-    print m.tag; "Adapter event caught "; m.player.playerState
+    print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "error"
-    print m.tag; "Adapter event caught "; m.player.playerState
+    print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "none"
-    print m.tag; "Adapter event caught "; m.player.playerState
+    print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "setup"
-    print m.tag; "Adapter event caught "; m.player.playerState
+    print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "ready"
-    print m.tag; "Adapter event caught "; m.player.playerState
+    print m.tag; "Player event caught "; m.player.playerState
   end if
 end sub
 

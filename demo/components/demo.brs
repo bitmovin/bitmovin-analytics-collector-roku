@@ -5,11 +5,11 @@ function init()
   m.analyticsConfig = getAnalyticsConfig()
   m.playerConfig = getPlayerConfig()
 
-  m.bitmovinAdapterLib = createObject("roSgNode", "componentLibrary")
-  m.bitmovinAdapterLib.id = "bitmovinPlayerAdapter"
-  m.bitmovinAdapterLib.uri = m.config.dependencies.analyticsLib
-  m.top.appendChild(m.bitmovinAdapterLib)
-  m.bitmovinAdapterLib.observeField("loadStatus", "onLoadStatusChanged")
+  m.bitmovinPlayerCollectorLib = createObject("roSgNode", "componentLibrary")
+  m.bitmovinPlayerCollectorLib.id = "bitmovinPlayerCollectorLib"
+  m.bitmovinPlayerCollectorLib.uri = m.config.dependencies.analyticsLib
+  m.top.appendChild(m.bitmovinPlayerCollectorLib)
+  m.bitmovinPlayerCollectorLib.observeField("loadStatus", "onLoadStatusChanged")
 
   m.bitmovinPlayerSDK = createObject("roSgNode", "componentLibrary")
   m.bitmovinPlayerSDK.id = "bitmovinPlayerSDK"
@@ -19,17 +19,17 @@ function init()
 end function
 
 sub onLoadStatusChanged()
-  print m.tag; "Load status for Adapter: "; m.bitmovinAdapterLib.loadStatus
+  print m.tag; "Load status for Collector: "; m.bitmovinPlayerCollectorLib.loadStatus
   print m.tag; "Load status for Player: "; m.bitmovinPlayerSDK.loadStatus
-  if m.bitmovinPlayerSDK.loadStatus = "ready" and m.bitmovinAdapterLib.loadStatus = "ready"
-    m.adapter = createObject("roSgNode", "bitmovinPlayerAdapter:bitmovinAdapter")
-    m.adapter.observeField("adapterReady", "onAdapterReady")
+  if m.bitmovinPlayerSDK.loadStatus = "ready" and m.bitmovinPlayerCollectorLib.loadStatus = "ready"
+    m.collector = createObject("roSgNode", "bitmovinPlayerCollectorLib:bitmovinPlayerCollector")
+    m.collector.observeField("collectorReady", "onCollectorReady")
   end if
 end sub
 
-sub onAdapterReady()
-  print m.tag; "Adapter status: "; m.adapter.adapterReady
-  if m.adapter.adapterReady = true
+sub onCollectorReady()
+  print m.tag; "Collector status: "; m.collector.collectorReady
+  if m.collector.collectorReady = true
     m.bitmovinPlayer = createObject("roSgNode", "bitmovinPlayerSdk:bitmovinPlayer")
     m.top.appendChild(m.bitmovinPlayer)
     m.bitmovinFunctions = m.bitmovinPlayer.bitmovinFunctions
@@ -38,8 +38,8 @@ sub onAdapterReady()
     ' m.bitmovinPlayer.observeField(m.bitmovinFields.WARNING, "catchVideoWarning")
     ' m.bitmovinPlayer.observeField(m.bitmovinFields.SEEK, "onSeek")
     ' m.bitmovinPlayer.observeField(m.bitmovinFields.SEEKED, "onSeeked")
-    m.adapter.callFunc("initializePlayer", m.bitmovinPlayer)
-    m.adapter.optionalAnalyticsData = m.analyticsConfig
+    m.collector.callFunc("initializePlayer", m.bitmovinPlayer)
+    m.collector.optionalAnalyticsData = m.analyticsConfig
     m.bitmovinPlayer.callFunc(m.bitmovinFunctions.setup, m.playerConfig)
   end if
 end sub
