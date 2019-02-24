@@ -70,7 +70,7 @@ sub init()
   }
   m.licensingState = m.top.findNode("licensingState")
   m.timer = createObject("roTimespan")
-  m.top.url = m.config.url.analyticsLicense
+  m.top.url = m.config.serviceEndpoints.analyticsLicense
   m.top.licensingData = {
     key : "d1a494b6-cbc2-4ba1-9218-f6d5e29f7cc1",
     domain : "com.bitmovin.player.roku",
@@ -145,7 +145,7 @@ end sub
 sub sendAnalyticsData()
   print m.tag; "In sendAnalyticsData()"
 
-  url = m.config.url.analyticsData
+  url = m.config.serviceEndpoints.analyticsData
 
   http = createObject("roUrlTransfer")
   http.SetCertificatesFile("common:/certs/ca-bundle.crt")
