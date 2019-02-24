@@ -53,7 +53,6 @@ sub init()
     state: "",
     streamFormat: "",
     time: 0,
-    title: "tears_of_steel",
     userAgent: "",
     userId: "",
     version: "",
@@ -65,7 +64,7 @@ sub init()
     videoStartupTime: 1,
     videoTimeEnd: 0,
     videoTimeStart: 0,
-    videoTitle: "",
+    videoTitle: "Tears of Steel",
     videoWindowHeight: 0,
     videoWindowWidth: 0
   }
