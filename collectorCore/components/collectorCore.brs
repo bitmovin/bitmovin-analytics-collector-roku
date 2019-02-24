@@ -1,6 +1,5 @@
 sub init()
   m.sample = setupSample()
-  m.backendUrl = ""
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
 end sub
 
@@ -100,7 +99,6 @@ end sub
 
 ' TODO: Add option for optional fields as well as error handling
 sub setConfigParameters(config)
-  m.backendUrl = config.backendUrl
   m.sample.key = config.key
   m.sample.playerKey = config.playerKey
   m.sample.player = config.player
