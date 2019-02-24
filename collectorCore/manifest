@@ -4,5 +4,5 @@ major_version=0
 minor_version=1
 build_version=0
 
-sg_component_libs_provided=collectorCore
+sg_component_libs_provided=collectorCoreLib
 hidden=1

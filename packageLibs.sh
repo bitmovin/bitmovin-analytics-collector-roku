@@ -1,6 +1,6 @@
 homeLocation=`pwd`
 adapterLocation="${homeLocation}/adapters/bitmovinPlayerAdapter/"
-collectorLocation="${homeLocation}/collector/"
+collectorCoreLocation="${homeLocation}/collectorCore/"
 lftpPass='' # TODO: insert password here
 
 # param 1: root directory of the library which should be packaged
@@ -33,4 +33,4 @@ packageAndUploadLibrary () {
 }
 
 packageAndUploadLibrary "$adapterLocation" "adapter"
-packageAndUploadLibrary "$collectorLocation" "collector"
+packageAndUploadLibrary "$collectorCoreLocation" "collectorCore"
