@@ -6,13 +6,13 @@ function init()
 
   m.bitmovinAdapterLib = createObject("roSgNode", "componentLibrary")
   m.bitmovinAdapterLib.id = "bitmovinPlayerAdapter"
-  m.bitmovinAdapterLib.uri = m.config.uri.bitmovinAdapterLib
+  m.bitmovinAdapterLib.uri = m.config.uri.analyticsLib
   m.top.appendChild(m.bitmovinAdapterLib)
   m.bitmovinAdapterLib.observeField("loadStatus", "onLoadStatusChanged")
 
   m.bitmovinPlayerSDK = createObject("roSgNode", "componentLibrary")
   m.bitmovinPlayerSDK.id = "bitmovinPlayerSDK"
-  m.bitmovinPLayerSDK.uri = m.config.uri.bitmovinPlayerSDK
+  m.bitmovinPLayerSDK.uri = m.config.uri.playerLib
   m.top.appendChild(m.bitmovinPlayerSDK)
   m.bitmovinPlayerSDK.observeField("loadStatus", "onLoadStatusChanged")
 end function
