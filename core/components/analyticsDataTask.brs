@@ -143,7 +143,7 @@ sub execute()
 end sub
 
 sub sendAnalyticsData()
-  print m.tag; "in send Analytics data"
+  print m.tag; "In sendAnalyticsData()"
 
   url = "https://analytics-ingress-global.bitmovin.com/analytics"
 
