@@ -77,7 +77,7 @@ sub init()
     analyticsVersion : "0.1.0"
   }
   m.licensingResponse = {}
-  print m.tag; "in analyticsRequest"
+  print m.tag; "In analyticsRequest()"
   m.top.functionName = "execute"
   m.top.control = "RUN"
 end sub
