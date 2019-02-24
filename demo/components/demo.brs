@@ -2,6 +2,7 @@ function init()
   m.tag = "[demo] "
 
   m.config = getDemoConfig()
+  m.analyticsConfig = getAnalyticsConfig()
   m.playerConfig = getPlayerConfig()
 
   m.bitmovinAdapterLib = createObject("roSgNode", "componentLibrary")
@@ -38,6 +39,7 @@ sub onAdapterReady()
     ' m.bitmovinPlayer.observeField(m.bitmovinFields.SEEK, "onSeek")
     ' m.bitmovinPlayer.observeField(m.bitmovinFields.SEEKED, "onSeeked")
     m.adapter.callFunc("initializePlayer", m.bitmovinPlayer)
+    m.adapter.optionalAnalyticsData = m.analyticsConfig
     m.bitmovinPlayer.callFunc(m.bitmovinFunctions.setup, m.playerConfig)
   end if
 end sub
