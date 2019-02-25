@@ -69,7 +69,7 @@ sub init()
     videoWindowWidth: 0
   }
   m.licensingState = m.top.findNode("licensingState")
-  m.timer = createObject("roTimespan")
+  m.timer = CreateObject("roTimespan")
   m.top.url = m.config.serviceEndpoints.analyticsLicense
   m.top.licensingData = {
     key : "d1a494b6-cbc2-4ba1-9218-f6d5e29f7cc1",
@@ -85,9 +85,9 @@ end sub
 sub execute()
   url = m.top.url
 
-  http = createObject("roUrlTransfer")
+  http = CreateObject("roUrlTransfer")
   http.setCertificatesFile("common:/certs/ca-bundle.crt")
-  port = createObject("roMessagePort")
+  port = CreateObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
   http.addHeader("Origin", "https://com.bitmovin.player.roku")
@@ -147,9 +147,9 @@ sub sendAnalyticsData()
 
   url = m.config.serviceEndpoints.analyticsData
 
-  http = createObject("roUrlTransfer")
+  http = CreateObject("roUrlTransfer")
   http.SetCertificatesFile("common:/certs/ca-bundle.crt")
-  port = createObject("roMessagePort")
+  port = CreateObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
   http.AddHeader("Origin", "https://com.bitmovin.player.roku")

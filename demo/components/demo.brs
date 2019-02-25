@@ -5,13 +5,13 @@ function init()
   m.analyticsConfig = getAnalyticsConfig()
   m.playerConfig = getPlayerConfig()
 
-  m.bitmovinPlayerCollectorLib = createObject("roSgNode", "componentLibrary")
+  m.bitmovinPlayerCollectorLib = CreateObject("roSgNode", "componentLibrary")
   m.bitmovinPlayerCollectorLib.id = "bitmovinPlayerCollectorLib"
   m.bitmovinPlayerCollectorLib.uri = m.config.dependencies.analyticsLib
   m.top.appendChild(m.bitmovinPlayerCollectorLib)
   m.bitmovinPlayerCollectorLib.observeField("loadStatus", "onLoadStatusChanged")
 
-  m.bitmovinPlayerSDK = createObject("roSgNode", "componentLibrary")
+  m.bitmovinPlayerSDK = CreateObject("roSgNode", "componentLibrary")
   m.bitmovinPlayerSDK.id = "bitmovinPlayerSDK"
   m.bitmovinPLayerSDK.uri = m.config.dependencies.playerLib
   m.top.appendChild(m.bitmovinPlayerSDK)
@@ -22,7 +22,7 @@ sub onLoadStatusChanged()
   print m.tag; "Load status for Collector: "; m.bitmovinPlayerCollectorLib.loadStatus
   print m.tag; "Load status for Player: "; m.bitmovinPlayerSDK.loadStatus
   if m.bitmovinPlayerSDK.loadStatus = "ready" and m.bitmovinPlayerCollectorLib.loadStatus = "ready"
-    m.collector = createObject("roSgNode", "bitmovinPlayerCollectorLib:bitmovinPlayerCollector")
+    m.collector = CreateObject("roSgNode", "bitmovinPlayerCollectorLib:bitmovinPlayerCollector")
     m.collector.observeField("collectorReady", "onCollectorReady")
   end if
 end sub
@@ -30,7 +30,7 @@ end sub
 sub onCollectorReady()
   print m.tag; "Collector status: "; m.collector.collectorReady
   if m.collector.collectorReady = true
-    m.bitmovinPlayer = createObject("roSgNode", "bitmovinPlayerSdk:bitmovinPlayer")
+    m.bitmovinPlayer = CreateObject("roSgNode", "bitmovinPlayerSdk:bitmovinPlayer")
     m.top.appendChild(m.bitmovinPlayer)
     m.bitmovinFunctions = m.bitmovinPlayer.bitmovinFunctions
     m.bitmovinFields = m.bitmovinPlayer.bitmovinFields

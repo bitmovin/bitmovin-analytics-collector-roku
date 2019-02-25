@@ -5,12 +5,12 @@ sub init()
   m.top.collectorReady = false
   m.config = getCollectorConfig()
 
-  m.collectorCoreLib = createObject("roSgNode", "componentLibrary")
+  m.collectorCoreLib = CreateObject("roSgNode", "componentLibrary")
   m.collectorCoreLib.id = "collectorCoreLib"
   m.collectorCoreLib.uri = m.config.dependencies.collectorCoreLib
   m.collectorCoreLib.observeField("loadStatus", "onCollectorCoreLoaded")
 
-  m.collectorCoreLoadingTask = createObject("roSgNode", "Task")
+  m.collectorCoreLoadingTask = CreateObject("roSgNode", "Task")
   m.collectorCoreLoadingTask.appendChild(m.collectorCoreLib)
   m.top.appendChild(m.collectorCoreLoadingTask)
 end sub
@@ -18,10 +18,10 @@ end sub
 sub onCollectorCoreLoaded()
   print m.tag; "Load status for the collector core: "; m.collectorCoreLib.loadStatus
   if m.collectorCoreLib.loadStatus = "ready"
-    m.collectorCore = createObject("roSgNode", "collectorCoreLib:collectorCore")
+    m.collectorCore = CreateObject("roSgNode", "collectorCoreLib:collectorCore")
     m.collectorCore.id = "collectorCore"
 
-    ' m.timer = createObject("roSgNode", "timer")
+    ' m.timer = CreateObject("roSgNode", "timer")
     ' m.timer.duration = 10
     ' m.top.appendChild(m.timer)
     ' m.timer.observeField("fire", "onThresholdReached")
@@ -50,7 +50,7 @@ end sub
 
 sub onPlayerStateChanged()
   if m.player.playerState = "playing"
-    appInfo = createObject("roAppInfo")
+    appInfo = CreateObject("roAppInfo")
     print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "stalling"
     print m.tag; "Player event caught "; m.player.playerState

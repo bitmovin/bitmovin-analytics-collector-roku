@@ -1,6 +1,6 @@
 sub main()
-  m.port = createObject("roMessagePort")
-	screen = createObject("roSgScreen")
+  m.port = CreateObject("roMessagePort")
+	screen = CreateObject("roSgScreen")
 	screen.setMessagePort(m.port)
 	scene = screen.createScene("demo")
 	screen.show()
