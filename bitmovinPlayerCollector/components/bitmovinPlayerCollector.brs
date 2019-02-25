@@ -35,6 +35,7 @@ sub initializePlayer(player)
   m.previousState = ""
   m.currentState = "setup"
   m.player.observeField("playerState", "onPlayerStateChanged")
+  m.currentTimestamp = getCurrentTimeInSeconds()
   updatePlayerData()
 end sub
 
@@ -70,6 +71,17 @@ sub onPlayerStateChanged()
   else if m.player.playerState = "ready"
     ' print m.tag; "Player event caught "; m.player.playerState
   end if
+
+  m.previousTimestamp = m.currentTimestamp
+  m.currentTimestamp = getCurrentTimeInSeconds()
+
+  ' TODO: update sample with values in ms
+  m.collectorCore.callFunc("updateSample", {
+  duration: (m.currentTimestamp - m.previousTimestamp).ToStr() + "000",
+  state: m.previousState,
+  time: m.currentTimestamp.ToStr() + "000"
+  })
+
 end sub
 
 ' sub onThresholdReached()

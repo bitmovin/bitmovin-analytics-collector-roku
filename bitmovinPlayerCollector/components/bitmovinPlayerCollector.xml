@@ -2,6 +2,7 @@
 <component name="bitmovinPlayerCollector" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/bitmovinPlayerCollector.brs"/>
   <script type="text/brightscript" uri="pkg:/config/collectorConfig.brs"/>
+  <script type="text/brightscript" uri="pkg:/source/utils.brs"/>
   <children>
   </children>
   <interface>
