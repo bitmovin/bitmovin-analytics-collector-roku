@@ -34,6 +34,18 @@ end sub
 sub initializePlayer(player)
   m.player = player
   m.player.observeField("playerState", "onPlayerStateChanged")
+
+  updatePlayerData()
+end sub
+
+sub updatePlayerData()
+  m.collectorCore.callFunc("updateSample", {
+    player: "Bitmovin", 
+    autoplay: "false", ' TODO: read from player
+    playerKey: "7e9c8483-ea84-423e-b675-19cf31dec43a", ' TODO: read from player
+    playerTech: "native",
+    version: "1.1.0" ' TODO: read from player
+  })
 end sub
 
 sub onPlayerStateChanged()
