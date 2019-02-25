@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="bitmovinPlayerCollector" extends="Group">
   <script type="text/brightscript" uri="pkg:/components/bitmovinPlayerCollector.brs"/>
-  <script type="text/brightscript" uri="pkg:/source/utils/hardwareMetadata.brs"/>
   <script type="text/brightscript" uri="pkg:/config/collectorConfig.brs"/>
   <children>
   </children>
