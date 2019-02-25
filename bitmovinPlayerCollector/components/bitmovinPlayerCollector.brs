@@ -1,5 +1,4 @@
 sub init()
-  m.previousState = ""
   m.tag = "[bitmovinPlayerCollector] "
   m.player = invalid
   m.top.collectorReady = false
@@ -33,8 +32,9 @@ end sub
 
 sub initializePlayer(player)
   m.player = player
+  m.previousState = ""
+  m.currentState = "setup"
   m.player.observeField("playerState", "onPlayerStateChanged")
-
   updatePlayerData()
 end sub
 
@@ -49,23 +49,26 @@ sub updatePlayerData()
 end sub
 
 sub onPlayerStateChanged()
+  m.previousState = m.currentState
+  m.currentState = m.player.playerState
+  print m.tag; "State change: "; m.previousState; " --> "; m.currentState
+
   if m.player.playerState = "playing"
-    appInfo = CreateObject("roAppInfo")
-    print m.tag; "Player event caught "; m.player.playerState
+    ' print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "stalling"
-    print m.tag; "Player event caught "; m.player.playerState
+    ' print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "paused"
-    print m.tag; "Player event caught "; m.player.playerState
+    ' print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "finished"
-    print m.tag; "Player event caught "; m.player.playerState
+    ' print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "error"
-    print m.tag; "Player event caught "; m.player.playerState
+    ' print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "none"
-    print m.tag; "Player event caught "; m.player.playerState
+    ' print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "setup"
-    print m.tag; "Player event caught "; m.player.playerState
+    ' print m.tag; "Player event caught "; m.player.playerState
   else if m.player.playerState = "ready"
-    print m.tag; "Player event caught "; m.player.playerState
+    ' print m.tag; "Player event caught "; m.player.playerState
   end if
 end sub
 
