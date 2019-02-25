@@ -6,16 +6,10 @@
     <analyticsDataTask id="analyticsDataTask"/>
   </children>
   <interface>
-    <function name="clearValues"/>
-    <function name="createBackend"/> <!-- unfinished -->
     <function name="createImpressionId"/>
     <function name="getCurrentImpressionId"/>
     <function name="getVersion"/>
-    <function name="sendAnalyticsRequest"/>  <!--unfinished-->
-    <function name="setConfigParameters"/>
-    <function name="setCustomData"/>
-    <function name="setPlayerInformation"/>
-    <function name="setState"/>
-    <function name="setupSample"/>
+    <function name="updateSample"/>
+    <function name="sendAnalyticsRequest"/>
   </interface>
 </component>

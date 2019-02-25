@@ -1,5 +1,6 @@
 sub init()
-  m.sample = setupSample()
+  m.version = "0.1.0"
+  clearSample()
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
 end sub
 
@@ -70,66 +71,46 @@ function setupSample()
   }
 end function
 
-
 sub clearSample()
-  m.sample.ad = 0
-  m.sample.paused = 0
-  m.sample.played = 0
-  m.sample.seeked = 0
-  m.sample.buffered = 0
-  m.sample.playerStartupTime = 0
-  m.sample.videoStartupTime = 0
-  m.sample.startupTime = 0
-  m.sample.duration = 0
-  m.sample.droppedFrames = 0
-  m.sample.drmType = invalid
-  m.sample.drmLoadTime = invalid
+  m.sample = createSample()
+  updateChannelInfo()
+  updateDeviceInfo()
 end sub
 
-sub createImpressionId()
- m.sample.impressionId = lcase(generateGuid())
+sub updateChannelInfo()
+  appInfo = CreateObject("roAppInfo")
+  m.sample.domain = appInfo.GetID()
 end sub
 
-' TODO: Error handling if the keys are invalid. Accepted ones are custom data 1 to 5 and experimentName
-sub setCustomData(values)
-  for each v in values
-    m.sample.append(values)
-  end for
+sub updateDeviceInfo()
+  deviceInfo = CreateObject("roDeviceInfo")
+  m.sample.userAgent = "roku-" + deviceInfo.GetModel() + "-" + deviceInfo.GetVersion()
+  m.sample.screenHeight = deviceInfo.GetDisplaySize().h
+  m.sample.screenWidth = deviceInfo.GetDisplaySize().w
 end sub
 
-' TODO: Add option for optional fields as well as error handling
-sub setConfigParameters(config)
-  m.sample.key = config.key
-  m.sample.playerKey = config.playerKey
-  m.sample.player = config.player
+sub updateVersion()
+  m.sample.analyticsVersion = m.version
 end sub
+
+function getVersion()
+  return m.version
+end function
+
+function createImpressionId()
+  return lcase(generateGuid())
+end function
 
 function getCurrentImpressionId()
   return m.sample.impressionId
 end function
 
-function setDuration(duration)
-  m.sample.duration = duration
-end function
-
-function setState(state)
-  m.sample.state = state
-end function
-
-' TODO
-function createBackend()
-end function
-
-function setPlayerInformation(values)
-  ' TODO
+' TODO: Error handling if the keys are invalid
+sub updateSample(values)
   for each v in values
     m.sample.append(values)
   end for
-end function
-
-function getVersion()
-  ' TODO
-end function
+end sub
 
 ' sub sendAnalyticsRequest(data)
 sub sendAnalyticsRequest()
