@@ -1,6 +1,6 @@
 sub init()
-  m.tag = "[bitmovinPlayerCollector]"
   m.previousState = ""
+  m.tag = "[bitmovinPlayerCollector] "
   m.player = invalid
   m.top.collectorReady = false
   m.config = getCollectorConfig()

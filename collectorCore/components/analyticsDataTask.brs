@@ -1,5 +1,5 @@
 sub init()
-  m.tag = "[analyticsDataTask]"
+  m.tag = "[analyticsDataTask] "
   m.config = getCollectorCoreConfig()
 
   ' HACK use hardcoded data
