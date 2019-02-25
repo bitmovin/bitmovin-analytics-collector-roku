@@ -4,7 +4,7 @@ sub init()
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
 end sub
 
-function setupSample()
+function createSample()
   return {
     ad: 0,
     analyticsVersion: "",
