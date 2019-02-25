@@ -19,8 +19,8 @@ function init()
 end function
 
 sub onLoadStatusChanged()
-  print m.tag; "Load status for Collector: "; m.bitmovinPlayerCollectorLib.loadStatus
-  print m.tag; "Load status for Player: "; m.bitmovinPlayerSDK.loadStatus
+  print m.tag; "Load status for collector: "; m.bitmovinPlayerCollectorLib.loadStatus
+  print m.tag; "Load status for player: "; m.bitmovinPlayerSDK.loadStatus
   if m.bitmovinPlayerSDK.loadStatus = "ready" and m.bitmovinPlayerCollectorLib.loadStatus = "ready"
     m.collector = CreateObject("roSgNode", "bitmovinPlayerCollectorLib:bitmovinPlayerCollector")
     m.collector.observeField("collectorReady", "onCollectorReady")

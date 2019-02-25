@@ -15,7 +15,7 @@ sub init()
 end sub
 
 sub onCollectorCoreLoaded()
-  print m.tag; "Load status for the collector core: "; m.collectorCoreLib.loadStatus
+  print m.tag; "Load status for collector core: "; m.collectorCoreLib.loadStatus
   if m.collectorCoreLib.loadStatus = "ready"
     m.collectorCore = CreateObject("roSgNode", "collectorCoreLib:collectorCore")
     m.collectorCore.id = "collectorCore"
@@ -40,7 +40,7 @@ end sub
 
 sub updatePlayerData()
   m.collectorCore.callFunc("updateSample", {
-    player: "Bitmovin", 
+    player: "Bitmovin",
     autoplay: "false", ' TODO: read from player
     playerKey: "7e9c8483-ea84-423e-b675-19cf31dec43a", ' TODO: read from player
     playerTech: "native",
