@@ -14,7 +14,8 @@
       "rootDir": "${workspaceFolder}/demo/",
       "sourceDirs": [
         "${workspaceFolder}/demo",
-        "${workspaceFolder}/player/"
+        "${workspaceFolder}/collectorCore/",
+        "${workspaceFolder}/bitmovinPlayerCollector/"
       ],
       // "preLaunchTask": "debug-roku",
       // "postDebugTask": "clean-roku",
@@ -26,7 +27,8 @@
         "manifest",
         "source/**/*.*",
         "components/**/*.*",
-        "images/**/*.*"
+        "images/**/*.*",
+        "config/*.*"
       ]
     }
   ]
