@@ -1,0 +1,12 @@
+{
+  "files.trimTrailingWhitespace": true,
+  "editor.renderWhitespace": "all",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "search.exclude": {
+    "**/demo/components/playerExample/": true,
+   },
+  "brightscript.format.keywordCase": null,
+  "brightscript.output.hyperlinkFormat": "Filename"
+}
