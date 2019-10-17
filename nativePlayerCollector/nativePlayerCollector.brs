@@ -20,6 +20,7 @@ end sub
 sub onPlayerStateChanged()
   m.previousState = m.currentState
   m.currentState = m.player.state
+  'TODO remove the print statments, leave only code related to updating the sample
 
   if m.player.state = "none"
     ' print m.tag; "Player event caught "; m.player.state
