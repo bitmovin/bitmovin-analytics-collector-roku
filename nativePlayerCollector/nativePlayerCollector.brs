@@ -47,13 +47,8 @@ sub onPlayerStateChanged()
     time: m.currentTimestamp.ToStr()
   }
   updateSampleData(stateChangedData)
-  sendAnalyticsRequest()
 end sub
 
 sub updateSampleData(sampleData)
   m.collectorCore.callFunc("updateSample", sampleData)
-end sub
-
-sub sendAnalyticsRequest()
-  m.collectorCore.callFunc("sendAnalyticsRequest")
 end sub
