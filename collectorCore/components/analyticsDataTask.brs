@@ -95,7 +95,7 @@ sub sendAnalyticsData()
       end if
       http.asyncCancel()
     else if msg = invalid
-      ' m.tag; "Event data request failed
+      ' Event data request failed
       http.asyncCancel()
     end if
   end if
