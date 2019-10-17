@@ -1,12 +1,7 @@
 sub init()
   m.tag = "[nativePlayerCollector] "
-  initializeCollectorCore()
-end sub
-
-sub  initializeCollectorCore()
   m.collectorCore = CreateObject("roSGNode", "collectorCore")
   m.collectorCore.id = "collectorCore"
-  m.top.collectorReady = true
 end sub
 
 sub initializePlayer(player)
@@ -46,7 +41,7 @@ sub onPlayerStateChanged()
 
   m.previousTimestamp = m.currentTimestamp
   m.currentTimestamp = getCurrentTimeInMilliseconds()
-  duration = getDuration(m.currentTimestamp, m.previousTimestamp)
+  duration = getDuration(m.currentTimestamp.toInt(), m.previousTimestamp.toInt())
 
   stateChangedData = {
     duration: duration,
@@ -64,21 +59,3 @@ end sub
 sub sendAnalyticsRequest()
   m.collectorCore.callFunc("sendAnalyticsRequest")
 end sub
-
-function getCurrentTimeInMilliseconds()
-  dateTime = CreateObject("roDateTime")
-  return dateTime.AsSeconds().ToStr() + "000"
-end function
-
-function getCurrentTimeInSeconds()
-  dateTime = CreateObject("roDateTime")
-  return dateTime.AsSeconds()
-end function
-
-function getDuration(currentTimestamp, previousTimestamp)
-  if currentTimestamp = invalid or previousTimestamp = invalid
-    return invalid
-  end if
-
-  return (currentTimestamp - previousTimeStamp).ToStr()
-end function

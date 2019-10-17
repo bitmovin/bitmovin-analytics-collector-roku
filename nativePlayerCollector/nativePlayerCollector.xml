@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="nativePlayerCollector" extends="Group">
-  <script type="text/brightscript" uri="pkg:/components/nativePlayerCollector.brs"/>
+  <script type="text/brightscript" uri="./nativePlayerCollector.brs"/>
+  <script type="text/brightscript" uri="./collectorUtils.brs"/>
   <children>
   </children>
   <interface>
-    <field id="collectorReady" type="bool" alwaysNotify="true/>
+    <field id="optionalAnalyticsData" type="assocarray"/>
     <function name="initializePlayer"/>
   </interface>
 </component>
