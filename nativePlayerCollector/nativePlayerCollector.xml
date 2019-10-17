@@ -3,6 +3,7 @@
   <script type="text/brightscript" uri="./nativePlayerCollector.brs"/>
   <script type="text/brightscript" uri="./collectorUtils.brs"/>
   <children>
+    <collectorCore id="collectorCore"/>
   </children>
   <interface>
     <field id="optionalAnalyticsData" type="assocarray"/>

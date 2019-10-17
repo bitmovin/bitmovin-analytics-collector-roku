@@ -1,7 +1,6 @@
 sub init()
   m.tag = "[nativePlayerCollector] "
-  m.collectorCore = CreateObject("roSGNode", "collectorCore")
-  m.collectorCore.id = "collectorCore"
+  m.collectorCore = m.top.findNode("collectorCore")
 end sub
 
 sub initializePlayer(player)
