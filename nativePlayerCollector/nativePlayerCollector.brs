@@ -1,7 +1,6 @@
 sub init()
   m.tag = "[nativePlayerCollector] "
   m.collectorCore = m.top.findNode("collectorCore")
-  m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
 
 sub initializePlayer(player)
@@ -10,9 +9,7 @@ sub initializePlayer(player)
   m.currentState = player.state
   m.player.observeField("state", "onPlayerStateChanged")
   m.currentTimestamp = getCurrentTimeInMilliseconds()
-  m.userId = m.deviceInfo.GetRandomUUID()
   playerData = {
-    userId : m.userId,
     player: "Roku",
     playerTech: "native",
     version: "unknown"
