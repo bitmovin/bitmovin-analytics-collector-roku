@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="videoNodeCollector" extends="Group">
-  <script type="text/brightscript" uri="pkg:/components/videoNodeCollector.brs"/>
+<component name="nativePlayerCollector" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/nativePlayerCollector.brs"/>
   <children>
   </children>
   <interface>

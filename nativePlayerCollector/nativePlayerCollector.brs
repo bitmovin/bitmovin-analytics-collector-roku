@@ -1,5 +1,5 @@
 sub init()
-  m.tag = "[videoNodeCollector] "
+  m.tag = "[nativePlayerCollector] "
   initializeCollectorCore()
 end sub
 
@@ -18,13 +18,9 @@ sub initializePlayer(player)
   playerData = {
     player: "Roku",
     playerTech: "native",
-    version: invalid
+    version: "unknown"
   }
   updateSampleData(playerData)
-end sub
-
-sub updateSampleData(sampleData)
-  m.collectorCore.callFunc("updateSample", sampleData)
 end sub
 
 sub onPlayerStateChanged()
@@ -61,14 +57,14 @@ sub onPlayerStateChanged()
   sendAnalyticsRequest()
 end sub
 
-sub sendAnalyticsRequest()
-  ' Collect all the necessary data here and call the collector core's method
-  ' m.collectorCore.callFunc("sendAnalyticsRequest", data)
+sub updateSampleData(sampleData)
+  m.collectorCore.callFunc("updateSample", sampleData)
+end sub
 
+sub sendAnalyticsRequest()
   m.collectorCore.callFunc("sendAnalyticsRequest")
 end sub
 
-  ' Utility functions
 function getCurrentTimeInMilliseconds()
   dateTime = CreateObject("roDateTime")
   return dateTime.AsSeconds().ToStr() + "000"
