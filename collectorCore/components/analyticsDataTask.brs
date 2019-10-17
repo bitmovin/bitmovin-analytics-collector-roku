@@ -11,7 +11,6 @@ sub init()
     analyticsVersion : "0.1.0"
   }
   m.licensingResponse = {}
-  print m.tag; "In analyticsRequest()"
   m.top.functionName = "execute"
   m.top.control = "RUN"
 end sub
@@ -37,17 +36,14 @@ sub execute()
           m.licensingState = m.licensingResponse.status
         end if
       else
-        print m.tag; "Analytics request failed: "; msg.getfailurereason(); " "; msg.getresponsecode(); " "; m.top.url
         m.licensingResponse = {}
       end if
       http.asyncCancel()
     else if msg = invalid
-      print m.tag; "Analytics request failed"
       m.licensingResponse = {}
       http.asyncCancel()
     end if
   end if
-  print m.tag; "response: "; m.licensingResponse
 
   if m.licensingState <> "granted"
     return
@@ -77,8 +73,6 @@ sub execute()
 end sub
 
 sub sendAnalyticsData()
-  print m.tag; "In sendAnalyticsData()"
-
   url = m.config.serviceEndpoints.analyticsData
 
   http = CreateObject("roUrlTransfer")
@@ -94,14 +88,14 @@ sub sendAnalyticsData()
     msg = wait(0, port)
     if type(msg) = "roUrlEvent"
       if msg.getResponseCode() >= 200 and msg.getResponseCode() < 300
-        print m.tag; "Event data request successful"
+        ' Event data request successful!
       else
-        print m.tag; "Event data request failed: "; msg.getfailurereason();" "; msg.getresponsecode();" "; url
+        ' Event data request failed
         ' TODO handle retry
       end if
       http.asyncCancel()
     else if msg = invalid
-      print m.tag; "Event data request failed"
+      ' m.tag; "Event data request failed
       http.asyncCancel()
     end if
   end if
