@@ -31,7 +31,8 @@ function getVersion()
 end function
 
 function createImpressionId()
-  return lcase(generateGuid())
+  deviceInfo = CreateObject("roDeviceInfo")
+  return deviceInfo.GetRandomUUID()
 end function
 
 function getCurrentImpressionId()
