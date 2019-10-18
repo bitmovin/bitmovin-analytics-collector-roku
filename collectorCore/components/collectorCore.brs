@@ -2,6 +2,7 @@ sub init()
   m.version = "0.1.0"
   clearSample()
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
+  m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
 
 sub clearSample()
@@ -16,10 +17,9 @@ sub updateChannelInfo()
 end sub
 
 sub updateDeviceInfo()
-  deviceInfo = CreateObject("roDeviceInfo")
-  m.sample.userAgent = "roku-" + deviceInfo.GetModel() + "-" + deviceInfo.GetVersion()
-  m.sample.screenHeight = deviceInfo.GetDisplaySize().h
-  m.sample.screenWidth = deviceInfo.GetDisplaySize().w
+  m.sample.userAgent = "roku-" + m.deviceInfo.GetModel() + "-" + m.deviceInfo.GetVersion()
+  m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
+  m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
 end sub
 
 sub updateVersion()
@@ -31,8 +31,7 @@ function getVersion()
 end function
 
 function createImpressionId()
-  deviceInfo = CreateObject("roDeviceInfo")
-  return deviceInfo.GetRandomUUID()
+  return m.deviceInfo.GetRandomUUID()
 end function
 
 function getCurrentImpressionId()
