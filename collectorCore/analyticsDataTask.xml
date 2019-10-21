@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="analyticsDataTask" extends="Task">
-  <script type="text/brightscript" uri="pkg:/components/analyticsDataTask.brs"/>
-  <script type="text/brightscript" uri="pkg:/config/collectorCoreConfig.brs"/>
+  <script type="text/brightscript" uri="./analyticsDataTask.brs"/>
+  <script type="text/brightscript" uri="./collectorCoreConfig.brs"/>
   <interface>
     <field id="url" type="string"/>
     <field id="licensingData" type="assocarray"/>
