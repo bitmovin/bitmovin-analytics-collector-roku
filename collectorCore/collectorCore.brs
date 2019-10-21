@@ -1,8 +1,9 @@
 sub init()
   m.version = "0.1.0"
-  clearSample()
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
   m.deviceInfo = CreateObject("roDeviceInfo")
+
+  clearSample()
 end sub
 
 sub clearSample()
