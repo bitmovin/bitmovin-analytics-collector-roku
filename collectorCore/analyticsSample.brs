@@ -1,4 +1,4 @@
-function getAnalyticsSample(
+function getAnalyticsSample()
   return {
     ad: 0,
     analyticsVersion: "",
@@ -63,4 +63,4 @@ function getAnalyticsSample(
     videoWindowHeight: 0,
     videoWindowWidth: 0
   }
-)
+end function
