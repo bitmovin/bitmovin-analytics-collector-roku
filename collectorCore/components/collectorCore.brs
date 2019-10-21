@@ -2,8 +2,9 @@ sub init()
   m.version = "1.0.0"
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
+  m.persistedUserIdRegistryKey = "userId"
   clearSample()
-  m.sample.append({userId: getPersistedUserId(m.sectionRegistryName)})
+  m.sample.append({userId: getPersistedUserId(m.sectionRegistryName, m.persistedUserIdRegistryKey)})
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
 end sub
 
@@ -29,15 +30,15 @@ sub updateVersion()
   m.sample.analyticsVersion = m.version
 end sub
 
-function getPersistedUserId(sectionRegistryName)
-  if sectionRegistryName = invalid
+function getPersistedUserId(sectionRegistryName, persistedUserIdRegistryKey)
+  if sectionRegistryName = invalid or persistedUserIdRegistryKey = invalid
     return invalid
   end if
 
-  userId = readFromRegistry(sectionRegistryName, "userId")
+  userId = readFromRegistry(sectionRegistryName, persistedUserIdRegistryKey)
   if userId = invalid
     userId = m.deviceInfo.GetRandomUUID()
-    userIdData = {key: "userId", value: userId}
+    userIdData = {key: persistedUserIdRegistryKey, value: userId}
     writeToRegistry(sectionRegistryName, userIdData)
   end if
 
