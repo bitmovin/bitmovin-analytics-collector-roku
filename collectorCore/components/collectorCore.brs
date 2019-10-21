@@ -63,3 +63,19 @@ end sub
 sub sendAnalyticsRequest()
   m.analyticsDataTask.sendData = true
 end sub
+
+Function readFromRegistry(registrySectionName, readKey)
+     registrySection = CreateObject("roRegistrySection", registrySectionName)
+     if registrySection.Exists(readKey)
+         return registrySection.Read(readKey)
+     end if
+     return invalid
+End Function
+
+Function writeToRegistry(registrySectionName, dataToWrite)
+    registrySection = CreateObject("roRegistrySection", registrySectionName)
+    key = dataToWrite.key
+    value = dataToWrite.value
+    registrySection.Write(key, value)
+    registrySection.Flush()
+End Function
