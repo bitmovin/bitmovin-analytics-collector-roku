@@ -3,7 +3,7 @@ sub init()
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
   clearSample()
-  updateUserId(m.sectionRegistryName, m.deviceInfo)
+  updateUserId(m.sectionRegistryName)
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
 end sub
 
@@ -29,10 +29,10 @@ sub updateVersion()
   m.sample.analyticsVersion = m.version
 end sub
 
-sub updateUserId(sectionRegistryName, deviceInfo)
+sub updateUserId(sectionRegistryName)
   userId = readFromRegistry(sectionRegistryName, "userId")
   if userId = invalid
-    userId = deviceInfo.GetRandomUUID()
+    userId = m.deviceInfo.GetRandomUUID()
     userIdData = {key: "userId", value: userId}
     writeToRegistry(sectionRegistryName, userIdData)
   end if
