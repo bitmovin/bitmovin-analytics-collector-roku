@@ -50,7 +50,7 @@ function getVersion()
 end function
 
 function createImpressionId()
-  return m.deviceInfo.GetRandomUUID()
+  return lcase(m.deviceInfo.GetRandomUUID())
 end function
 
 function getCurrentImpressionId()
