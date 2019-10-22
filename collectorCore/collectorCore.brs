@@ -1,9 +1,9 @@
 sub init()
-  m.version = "0.1.0"
-  m.analyticsDataTask = m.top.findNode("analyticsDataTask")
+  m.version = "1.0.0"
   m.deviceInfo = CreateObject("roDeviceInfo")
-
+  m.sectionRegistryName = "BitmovinAnalytics"
   clearSample()
+  m.analyticsDataTask = m.top.findNode("analyticsDataTask")
 end sub
 
 sub clearSample()
@@ -11,6 +11,7 @@ sub clearSample()
   updateChannelInfo()
   updateDeviceInfo()
   updateVersion()
+  m.sample.append({userId: getPersistedUserId(m.sectionRegistryName)})
 end sub
 
 sub updateChannelInfo()
@@ -33,11 +34,27 @@ function getVersion()
 end function
 
 function createImpressionId()
-  return m.deviceInfo.GetRandomUUID()
+  return lcase(m.deviceInfo.GetRandomUUID())
 end function
 
 function getCurrentImpressionId()
   return m.sample.impressionId
+end function
+
+function getPersistedUserId(sectionRegistryName)
+  if sectionRegistryName = invalid
+    return invalid
+  end if
+
+  persistedUserIdRegistryKey = "userId"
+  userId = readFromRegistry(sectionRegistryName, persistedUserIdRegistryKey)
+  if userId = invalid
+    userId = m.deviceInfo.GetRandomUUID()
+    userIdData = {key: persistedUserIdRegistryKey, value: userId}
+    writeToRegistry(sectionRegistryName, userIdData)
+  end if
+
+  return userId
 end function
 
 ' TODO: Error handling if the keys are invalid
@@ -53,3 +70,19 @@ end sub
 sub sendAnalyticsRequest()
   m.analyticsDataTask.sendData = true
 end sub
+
+Function readFromRegistry(registrySectionName, readKey)
+     registrySection = CreateObject("roRegistrySection", registrySectionName)
+     if registrySection.Exists(readKey)
+         return registrySection.Read(readKey)
+     end if
+     return invalid
+End Function
+
+Function writeToRegistry(registrySectionName, dataToWrite)
+    registrySection = CreateObject("roRegistrySection", registrySectionName)
+    key = dataToWrite.key
+    value = dataToWrite.value
+    registrySection.Write(key, value)
+    registrySection.Flush()
+End Function

@@ -51,5 +51,5 @@ sub onPlayerStateChanged()
 end sub
 
 sub updateSampleData(sampleData)
-  m.collectorCore.callFunc("updateSample", sampleData)
+  m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
