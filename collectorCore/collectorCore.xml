@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="collectorCore" extends="Group">
-  <script type="text/brightscript" uri="pkg:/components/collectorCore.brs"/>
-  <script type="text/brightscript" uri="pkg:/source/utils.brs"/>
+  <script type="text/brightscript" uri="./collectorCore.brs"/>
+  <script type="text/brightscript" uri="./analyticsSample.brs"/>
   <children>
     <analyticsDataTask id="analyticsDataTask"/>
   </children>
@@ -9,7 +9,6 @@
     <function name="createImpressionId"/>
     <function name="getCurrentImpressionId"/>
     <function name="getVersion"/>
-    <function name="updateSample"/>
-    <function name="sendAnalyticsRequest"/>
+    <function name="updateSampleAndSendAnalyticsRequest"/>
   </interface>
 </component>
