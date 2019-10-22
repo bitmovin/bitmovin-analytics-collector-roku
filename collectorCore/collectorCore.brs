@@ -10,6 +10,7 @@ sub clearSample()
   m.sample = getAnalyticsSample()
   updateChannelInfo()
   updateDeviceInfo()
+  updateVersion()
 end sub
 
 sub updateChannelInfo()
@@ -24,7 +25,7 @@ sub updateDeviceInfo()
 end sub
 
 sub updateVersion()
-  m.sample.analyticsVersion = m.version
+  m.sample.analyticsVersion = getVersion()
 end sub
 
 function getVersion()
