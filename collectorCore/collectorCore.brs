@@ -41,7 +41,7 @@ function getCurrentImpressionId()
 end function
 
 ' TODO: Error handling if the keys are invalid
-sub updateSample(values)
+sub updateSampleAndSendAnalyticsRequest(values)
   for each v in values
     m.sample.append(values)
   end for

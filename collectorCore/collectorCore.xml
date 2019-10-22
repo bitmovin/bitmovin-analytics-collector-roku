@@ -9,7 +9,6 @@
     <function name="createImpressionId"/>
     <function name="getCurrentImpressionId"/>
     <function name="getVersion"/>
-    <function name="updateSample"/>
-    <function name="sendAnalyticsRequest"/>
+    <function name="updateSampleAndSendAnalyticsRequest"/>
   </interface>
 </component>
