@@ -4,6 +4,7 @@ sub init()
   m.sectionRegistryName = "BitmovinAnalytics"
   clearSample()
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
+  m.analyticsDataTask.licensingData = getLicensingData()
 end sub
 
 sub clearSample()
@@ -55,6 +56,17 @@ function getPersistedUserId(sectionRegistryName)
   end if
 
   return userId
+end function
+
+function getLicensingData()
+  appInfo = CreateObject("roAppInfo")
+  licensingData = {
+    key : appInfo.getValue("bitmovin_analytics_license_key"),
+    domain : appInfo.getID(),
+    analyticsVersion : getVersion()
+  }
+
+  return licensingData
 end function
 
 ' TODO: Error handling if the keys are invalid
