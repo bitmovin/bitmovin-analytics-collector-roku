@@ -62,7 +62,7 @@ end function
 function getLicensingData()
   appInfo = CreateObject("roAppInfo")
   licenceKey = appInfo.getValue("bitmovin_analytics_license_key")
-  if Len(licenceKey) = 0 then print m.TAG ; "Warning: license key is not present in the manifest or is set as an empty string"
+  if Len(licenceKey) = 0 then print m.tag ; "Warning: license key is not present in the manifest or is set as an empty string"
 
   licensingData = {
     key : licenceKey,
