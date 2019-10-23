@@ -1,9 +1,11 @@
 sub init()
   m.version = "1.0.0"
+  m.tag = "Bitmovin Analytics Collector "
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
   clearSample()
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
+  m.analyticsDataTask.licensingData = getLicensingData()
 end sub
 
 sub clearSample()
@@ -55,6 +57,20 @@ function getPersistedUserId(sectionRegistryName)
   end if
 
   return userId
+end function
+
+function getLicensingData()
+  appInfo = CreateObject("roAppInfo")
+  licenceKey = appInfo.getValue("bitmovin_analytics_license_key")
+  if Len(licenceKey) = 0 then print m.tag ; "Warning: license key is not present in the manifest or is set as an empty string"
+
+  licensingData = {
+    key : licenceKey,
+    domain : appInfo.getID(),
+    analyticsVersion : getVersion()
+  }
+
+  return licensingData
 end function
 
 ' TODO: Error handling if the keys are invalid
