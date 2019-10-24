@@ -13,7 +13,6 @@ function getAnalyticsSample()
       segmentsDownloadCount: 0,
       segmentsDownloadSize: 0,
       segmentsDownloadTime: 0
-
     },
     droppedFrames: 0,
     duration: 0,
