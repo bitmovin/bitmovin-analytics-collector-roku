@@ -5,7 +5,7 @@ end sub
 
 sub initializePlayer(player)
   m.player = player
-  updateSampleData({"playerStartupTime": 1})
+  updateSampleDataAndSendAnalyticsRequest({"playerStartupTime": 1})
 
   setUpObservers()
   setUpHelperVariables()
