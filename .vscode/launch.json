@@ -9,8 +9,8 @@
       "request": "launch",
       "name": "Demo App",
       "stopOnEntry": false,
-      "host": "192.168.4.141",
-      "password": "rokudev",
+      "host": "${promptForHost}",
+      "password": "${promptForPassword}",
       "rootDir": "${workspaceFolder}/demo/",
       "sourceDirs": [
         "${workspaceFolder}/demo"
