@@ -5,6 +5,7 @@ end sub
 
 sub initializePlayer(player)
   setUpObservers()
+  setUpHelperVariables()
   m.player = player
   m.previousState = ""
   m.currentState = player.state
@@ -20,6 +21,10 @@ end sub
 sub setUpObservers()
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
   m.olayer.observeFieldScoped("seek", "onSeek")
+end sub
+
+sub setUpHelperVariables()
+  m.top.seeking = false
 end sub
 
 sub onPlayerStateChanged()
@@ -60,9 +65,10 @@ sub updateSampleData(sampleData)
 end sub
 
 sub onSeek()
+  m.top.seeking = true
   messureSeekTime()
 end sub
 
 sub messureSeekTime()
 
-emd sub
+end sub
