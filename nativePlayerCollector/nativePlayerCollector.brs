@@ -27,6 +27,7 @@ end sub
 
 sub setUpHelperVariables()
   m.seekStartPosition = invalid
+  m.alreadySeeking = false
 end sub
 
 sub onPlayerStateChanged()
@@ -67,6 +68,9 @@ sub updateSampleDataAndSendAnalyticsRequest(sampleData)
 end sub
 
 sub onSeek()
+  if m.alreadySeeking = true then return
+
+  m.alreadySeeking = true
   m.seekStartPosition = m.player.position
   m.seekTimer = createObject("roTimeSpan")
 end sub
@@ -77,6 +81,7 @@ sub onSeeked()
     seeked = true
   end if
 
+  m.alreadySeeking = false
   m.seekStartPosition = invalid
   m.seekTimer = invalid
 end sub
