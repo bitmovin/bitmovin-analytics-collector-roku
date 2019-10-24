@@ -13,22 +13,17 @@
       "password": "${promptForPassword}",
       "rootDir": "${workspaceFolder}/demo/",
       "sourceDirs": [
-        "${workspaceFolder}/demo",
-        "${workspaceFolder}/collectorCore/",
-        "${workspaceFolder}/bitmovinPlayerCollector/"
+        "${workspaceFolder}/demo"
       ],
       // "preLaunchTask": "debug-roku",
       // "postDebugTask": "clean-roku",
       "enableDebuggerAutoRecovery": true,
-      "stopDebuggerOnAppExit": false,
-      "enableLookupVariableNodeChildren": true,
+      "stopDebuggerOnAppExit": true,
       "outDir": "${workspaceFolder}/out",
       "files": [
         "manifest",
         "source/**/*.*",
-        "components/**/*.*",
-        "images/**/*.*",
-        "config/*.*"
+        "components/**/*.*"
       ]
     }
   ]
