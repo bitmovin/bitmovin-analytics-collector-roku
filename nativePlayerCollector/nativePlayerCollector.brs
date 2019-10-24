@@ -7,6 +7,7 @@ sub initializePlayer(player)
   m.player = player
   updateSampleDataAndSendAnalyticsRequest({"playerStartupTime": 1})
 
+  unobserveFields()
   setUpObservers()
   setUpHelperVariables()
 
@@ -26,6 +27,13 @@ sub setUpObservers()
   m.player.observeFieldScoped("seek", "onSeek")
 
   m.player.observeFieldScoped("control", "onControlChanged")
+end sub
+
+sub unobserveFields()
+  m.player.unobserveFieldScoped("state")
+  m.player.unobserveFieldScoped("seek")
+
+  m.player.unobserveFieldScoped("control")
 end sub
 
 sub setUpHelperVariables()
