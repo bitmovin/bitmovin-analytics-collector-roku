@@ -17,7 +17,7 @@ sub initializePlayer(player)
     playerTech: "native",
     version: "unknown"
   }
-  updateSampleData(playerData)
+  updateSampleDataAndSendAnalyticsRequest(playerData)
 end sub
 
 sub setUpObservers()
@@ -59,10 +59,10 @@ sub onPlayerStateChanged()
     state: m.previousState,
     time: m.currentTimestamp.ToStr()
   }
-  updateSampleData(stateChangedData)
+  updateSampleDataAndSendAnalyticsRequest(stateChangedData)
 end sub
 
-sub updateSampleData(sampleData)
+sub updateSampleDataAndSendAnalyticsRequest(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
@@ -73,7 +73,7 @@ end sub
 
 sub onSeeked()
   if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position
-    updateSampleData({"seeked": m.seekTimer.TotalMilliseconds()})
+    updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()})
     seeked = true
   end if
 
