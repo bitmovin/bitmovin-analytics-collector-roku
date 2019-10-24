@@ -4,9 +4,11 @@ sub init()
 end sub
 
 sub initializePlayer(player)
+  m.player = player
+
   setUpObservers()
   setUpHelperVariables()
-  m.player = player
+
   m.previousState = ""
   m.currentState = player.state
   m.currentTimestamp = getCurrentTimeInMilliseconds()
@@ -20,11 +22,11 @@ end sub
 
 sub setUpObservers()
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
-  m.olayer.observeFieldScoped("seek", "onSeek")
+  m.player.observeFieldScoped("seek", "onSeek")
 end sub
 
 sub setUpHelperVariables()
-  m.top.seeking = false
+  m.seekStartPosition = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -37,9 +39,9 @@ sub onPlayerStateChanged()
   else if m.player.state = "buffering"
   ' print m.tag; "Player event caught "; m.player.state
   else if m.player.state = "playing"
-    ' print m.tag; "Player event caught "; m.player.state
+    onSeeked()
   else if m.player.state = "paused"
-    ' print m.tag; "Player event caught "; m.player.state
+    onSeek()
   else if m.player.state = "stopped"
     ' print m.tag; "Player event caught "; m.player.state
   else if m.player.state = "finished"
@@ -65,10 +67,16 @@ sub updateSampleData(sampleData)
 end sub
 
 sub onSeek()
-  m.top.seeking = true
-  messureSeekTime()
+  m.seekStartPosition = m.player.position
+  m.seekTimer = createObject("roTimeSpan")
 end sub
 
-sub messureSeekTime()
+sub onSeeked()
+  if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position
+    updateSampleData({"seeked": m.seekTimer.TotalMilliseconds()})
+    seeked = true
+  end if
 
+  m.seekStartPosition = invalid
+  m.seekTimer = invalid
 end sub
