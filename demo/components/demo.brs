@@ -1,10 +1,10 @@
 function init()
   m.tag = "[demo] "
   m.nativePlayer = m.top.findNode("nativePlayer")
-  setNativePlayerContent(m.nativePlayer)
 
   m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
   m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
+  setNativePlayerContent(m.nativePlayer)
   m.nativePlayer.control = "play"
   m.nativePlayer.setFocus(true)
 end function
