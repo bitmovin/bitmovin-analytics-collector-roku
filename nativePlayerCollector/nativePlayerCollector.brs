@@ -99,7 +99,7 @@ end sub
 sub onVideoStart()
   if m.videoStartUpTimer = invalid then return
 
-  updateSampleData({"videoStartupTime": m.videoStartUpTimer.TotalMilliseconds()})
+  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartUpTimer.TotalMilliseconds()})
 
   m.videoStartUpTimer = invalid
 end sub
