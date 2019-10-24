@@ -4,10 +4,10 @@ sub init()
 end sub
 
 sub initializePlayer(player)
+  unobserveFields()
   m.player = player
   updateSampleDataAndSendAnalyticsRequest({"playerStartupTime": 1})
 
-  unobserveFields()
   setUpObservers()
   setUpHelperVariables()
 
@@ -30,6 +30,8 @@ sub setUpObservers()
 end sub
 
 sub unobserveFields()
+  if m.player = invalid then return
+
   m.player.unobserveFieldScoped("state")
   m.player.unobserveFieldScoped("seek")
 
