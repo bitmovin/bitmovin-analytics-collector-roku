@@ -4,10 +4,10 @@ sub init()
 end sub
 
 sub initializePlayer(player)
+  setUpObservers()
   m.player = player
   m.previousState = ""
   m.currentState = player.state
-  m.player.observeField("state", "onPlayerStateChanged")
   m.currentTimestamp = getCurrentTimeInMilliseconds()
   playerData = {
     player: "Roku",
@@ -15,6 +15,11 @@ sub initializePlayer(player)
     version: "unknown"
   }
   updateSampleData(playerData)
+end sub
+
+sub setUpObservers()
+  m.player.observeFieldScoped("state", "onPlayerStateChanged")
+  m.olayer.observeFieldScoped("seek", "onSeek")
 end sub
 
 sub onPlayerStateChanged()
@@ -53,3 +58,11 @@ end sub
 sub updateSampleData(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
+
+sub onSeek()
+  messureSeekTime()
+end sub
+
+sub messureSeekTime()
+
+emd sub
