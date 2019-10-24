@@ -5,9 +5,12 @@ end sub
 
 sub initializePlayer(player)
   m.player = player
+
+  setUpObservers()
+  setUpHelperVariables()
+
   m.previousState = ""
   m.currentState = player.state
-  m.player.observeField("state", "onPlayerStateChanged")
   m.currentTimestamp = getCurrentTimeInMilliseconds()
   playerData = {
     player: "Roku",
@@ -15,6 +18,15 @@ sub initializePlayer(player)
     version: "unknown"
   }
   updateSampleData(playerData)
+end sub
+
+sub setUpObservers()
+  m.player.observeFieldScoped("state", "onPlayerStateChanged")
+  m.player.observeFieldScoped("seek", "onSeek")
+end sub
+
+sub setUpHelperVariables()
+  m.seekStartPosition = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -27,9 +39,9 @@ sub onPlayerStateChanged()
   else if m.player.state = "buffering"
   ' print m.tag; "Player event caught "; m.player.state
   else if m.player.state = "playing"
-    ' print m.tag; "Player event caught "; m.player.state
+    onSeeked()
   else if m.player.state = "paused"
-    ' print m.tag; "Player event caught "; m.player.state
+    onSeek()
   else if m.player.state = "stopped"
     ' print m.tag; "Player event caught "; m.player.state
   else if m.player.state = "finished"
@@ -52,4 +64,19 @@ end sub
 
 sub updateSampleData(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
+end sub
+
+sub onSeek()
+  m.seekStartPosition = m.player.position
+  m.seekTimer = createObject("roTimeSpan")
+end sub
+
+sub onSeeked()
+  if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position
+    updateSampleData({"seeked": m.seekTimer.TotalMilliseconds()})
+    seeked = true
+  end if
+
+  m.seekStartPosition = invalid
+  m.seekTimer = invalid
 end sub
