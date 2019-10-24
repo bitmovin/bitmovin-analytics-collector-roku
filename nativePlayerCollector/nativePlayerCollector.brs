@@ -5,6 +5,7 @@ end sub
 
 sub initializePlayer(player)
   m.player = player
+  updateSampleData({"playerStartupTime": 1})
 
   setUpObservers()
   setUpHelperVariables()
@@ -23,6 +24,8 @@ end sub
 sub setUpObservers()
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
+
+  m.player.observeFieldScoped("control", "onControlChanged")
 end sub
 
 sub setUpHelperVariables()
@@ -40,6 +43,7 @@ sub onPlayerStateChanged()
   ' print m.tag; "Player event caught "; m.player.state
   else if m.player.state = "playing"
     onSeeked()
+    onVideoStart()
   else if m.player.state = "paused"
     onSeek()
   else if m.player.state = "stopped"
@@ -79,4 +83,18 @@ sub onSeeked()
 
   m.seekStartPosition = invalid
   m.seekTimer = invalid
+end sub
+
+sub onControlChanged()
+  if m.player.control = "play"
+    m.videoStartUpTimer = createObject("roTimeSpan")
+  end if
+end sub
+
+sub onVideoStart()
+  if m.videoStartUpTimer = invalid then return
+
+  updateSampleData({"VideoStartupTime": m.seekTimer.TotalMilliseconds()})
+
+  m.videoStartUpTimer = invalid
 end sub
