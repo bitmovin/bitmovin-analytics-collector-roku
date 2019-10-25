@@ -1,11 +1,14 @@
 function getCurrentTimeInMilliseconds()
   dateTime = CreateObject("roDateTime")
-  return (dateTime.AsSeconds().ToStr() + "000").toInt()
+  seconds# = dateTime.AsSeconds()
+  miliseconds# = seconds# * 1000
+  return miliseconds#
 end function
 
 function getCurrentTimeInSeconds()
   dateTime = CreateObject("roDateTime")
-  return dateTime.AsSeconds()
+  seconds# = dateTime.AsSeconds()
+  return seconds#
 end function
 
 function getDuration(currentTimestamp, previousTimestamp)
