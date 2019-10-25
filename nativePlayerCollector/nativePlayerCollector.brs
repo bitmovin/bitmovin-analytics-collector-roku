@@ -76,7 +76,7 @@ sub onSeek()
 end sub
 
 sub onSeeked()
-  if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position
+  if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position and m.seekTimer <> invalid
     updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()})
   end if
 
