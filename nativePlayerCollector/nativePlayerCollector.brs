@@ -78,7 +78,6 @@ end sub
 sub onSeeked()
   if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position
     updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()})
-    seeked = true
   end if
 
   m.alreadySeeking = false
