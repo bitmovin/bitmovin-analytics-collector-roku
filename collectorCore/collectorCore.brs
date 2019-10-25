@@ -19,7 +19,7 @@ sub clearSample()
   updateChannelInfo()
   updateDeviceInfo()
   updateVersion()
-  UpdateKey()
+  updateKey(m.licensingData.key)
   m.sample.append({userId: getPersistedUserId(m.sectionRegistryName)})
 end sub
 
@@ -28,8 +28,8 @@ sub updateChannelInfo()
   m.sample.domain = appInfo.GetID()
 end sub
 
-sub UpdateKey()
-  m.sample.key = m.licensingData.key
+sub updateKey(key)
+  m.sample.key = key
 end sub
 
 sub updateDeviceInfo()
