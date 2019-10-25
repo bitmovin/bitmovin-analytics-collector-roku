@@ -102,14 +102,14 @@ end sub
 
 sub onControlChanged()
   if m.player.control = "play"
-    m.videoStartUpTimer = createObject("roTimeSpan")
+    m.videoStartupTimer = createObject("roTimeSpan")
   end if
 end sub
 
 sub onVideoStart()
-  if m.videoStartUpTimer = invalid then return
+  if m.videoStartupTimer = invalid then return
 
-  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartUpTimer.TotalMilliseconds()})
+  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()})
 
-  m.videoStartUpTimer = invalid
+  m.videoStartupTimer = invalid
 end sub
