@@ -3,15 +3,16 @@ sub init()
   m.tag = "Bitmovin Analytics Collector "
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
+  m.analyticsDataTask = m.top.findNode("analyticsDataTask")
   m.licensingData = getLicensingData()
 
   clearSample()
-  setAndRunAnalyticsDataTask()
+  setLicensingAnalyticsDataTask(m.licensingData)
 end sub
 
-sub setAndRunAnalyticsDataTask()
-  m.analyticsDataTask = m.top.findNode("analyticsDataTask")
-  m.analyticsDataTask.licensingData = m.licensingData
+sub setLicensingAnalyticsDataTask(licensingData)
+  if m.analyticsDataTask = invalid or licensingData = invalid then return
+  m.analyticsDataTask.licensingData = licensingData
 end sub
 
 sub clearSample()
