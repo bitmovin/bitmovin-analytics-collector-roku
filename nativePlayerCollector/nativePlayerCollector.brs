@@ -1,5 +1,6 @@
 sub init()
   m.tag = "[nativePlayerCollector] "
+  m.changeImpressionId = false
   m.collectorCore = m.top.findNode("collectorCore")
 end sub
 
@@ -10,7 +11,9 @@ sub initializePlayer(player)
 
   setUpObservers()
   setUpHelperVariables()
-
+  
+  m.player.observeFieldScoped("content", "onSourceChanged")
+  m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.previousState = ""
   m.currentState = player.state
   m.currentTimestamp = getCurrentTimeInMilliseconds()
@@ -46,34 +49,30 @@ end sub
 sub onPlayerStateChanged()
   m.previousState = m.currentState
   m.currentState = m.player.state
-  ' TODO remove the print statments, leave only code related to updating the sample
+  stateChangedData = {}
 
-  if m.player.state = "none"
-    ' print m.tag; "Player event caught "; m.player.state
-  else if m.player.state = "buffering"
-  ' print m.tag; "Player event caught "; m.player.state
-  else if m.player.state = "playing"
+  if m.player.state = "playing"
     onSeeked()
     onVideoStart()
+    if m.changeImpressionId = true
+      stateChangedData.impressionId = m.collectorCore.callFunc("createImpressionId")
+      m.changeImpressionId = false
+    else
+      stateChangedData.impressionId = m.collectorCore.callFunc("getCurrentImpressionId")
+    end if
+  else if m.player.state = "finished"
+    m.changeImpressionId = true
   else if m.player.state = "paused"
     onSeek()
-  else if m.player.state = "stopped"
-    ' print m.tag; "Player event caught "; m.player.state
-  else if m.player.state = "finished"
-    ' print m.tag; "Player event caught "; m.player.state
-  else if m.player.state = "error"
-      ' print m.tag; "Player event caught "; m.player.state
   end if
 
   m.previousTimestamp = m.currentTimestamp
   m.currentTimestamp = getCurrentTimeInMilliseconds()
-  duration = getDuration(m.currentTimestamp.toInt(), m.previousTimestamp.toInt())
+  duration = getDuration(m.currentTimestamp, m.previousTimestamp)
 
-  stateChangedData = {
-    duration: duration,
-    state: m.previousState,
-    time: m.currentTimestamp.ToStr()
-  }
+  stateChangedData.duration = duration
+  stateChangedData.state = m.previousState
+  stateChangedData.time =  m.currentTimestamp
   updateSampleDataAndSendAnalyticsRequest(stateChangedData)
 end sub
 
@@ -90,9 +89,8 @@ sub onSeek()
 end sub
 
 sub onSeeked()
-  if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position
+  if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position and m.seekTimer <> invalid
     updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()})
-    seeked = true
   end if
 
   m.alreadySeeking = false
@@ -112,4 +110,8 @@ sub onVideoStart()
   updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()})
 
   m.videoStartupTimer = invalid
+end sub
+
+sub onSourceChanged()
+  m.changeImpressionId = true
 end sub

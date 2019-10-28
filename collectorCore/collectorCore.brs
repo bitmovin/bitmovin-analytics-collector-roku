@@ -3,9 +3,16 @@ sub init()
   m.tag = "Bitmovin Analytics Collector "
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
-  clearSample()
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
-  m.analyticsDataTask.licensingData = getLicensingData()
+  m.licensingData = getLicensingData()
+
+  clearSample()
+  setLicensingAnalyticsDataTask(m.licensingData)
+end sub
+
+sub setLicensingAnalyticsDataTask(licensingData)
+  if m.analyticsDataTask = invalid or licensingData = invalid then return
+  m.analyticsDataTask.licensingData = licensingData
 end sub
 
 sub clearSample()
@@ -13,12 +20,17 @@ sub clearSample()
   updateChannelInfo()
   updateDeviceInfo()
   updateVersion()
+  updateKey(m.licensingData.key)
   m.sample.append({userId: getPersistedUserId(m.sectionRegistryName)})
 end sub
 
 sub updateChannelInfo()
   appInfo = CreateObject("roAppInfo")
   m.sample.domain = appInfo.GetID()
+end sub
+
+sub updateKey(key)
+  m.sample.key = key
 end sub
 
 sub updateDeviceInfo()
