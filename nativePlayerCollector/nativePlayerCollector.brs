@@ -5,7 +5,9 @@ sub init()
 end sub
 
 sub initializePlayer(player)
+  unobserveFields()
   m.player = player
+  updateSampleDataAndSendAnalyticsRequest({"playerStartupTime": 1})
 
   setUpObservers()
   setUpHelperVariables()
@@ -26,6 +28,17 @@ end sub
 sub setUpObservers()
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
+
+  m.player.observeFieldScoped("control", "onControlChanged")
+end sub
+
+sub unobserveFields()
+  if m.player = invalid then return
+
+  m.player.unobserveFieldScoped("state")
+  m.player.unobserveFieldScoped("seek")
+
+  m.player.unobserveFieldScoped("control")
 end sub
 
 sub setUpHelperVariables()
@@ -38,8 +51,9 @@ sub onPlayerStateChanged()
   m.currentState = m.player.state
   stateChangedData = {}
 
-  if m.player.state = "playing"    
+  if m.player.state = "playing"
     onSeeked()
+    onVideoStart()
     if m.changeImpressionId = true
       stateChangedData.impressionId = m.collectorCore.callFunc("createImpressionId")
       m.changeImpressionId = false
@@ -48,7 +62,7 @@ sub onPlayerStateChanged()
     end if
   else if m.player.state = "finished"
     m.changeImpressionId = true
-  else if m.player.state = "paused  
+  else if m.player.state = "paused"
     onSeek()
   end if
 
@@ -82,6 +96,20 @@ sub onSeeked()
   m.alreadySeeking = false
   m.seekStartPosition = invalid
   m.seekTimer = invalid
+end sub
+
+sub onControlChanged()
+  if m.player.control = "play"
+    m.videoStartupTimer = createObject("roTimeSpan")
+  end if
+end sub
+
+sub onVideoStart()
+  if m.videoStartupTimer = invalid then return
+
+  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()})
+
+  m.videoStartupTimer = invalid
 end sub
 
 sub onSourceChanged()
