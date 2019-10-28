@@ -6,18 +6,31 @@ end sub
 
 sub initializePlayer(player)
   m.player = player
+
+  setUpObservers()
+  setUpHelperVariables()
+  
   m.player.observeFieldScoped("content", "onSourceChanged")
   m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.previousState = ""
   m.currentState = player.state
-  m.player.observeFieldScoped("state", "onPlayerStateChanged")
   m.currentTimestamp = getCurrentTimeInMilliseconds()
   playerData = {
     player: "Roku",
     playerTech: "native",
     version: "unknown"
   }
-  updateSampleData(playerData)
+  updateSampleDataAndSendAnalyticsRequest(playerData)
+end sub
+
+sub setUpObservers()
+  m.player.observeFieldScoped("state", "onPlayerStateChanged")
+  m.player.observeFieldScoped("seek", "onSeek")
+end sub
+
+sub setUpHelperVariables()
+  m.seekStartPosition = invalid
+  m.alreadySeeking = false
 end sub
 
 sub onPlayerStateChanged()
@@ -25,7 +38,8 @@ sub onPlayerStateChanged()
   m.currentState = m.player.state
   stateChangedData = {}
 
-  if m.player.state = "playing"
+  if m.player.state = "playing"    
+    onSeeked()
     if m.changeImpressionId = true
       stateChangedData.impressionId = m.collectorCore.callFunc("createImpressionId")
       m.changeImpressionId = false
@@ -34,6 +48,8 @@ sub onPlayerStateChanged()
     end if
   else if m.player.state = "finished"
     m.changeImpressionId = true
+  else if m.player.state = "paused  
+    onSeek()
   end if
 
   m.previousTimestamp = m.currentTimestamp
@@ -43,12 +59,29 @@ sub onPlayerStateChanged()
   stateChangedData.duration = duration
   stateChangedData.state = m.previousState
   stateChangedData.time =  m.currentTimestamp
-
-  updateSampleData(stateChangedData)
+  updateSampleDataAndSendAnalyticsRequest(stateChangedData)
 end sub
 
-sub updateSampleData(sampleData)
+sub updateSampleDataAndSendAnalyticsRequest(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
+end sub
+
+sub onSeek()
+  if m.alreadySeeking = true then return
+
+  m.alreadySeeking = true
+  m.seekStartPosition = m.player.position
+  m.seekTimer = createObject("roTimeSpan")
+end sub
+
+sub onSeeked()
+  if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position and m.seekTimer <> invalid
+    updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()})
+  end if
+
+  m.alreadySeeking = false
+  m.seekStartPosition = invalid
+  m.seekTimer = invalid
 end sub
 
 sub onSourceChanged()
