@@ -1,13 +1,16 @@
 sub init()
   m.tag = "[nativePlayerCollector] "
+  m.changeImpressionId = false
   m.collectorCore = m.top.findNode("collectorCore")
 end sub
 
 sub initializePlayer(player)
   m.player = player
+  m.player.observeFieldScoped("content", "onSourceChanged")
+  m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.previousState = ""
   m.currentState = player.state
-  m.player.observeField("state", "onPlayerStateChanged")
+  m.player.observeFieldScoped("state", "onPlayerStateChanged")
   m.currentTimestamp = getCurrentTimeInMilliseconds()
   playerData = {
     player: "Roku",
@@ -20,36 +23,34 @@ end sub
 sub onPlayerStateChanged()
   m.previousState = m.currentState
   m.currentState = m.player.state
-  ' TODO remove the print statments, leave only code related to updating the sample
+  stateChangedData = {}
 
-  if m.player.state = "none"
-    ' print m.tag; "Player event caught "; m.player.state
-  else if m.player.state = "buffering"
-  ' print m.tag; "Player event caught "; m.player.state
-  else if m.player.state = "playing"
-    ' print m.tag; "Player event caught "; m.player.state
-  else if m.player.state = "paused"
-    ' print m.tag; "Player event caught "; m.player.state
-  else if m.player.state = "stopped"
-    ' print m.tag; "Player event caught "; m.player.state
+  if m.player.state = "playing"
+    if m.changeImpressionId = true
+      stateChangedData.impressionId = m.collectorCore.callFunc("createImpressionId")
+      m.changeImpressionId = false
+    else
+      stateChangedData.impressionId = m.collectorCore.callFunc("getCurrentImpressionId")
+    end if
   else if m.player.state = "finished"
-    ' print m.tag; "Player event caught "; m.player.state
-  else if m.player.state = "error"
-      ' print m.tag; "Player event caught "; m.player.state
+    m.changeImpressionId = true
   end if
 
   m.previousTimestamp = m.currentTimestamp
   m.currentTimestamp = getCurrentTimeInMilliseconds()
-  duration = getDuration(m.currentTimestamp.toInt(), m.previousTimestamp.toInt())
+  duration = getDuration(m.currentTimestamp, m.previousTimestamp)
 
-  stateChangedData = {
-    duration: duration,
-    state: m.previousState,
-    time: m.currentTimestamp.ToStr()
-  }
+  stateChangedData.duration = duration
+  stateChangedData.state = m.previousState
+  stateChangedData.time =  m.currentTimestamp
+
   updateSampleData(stateChangedData)
 end sub
 
 sub updateSampleData(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
+end sub
+
+sub onSourceChanged()
+  m.changeImpressionId = true
 end sub
