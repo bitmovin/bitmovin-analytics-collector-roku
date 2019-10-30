@@ -64,6 +64,8 @@ sub onPlayerStateChanged()
     m.changeImpressionId = true
   else if m.currentState = "paused"
     onSeek()
+  else if m.currentState = "error"
+    onError()
   end if
 
   m.previousTimestamp = m.currentTimestamp
@@ -114,4 +116,8 @@ end sub
 
 sub onSourceChanged()
   m.changeImpressionId = true
+end sub
+
+sub onError()
+
 end sub
