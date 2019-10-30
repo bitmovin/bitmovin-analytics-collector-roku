@@ -30,6 +30,7 @@ end sub
 
 sub setUpObservers()
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
+  m.collectorCore.observeFieldScoped("fireHeartBeat", "onHeartBeat")
   m.player.observeFieldScoped("seek", "onSeek")
 
   m.player.observeFieldScoped("control", "onControlChanged")
@@ -75,6 +76,16 @@ sub onPlayerStateChanged()
   updateSampleDataAndSendAnalyticsRequest(stateChangedData)
 end sub
 
+sub onHeartBeat()
+  m.previousState = m.currentState
+  m.currentState = m.player.state
+
+  heartBeatData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStateEnums, m.playerStateAnalyticsMapper)
+  m.playerStateTimer.Mark()
+
+  updateSampleDataAndSendAnalyticsRequest(heartBeatData)
+end sub
+
 function createUpdatedSampleData(state, timer, stateEnums, analyticsMapper)
   if state = invalid or timer = invalid or stateEnums = invalid or analyticsMapper = invalid
     return invalid
@@ -83,8 +94,8 @@ function createUpdatedSampleData(state, timer, stateEnums, analyticsMapper)
   sampleData = {}
   sampleData.Append(getDefaultStateTimeData())
   sampleData.Append(getCommonSampleData(timer, state))
-  previousState = analyticsMapper[state]
-  if previousState = stateEnums.PLAYING or previousState = stateEnums.PAUSED
+  if state = stateEnums.PLAYING or state = stateEnums.PAUSED
+    previousState = analyticsMapper[state]
     sampleData[previousState] = sampleData.duration
   end if
 
@@ -92,15 +103,15 @@ function createUpdatedSampleData(state, timer, stateEnums, analyticsMapper)
 end function
 
 function getCommonSampleData(timer, state)
-  sampleData = {}
+  commonSampleData = {}
 
   if timer <> invalid and state <> invalid
-    sampleData.duration = getDuration(timer)
-    sampleData.state = state
-    sampleData.time =  getCurrentTimeInMilliseconds()
+    commonSampleData.duration = getDuration(timer)
+    commonSampleData.state = state
+    commonSampleData.time =  getCurrentTimeInMilliseconds()
   end if
 
-  return sampleData
+  return commonSampleData
 end function
 
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)

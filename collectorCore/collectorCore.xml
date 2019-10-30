@@ -11,5 +11,6 @@
     <function name="getVersion"/>
     <function name="updateSampleAndSendAnalyticsRequest"/>
     <field id="playerState" alias="analyticsDataTask.playerState" type="string"/>
+    <field id="fireHeartBeat" type="boolean" alwaysnotify="true"/>
   </interface>
 </component>
