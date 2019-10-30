@@ -11,7 +11,7 @@ sub initializePlayer(player)
 
   setUpObservers()
   setUpHelperVariables()
-  
+
   m.player.observeFieldScoped("content", "onSourceChanged")
   m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.previousState = ""
@@ -51,7 +51,7 @@ sub onPlayerStateChanged()
   m.currentState = m.player.state
   stateChangedData = {}
 
-  if m.player.state = "playing"
+  if m.currentState = "playing"
     onSeeked()
     onVideoStart()
     if m.changeImpressionId = true
@@ -60,9 +60,9 @@ sub onPlayerStateChanged()
     else
       stateChangedData.impressionId = m.collectorCore.callFunc("getCurrentImpressionId")
     end if
-  else if m.player.state = "finished"
+  else if m.currentState = "finished"
     m.changeImpressionId = true
-  else if m.player.state = "paused"
+  else if m.currentState = "paused"
     onSeek()
   end if
 
