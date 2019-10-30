@@ -8,5 +8,6 @@
     <field id="eventData" type="assocarray"/>
     <field id="sendData" type="bool" alwaysNotify="true"/>
     <field id="licensingState" type="string"/>
+    <field id="playerState" type="string"/>
   </interface>
 </component>

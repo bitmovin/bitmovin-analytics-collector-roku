@@ -2,6 +2,9 @@ sub init()
   m.tag = "[nativePlayerCollector] "
   m.changeImpressionId = false
   m.collectorCore = m.top.findNode("collectorCore")
+  m.playerStateEnums = getPlayerState()
+  m.playerStateAnalyticsMapper = mapPlayerStateForAnalytic(m.playerStateEnums)
+  m.playerStateTimer = CreateObject("roTimespan")
 end sub
 
 sub initializePlayer(player)
@@ -11,7 +14,7 @@ sub initializePlayer(player)
 
   setUpObservers()
   setUpHelperVariables()
-  
+
   m.player.observeFieldScoped("content", "onSourceChanged")
   m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.previousState = ""
@@ -49,7 +52,10 @@ end sub
 sub onPlayerStateChanged()
   m.previousState = m.currentState
   m.currentState = m.player.state
-  stateChangedData = {}
+  m.collectorCore.playerState = m.currentState
+
+  stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStateEnums, m.playerStateAnalyticsMapper)
+  m.playerStateTimer.Mark()
 
   if m.player.state = "playing"
     onSeeked()
@@ -66,15 +72,36 @@ sub onPlayerStateChanged()
     onSeek()
   end if
 
-  m.previousTimestamp = m.currentTimestamp
-  m.currentTimestamp = getCurrentTimeInMilliseconds()
-  duration = getDuration(m.currentTimestamp, m.previousTimestamp)
-
-  stateChangedData.duration = duration
-  stateChangedData.state = m.previousState
-  stateChangedData.time =  m.currentTimestamp
   updateSampleDataAndSendAnalyticsRequest(stateChangedData)
 end sub
+
+function createUpdatedSampleData(state, timer, stateEnums, analyticsMapper)
+  if state = invalid or timer = invalid or stateEnums = invalid or analyticsMapper = invalid
+    return invalid
+  end if
+
+  sampleData = {}
+  sampleData.Append(getDefaultStateTimeData())
+  sampleData.Append(getCommonSampleData(timer, state))
+  previousState = analyticsMapper[state]
+  if previousState = stateEnums.PLAYING or previousState = stateEnums.PAUSED
+    sampleData[previousState] = sampleData.duration
+  end if
+
+  return sampleData
+end function
+
+function getCommonSampleData(timer, state)
+  sampleData = {}
+
+  if timer <> invalid and state <> invalid
+    sampleData.duration = getDuration(timer)
+    sampleData.state = state
+    sampleData.time =  getCurrentTimeInMilliseconds()
+  end if
+
+  return sampleData
+end function
 
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
