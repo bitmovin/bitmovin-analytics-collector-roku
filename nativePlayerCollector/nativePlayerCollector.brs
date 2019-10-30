@@ -119,5 +119,14 @@ sub onSourceChanged()
 end sub
 
 sub onError()
+  errorSample = {
+    errorCode: m.player.errorCode,
+    errorMessage: m.player.errorMsg,
+    errorSegments: []
+  }
 
+  if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
+  if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
+
+  updateSampleDataAndSendAnalyticsRequest(errorSample)
 end sub
