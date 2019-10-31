@@ -54,7 +54,7 @@ sub onPlayerStateChanged()
   setPreviousAndCurrentPlayerState()
   m.collectorCore.playerState = m.currentState
 
-  stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStateEnums, m.playerStateAnalyticsMapper)
+  stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, m.playerStateAnalyticsMapper)
   m.playerStateTimer.Mark()
 
   if m.player.state = "playing"
@@ -77,7 +77,7 @@ end sub
 
 sub onHeartBeat()
   setPreviousAndCurrentPlayerState()
-  heartBeatData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStateEnums, m.playerStateAnalyticsMapper)
+  heartBeatData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, m.playerStateAnalyticsMapper)
   m.playerStateTimer.Mark()
 
   updateSampleDataAndSendAnalyticsRequest(heartBeatData)
