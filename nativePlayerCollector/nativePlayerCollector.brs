@@ -89,16 +89,16 @@ sub setPreviousAndCurrentPlayerState()
   m.currentState = m.player.state
 end sub
 
-function createUpdatedSampleData(state, timer, posiblePlayerStates)
-  if state = invalid or timer = invalid or posiblePlayerStates = invalid
+function createUpdatedSampleData(state, timer, possiblePlayerStates)
+  if state = invalid or timer = invalid or possiblePlayerStates = invalid
     return invalid
   end if
 
   sampleData = {}
   sampleData.Append(getDefaultStateTimeData())
   sampleData.Append(getCommonSampleData(timer, state))
-  if state = posiblePlayerStates.PLAYING or state = posiblePlayerStates.PAUSED
-    previousState = mapPlayerStateForAnalytic(posiblePlayerStates, state)
+  if state = possiblePlayerStates.PLAYING or state = possiblePlayerStates.PAUSED
+    previousState = mapPlayerStateForAnalytic(possiblePlayerStates, state)
     sampleData[previousState] = sampleData.duration
   end if
 
