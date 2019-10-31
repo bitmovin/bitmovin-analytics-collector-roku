@@ -2,7 +2,7 @@ sub init()
   m.tag = "[nativePlayerCollector] "
   m.changeImpressionId = false
   m.collectorCore = m.top.findNode("collectorCore")
-  m.playerStateEnums = getPlayerState()
+  m.playerStateEnums = getPlayerStates()
   m.playerStateAnalyticsMapper = mapPlayerStateForAnalytic(m.playerStateEnums)
   m.playerStateTimer = CreateObject("roTimespan")
 end sub

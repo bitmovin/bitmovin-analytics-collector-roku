@@ -1,6 +1,6 @@
 ' State enums exposed to user
-function getPlayerState()
-  playerState = {
+function getPlayerStates()
+  playerStates = {
     PLAYING: "playing",
     BUFFERING: "buffering",
     PAUSED: "paused",
@@ -8,5 +8,5 @@ function getPlayerState()
     ERROR: "error",
     NONE: "none",
   }
-  return playerState
+  return playerStates
 end function
