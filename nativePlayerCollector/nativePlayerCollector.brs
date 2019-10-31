@@ -51,8 +51,7 @@ sub setUpHelperVariables()
 end sub
 
 sub onPlayerStateChanged()
-  m.previousState = m.currentState
-  m.currentState = m.player.state
+  setPreviousAndCurrentPlayerState(m.currentState, m.player.state)
   m.collectorCore.playerState = m.currentState
 
   stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStateEnums, m.playerStateAnalyticsMapper)
@@ -77,9 +76,7 @@ sub onPlayerStateChanged()
 end sub
 
 sub onHeartBeat()
-  m.previousState = m.currentState
-  m.currentState = m.player.state
-
+  setPreviousAndCurrentPlayerState(m.currentState, m.player.state)
   heartBeatData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStateEnums, m.playerStateAnalyticsMapper)
   m.playerStateTimer.Mark()
 
@@ -152,4 +149,9 @@ end sub
 
 sub onSourceChanged()
   m.changeImpressionId = true
+end sub
+
+sub setPreviousAndCurrentPlayerState(previousState, currentState)
+  m.previousState = previousState
+  m.currentState = currentState
 end sub
