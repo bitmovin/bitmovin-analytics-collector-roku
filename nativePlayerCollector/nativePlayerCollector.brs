@@ -54,7 +54,7 @@ sub onPlayerStateChanged()
   setPreviousAndCurrentPlayerState()
   m.collectorCore.playerState = m.currentState
 
-  stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, m.playerStateAnalyticsMapper)
+  stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
 
   if m.player.state = "playing"
@@ -77,7 +77,7 @@ end sub
 
 sub onHeartBeat()
   setPreviousAndCurrentPlayerState()
-  heartBeatData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, m.playerStateAnalyticsMapper)
+  heartBeatData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
 
   updateSampleDataAndSendAnalyticsRequest(heartBeatData)
@@ -88,16 +88,16 @@ sub setPreviousAndCurrentPlayerState()
   m.currentState = m.player.state
 end sub
 
-function createUpdatedSampleData(state, timer, stateEnums, analyticsMapper)
-  if state = invalid or timer = invalid or stateEnums = invalid or analyticsMapper = invalid
+function createUpdatedSampleData(state, timer, posiblePlayerStates)
+  if state = invalid or timer = invalid or posiblePlayerStates = invalid
     return invalid
   end if
 
   sampleData = {}
   sampleData.Append(getDefaultStateTimeData())
   sampleData.Append(getCommonSampleData(timer, state))
-  if state = stateEnums.PLAYING or state = stateEnums.PAUSED
-    previousState = analyticsMapper[state]
+  if state = posiblePlayerStates.PLAYING or state = posiblePlayerStates.PAUSED
+    previousState = mapPlayerStateForAnalytic(posiblePlayerStates, state)
     sampleData[previousState] = sampleData.duration
   end if
 
