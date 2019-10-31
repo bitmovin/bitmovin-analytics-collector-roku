@@ -9,7 +9,7 @@ function getAnalyticsSample()
     duration: 0,
     errorCode: 0,
     errorMessage: "",
-    errprSegments: [],
+    errorSegments: [],
     impressionId: "",
     isCasting: false,
     isLive: false,
