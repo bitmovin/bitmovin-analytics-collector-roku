@@ -3,7 +3,6 @@ sub init()
   m.changeImpressionId = false
   m.collectorCore = m.top.findNode("collectorCore")
   m.playerStates = getPlayerStates()
-  m.playerStateAnalyticsMapper = mapPlayerStateForAnalytic(m.playerStates)
   m.playerStateTimer = CreateObject("roTimespan")
 end sub
 
