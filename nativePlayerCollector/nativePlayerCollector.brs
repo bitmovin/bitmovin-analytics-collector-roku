@@ -56,7 +56,7 @@ sub onPlayerStateChanged()
   stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
 
-  if m.player.state = "playing"
+  if m.currentState = "playing"
     onSeeked()
     onVideoStart()
     if m.changeImpressionId = true
@@ -65,10 +65,12 @@ sub onPlayerStateChanged()
     else
       stateChangedData.impressionId = m.collectorCore.callFunc("getCurrentImpressionId")
     end if
-  else if m.player.state = "finished"
+  else if m.currentState = "finished"
     m.changeImpressionId = true
-  else if m.player.state = "paused"
+  else if m.currentState = "paused"
     onSeek()
+  else if m.currentState = "error"
+    onError()
   end if
 
   updateSampleDataAndSendAnalyticsRequest(stateChangedData)
@@ -155,3 +157,15 @@ sub onSourceChanged()
   m.changeImpressionId = true
 end sub
 
+sub onError()
+  errorSample = {
+    errorCode: m.player.errorCode,
+    errorMessage: m.player.errorMsg,
+    errorSegments: []
+  }
+
+  if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
+  if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
+
+  updateSampleDataAndSendAnalyticsRequest(errorSample)
+end sub
