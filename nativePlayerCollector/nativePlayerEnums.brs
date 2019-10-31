@@ -1,4 +1,4 @@
-' State enums exposed to user
+' Player states
 function getPlayerStates()
   playerStates = {
     PLAYING: "playing",
