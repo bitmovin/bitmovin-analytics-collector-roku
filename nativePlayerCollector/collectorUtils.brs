@@ -11,10 +11,26 @@ function getCurrentTimeInSeconds()
   return seconds#
 end function
 
-function getDuration(currentTimestamp, previousTimestamp)
-  if currentTimestamp = invalid or previousTimestamp = invalid
-    return invalid
-  end if
+function getDuration(timer)
+  if timer = invalid then return invalid
 
-  return (currentTimestamp - previousTimeStamp)
+  return timer.TotalMilliseconds()
+end function
+
+function mapPlayerStateForAnalytic(playerStates, state)
+  map = {}
+  map[playerStates.PLAYING] = "played"
+  map[playerStates.PAUSED] = "paused"
+  map[playerStates.BUFFERING] = "buffered"
+  map[playerStates.NONE] = "none"
+
+  return map[state]
+end function
+
+function getDefaultStateTimeData()
+  return {
+    played: 0,
+    buffered: 0,
+    paused: 0
+  }
 end function

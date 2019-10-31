@@ -2,6 +2,8 @@ sub init()
   m.tag = "[nativePlayerCollector] "
   m.changeImpressionId = false
   m.collectorCore = m.top.findNode("collectorCore")
+  m.playerStates = getPlayerStates()
+  m.playerStateTimer = CreateObject("roTimespan")
 end sub
 
 sub initializePlayer(player)
@@ -27,6 +29,7 @@ end sub
 
 sub setUpObservers()
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
+  m.collectorCore.observeFieldScoped("fireHeartBeat", "onHeartBeat")
   m.player.observeFieldScoped("seek", "onSeek")
 
   m.player.observeFieldScoped("control", "onControlChanged")
@@ -47,9 +50,11 @@ sub setUpHelperVariables()
 end sub
 
 sub onPlayerStateChanged()
-  m.previousState = m.currentState
-  m.currentState = m.player.state
-  stateChangedData = {}
+  setPreviousAndCurrentPlayerState()
+  m.collectorCore.playerState = m.currentState
+
+  stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
+  m.playerStateTimer.Mark()
 
   if m.currentState = "playing"
     onSeeked()
@@ -68,15 +73,49 @@ sub onPlayerStateChanged()
     onError()
   end if
 
-  m.previousTimestamp = m.currentTimestamp
-  m.currentTimestamp = getCurrentTimeInMilliseconds()
-  duration = getDuration(m.currentTimestamp, m.previousTimestamp)
-
-  stateChangedData.duration = duration
-  stateChangedData.state = m.previousState
-  stateChangedData.time =  m.currentTimestamp
   updateSampleDataAndSendAnalyticsRequest(stateChangedData)
 end sub
+
+sub onHeartBeat()
+  setPreviousAndCurrentPlayerState()
+  heartBeatData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
+  m.playerStateTimer.Mark()
+
+  updateSampleDataAndSendAnalyticsRequest(heartBeatData)
+end sub
+
+sub setPreviousAndCurrentPlayerState()
+  m.previousState = m.currentState
+  m.currentState = m.player.state
+end sub
+
+function createUpdatedSampleData(state, timer, possiblePlayerStates)
+  if state = invalid or timer = invalid or possiblePlayerStates = invalid
+    return invalid
+  end if
+
+  sampleData = {}
+  sampleData.Append(getDefaultStateTimeData())
+  sampleData.Append(getCommonSampleData(timer, state))
+  if state = possiblePlayerStates.PLAYING or state = possiblePlayerStates.PAUSED
+    previousState = mapPlayerStateForAnalytic(possiblePlayerStates, state)
+    sampleData[previousState] = sampleData.duration
+  end if
+
+  return sampleData
+end function
+
+function getCommonSampleData(timer, state)
+  commonSampleData = {}
+
+  if timer <> invalid and state <> invalid
+    commonSampleData.duration = getDuration(timer)
+    commonSampleData.state = state
+    commonSampleData.time =  getCurrentTimeInMilliseconds()
+  end if
+
+  return commonSampleData
+end function
 
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)

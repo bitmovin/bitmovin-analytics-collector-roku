@@ -2,6 +2,7 @@
 <component name="nativePlayerCollector" extends="Group">
   <script type="text/brightscript" uri="./nativePlayerCollector.brs"/>
   <script type="text/brightscript" uri="./collectorUtils.brs"/>
+  <script type="text/brightscript" uri="./nativePlayerEnums.brs"/>
   <children>
     <collectorCore id="collectorCore"/>
   </children>
