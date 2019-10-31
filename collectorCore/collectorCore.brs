@@ -87,13 +87,20 @@ end function
 
 ' TODO: Error handling if the keys are invalid
 sub updateSampleAndSendAnalyticsRequest(values)
-  for each v in values
-    m.sample.append(values)
-  end for
+  updateSample(values)
 
   m.analyticsDataTask.eventData = m.sample
   sendAnalyticsRequest()
 end sub
+
+function updateSample(values)
+  if values = invalid then return invalid
+  for each v in values
+    m.sample.append(values)
+  end for
+
+  return true
+end function
 
 sub sendAnalyticsRequest()
   m.analyticsDataTask.sendData = true
