@@ -167,9 +167,9 @@ sub onError()
 end sub
 
 sub setCustomData(customData)
-  if customData = invalid then return
+  if customData = invalid then return invalid
   finishRunningSample()
-  m.collectorCore.callFunc("updateSample", customData)
+  return m.collectorCore.callFunc("updateSample", customData)
 end sub
 
 sub finishRunningSample()
