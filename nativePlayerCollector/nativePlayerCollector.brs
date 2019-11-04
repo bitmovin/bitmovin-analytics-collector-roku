@@ -172,10 +172,10 @@ end sub
 
 function setCustomData(customData)
   if customData = invalid then return invalid
-    setPreviousAndCurrentPlayerState()
-    runningSampleData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
-    m.playerStateTimer.Mark()
-    updateSampleDataAndSendAnalyticsRequest(runningSampleData)
+  setPreviousAndCurrentPlayerState()
+  runningSampleData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
+  m.playerStateTimer.Mark()
+  updateSampleDataAndSendAnalyticsRequest(runningSampleData)
 
   return m.collectorCore.callFunc("updateSample", customData)
 end function
