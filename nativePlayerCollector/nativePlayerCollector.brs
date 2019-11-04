@@ -77,7 +77,7 @@ sub onPlayerStateChanged()
 end sub
 
 sub onHeartBeat()
-  finishRunningSample()
+  finishRunningSample(false)
 end sub
 
 sub setPreviousAndCurrentPlayerState()
@@ -113,10 +113,10 @@ function getCommonSampleData(timer, state)
   return commonSampleData
 end function
 
-sub updateSampleDataAndSendAnalyticsRequest(sampleData, isSentOnceMetadata)
-  if sampleData = invalid or isSentOnceMetadata = invalid then return
+sub updateSampleDataAndSendAnalyticsRequest(sampleData, isSendOnceMetadata)
+  if sampleData = invalid or isSendOnceMetadata = invalid then return
 
-  m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData, isSentOnceMetadata)
+  m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData, isSendOnceMetadata)
 end sub
 
 sub onSeek()
@@ -170,15 +170,15 @@ end sub
 
 function setCustomData(customData)
   if customData = invalid then return invalid
-  finishRunningSample()
+  finishRunningSample(false)
   return m.collectorCore.callFunc("updateSample", customData)
 end function
 
-sub finishRunningSample()
+sub finishRunningSample(isSendOnceMetadata)
   setPreviousAndCurrentPlayerState()
   runningSampleData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
-  updateSampleDataAndSendAnalyticsRequest(runningSampleData)
+  updateSampleDataAndSendAnalyticsRequest(runningSampleData, isSendOnceMetadata)
 end sub
 
 
