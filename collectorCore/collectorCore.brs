@@ -94,7 +94,7 @@ sub updateSampleAndSendAnalyticsRequest(values)
 end sub
 
 function updateSample(newSampleData)
-  if newSampleData = invalid then return invalid
+  if newSampleData = invalid then return false
   for each data in newSampleData
     m.sample.append(newSampleData)
   end for
