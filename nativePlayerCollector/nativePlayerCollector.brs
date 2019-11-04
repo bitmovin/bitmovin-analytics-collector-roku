@@ -9,7 +9,7 @@ end sub
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
-  updateSampleDataAndSendAnalyticsRequest({"playerStartupTime": 1})
+  updateSampleDataAndSendAnalyticsRequest({"playerStartupTime": 1}, false)
 
   setUpObservers()
   setUpHelperVariables()
@@ -24,7 +24,7 @@ sub initializePlayer(player)
     playerTech: "native",
     version: "unknown"
   }
-  updateSampleDataAndSendAnalyticsRequest(playerData)
+  updateSampleDataAndSendAnalyticsRequest(playerData, false)
 end sub
 
 sub setUpObservers()
@@ -73,7 +73,7 @@ sub onPlayerStateChanged()
     onError()
   end if
 
-  updateSampleDataAndSendAnalyticsRequest(stateChangedData)
+  updateSampleDataAndSendAnalyticsRequest(stateChangedData, false)
 end sub
 
 sub onHeartBeat()
@@ -81,7 +81,7 @@ sub onHeartBeat()
   heartBeatData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
 
-  updateSampleDataAndSendAnalyticsRequest(heartBeatData)
+  updateSampleDataAndSendAnalyticsRequest(heartBeatData, false)
 end sub
 
 sub setPreviousAndCurrentPlayerState()
@@ -117,8 +117,10 @@ function getCommonSampleData(timer, state)
   return commonSampleData
 end function
 
-sub updateSampleDataAndSendAnalyticsRequest(sampleData)
-  m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
+sub updateSampleDataAndSendAnalyticsRequest(sampleData, isSentOnceMetadata)
+  if sampleData = invalid or isSentOnceMetadata = invalid then return
+
+  m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData, isSentOnceMetadata)
 end sub
 
 sub onSeek()
@@ -131,7 +133,7 @@ end sub
 
 sub onSeeked()
   if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position and m.seekTimer <> invalid
-    updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()})
+    updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()}, false)
   end if
 
   m.alreadySeeking = false
@@ -148,7 +150,7 @@ end sub
 sub onVideoStart()
   if m.videoStartupTimer = invalid then return
 
-  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()})
+  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()}, false)
 
   m.videoStartupTimer = invalid
 end sub
@@ -167,7 +169,7 @@ sub onError()
   if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
   if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
 
-  updateSampleDataAndSendAnalyticsRequest(errorSample)
+  updateSampleDataAndSendAnalyticsRequest(errorSample, false)
 end sub
 
 function setCustomData(customData)
@@ -175,7 +177,17 @@ function setCustomData(customData)
   setPreviousAndCurrentPlayerState()
   runningSampleData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
-  updateSampleDataAndSendAnalyticsRequest(runningSampleData)
+  updateSampleDataAndSendAnalyticsRequest(runningSampleData, false)
 
   return m.collectorCore.callFunc("updateSample", customData)
+end function
+
+function setCustomDataOnce(customData)
+  if customData = invalid then return invalid
+  sendOnceCustomData = {}
+  sendOnceCustomData.Append(createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates))
+  sendOnceCustomData.Append(customData)
+  updateSampleDataAndSendAnalyticsRequest(sendOnceCustomData, true)
+
+  return true
 end function

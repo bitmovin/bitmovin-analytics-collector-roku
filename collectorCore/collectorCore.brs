@@ -86,10 +86,17 @@ function getLicensingData()
 end function
 
 ' TODO: Error handling if the keys are invalid
-sub updateSampleAndSendAnalyticsRequest(values)
-  updateSample(values)
+sub updateSampleAndSendAnalyticsRequest(updateSampleData, isSentOnceMetadata)
+  if updateSampleData = invalid or isSentOnceMetadata = invalid then return
 
-  m.analyticsDataTask.eventData = m.sample
+  if isSentOnceMetadata = false
+    updateSample(updateSampleData)
+    m.analyticsDataTask.eventData = m.sample
+  else
+    sendOnceSample = createSentOnceSample(updateSampleData)
+    m.analyticsDataTask.eventData = sendOnceSample
+  end if
+
   sendAnalyticsRequest()
 end sub
 
@@ -100,6 +107,17 @@ function updateSample(newSampleData)
   end for
 
   return true
+end function
+
+function createSentOnceSample(metadata)
+  if metadata = invalid then return invalid
+  tempSample = {}
+  tempSample.append(m.sample)
+  for each data in metadata
+    tempSample.append(metadata)
+  end for
+
+  return tempSample
 end function
 
 sub sendAnalyticsRequest()
