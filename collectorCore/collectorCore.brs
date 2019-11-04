@@ -93,10 +93,10 @@ sub updateSampleAndSendAnalyticsRequest(values)
   sendAnalyticsRequest()
 end sub
 
-function updateSample(values)
-  if values = invalid then return invalid
-  for each v in values
-    m.sample.append(values)
+function updateSample(newSampleData)
+  if newSampleData = invalid then return invalid
+  for each data in newSampleData
+    m.sample.append(newSampleData)
   end for
 
   return true
