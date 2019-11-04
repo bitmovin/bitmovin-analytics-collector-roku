@@ -168,11 +168,11 @@ sub onError()
   updateSampleDataAndSendAnalyticsRequest(errorSample, false)
 end sub
 
-function setCustomData(customData)
+sub setCustomData(customData)
   if customData = invalid then return invalid
   finishRunningSample(false)
   return m.collectorCore.callFunc("updateSample", customData)
-end function
+end sub
 
 sub finishRunningSample(isSendOnceMetadata)
   setPreviousAndCurrentPlayerState()
