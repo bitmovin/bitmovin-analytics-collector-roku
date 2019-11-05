@@ -10,6 +10,7 @@
     <function name="getCurrentImpressionId"/>
     <function name="getVersion"/>
     <function name="updateSampleAndSendAnalyticsRequest"/>
+    <function name="updateSample"/>
     <field id="playerState" alias="analyticsDataTask.playerState" type="string"/>
     <field id="fireHeartBeat" type="boolean" alwaysnotify="true"/>
   </interface>
