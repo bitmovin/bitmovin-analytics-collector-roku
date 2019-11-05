@@ -9,7 +9,7 @@ end sub
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
-  updateSampleDataAndSendAnalyticsRequest({"playerStartupTime": 1}, false)
+  updateSampleDataAndSendAnalyticsRequest({"playerStartupTime": 1})
 
   setUpObservers()
   setUpHelperVariables()
@@ -24,7 +24,7 @@ sub initializePlayer(player)
     playerTech: "native",
     version: "unknown"
   }
-  updateSampleDataAndSendAnalyticsRequest(playerData, false)
+  updateSampleDataAndSendAnalyticsRequest(playerData)
 end sub
 
 sub setUpObservers()
@@ -73,7 +73,7 @@ sub onPlayerStateChanged()
     onError()
   end if
 
-  updateSampleDataAndSendAnalyticsRequest(stateChangedData, false)
+  updateSampleDataAndSendAnalyticsRequest(stateChangedData)
 end sub
 
 sub onHeartBeat()
@@ -117,10 +117,8 @@ function getCommonSampleData(timer, state)
   return commonSampleData
 end function
 
-sub updateSampleDataAndSendAnalyticsRequest(sampleData, isSendOnceMetadata)
-  if sampleData = invalid or isSendOnceMetadata = invalid then return
-
-  m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData, isSendOnceMetadata)
+sub updateSampleDataAndSendAnalyticsRequest(sampleData)
+  m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 sub onSeek()
@@ -184,7 +182,6 @@ sub finishRunningSample(isSendOnceMetadata)
   m.playerStateTimer.Mark()
   updateSampleDataAndSendAnalyticsRequest(runningSampleData, isSendOnceMetadata)
 end sub
-
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
