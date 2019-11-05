@@ -182,12 +182,12 @@ sub finishRunningSample(isSendOnceMetadata)
 end sub
 
 
-function setCustomDataOnce(customData)
-  if customData = invalid then return invalid
+sub setCustomDataOnce(customData)
+  if customData = invalid then return
   sendOnceCustomData = {}
   sendOnceCustomData.Append(createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates))
   sendOnceCustomData.Append(customData)
   updateSampleDataAndSendAnalyticsRequest(sendOnceCustomData, true)
 
   return true
-end function
+end sub
