@@ -89,12 +89,12 @@ end function
 sub updateSampleAndSendAnalyticsRequest(updateSampleData, isSendOnceMetadata)
   if updateSampleData = invalid or isSendOnceMetadata = invalid then return
 
-  if isSendOnceMetadata = false
+  if isSendOnceMetadata
+    sendOnceSample = createSendOnceSample(updateSampleData)
+    m.analyticsDataTask.eventData = sendOnceSample
+  else
     updateSample(updateSampleData)
     m.analyticsDataTask.eventData = m.sample
-  else
-    sendOnceSample = createSentOnceSample(updateSampleData)
-    m.analyticsDataTask.eventData = sendOnceSample
   end if
 
   sendAnalyticsRequest()
