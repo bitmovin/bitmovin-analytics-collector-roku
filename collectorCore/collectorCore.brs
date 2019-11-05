@@ -87,18 +87,18 @@ end function
 
 ' TODO: Error handling if the keys are invalid
 sub updateSampleAndSendAnalyticsRequest(updatedSampleData)
-  if updateSampleData = invalid return
+  if updatedSampleData = invalid return
 
-  updateSample(updateSampleData)
+  updateSample(updatedSampleData)
   m.analyticsDataTask.eventData = m.sample
 
   sendAnalyticsRequest()
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData)
-  if updateSampleData = invalid return
+  if updatedSampleData = invalid return
 
-  sendOnceSample = createSendOnceSample(updateSampleData)
+  sendOnceSample = createSendOnceSample(updatedSampleData)
   m.analyticsDataTask.eventData = sendOnceSample
 
   sendAnalyticsRequest()
