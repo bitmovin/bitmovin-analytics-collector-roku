@@ -121,6 +121,10 @@ sub updateSampleDataAndSendAnalyticsRequest(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
+sub createTempMetadataSampleAndSendAnalyticsRequest(sampleData)
+  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
+end sub
+
 sub onSeek()
   if m.alreadySeeking = true then return
 
@@ -131,7 +135,7 @@ end sub
 
 sub onSeeked()
   if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position and m.seekTimer <> invalid
-    updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()}, false)
+    updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()})
   end if
 
   m.alreadySeeking = false
@@ -148,7 +152,7 @@ end sub
 sub onVideoStart()
   if m.videoStartupTimer = invalid then return
 
-  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()}, false)
+  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()})
 
   m.videoStartupTimer = invalid
 end sub
@@ -167,7 +171,7 @@ sub onError()
   if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
   if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
 
-  updateSampleDataAndSendAnalyticsRequest(errorSample, false)
+  updateSampleDataAndSendAnalyticsRequest(errorSample)
 end sub
 
 function setCustomData(customData)
@@ -176,11 +180,11 @@ function setCustomData(customData)
   return m.collectorCore.callFunc("updateSample", customData)
 end function
 
-sub finishRunningSample(isSendOnceMetadata)
+sub finishRunningSample()
   setPreviousAndCurrentPlayerState()
   runningSampleData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
-  updateSampleDataAndSendAnalyticsRequest(runningSampleData, isSendOnceMetadata)
+  updateSampleDataAndSendAnalyticsRequest(runningSampleData)
 end sub
 
 sub setCustomDataOnce(customData)
@@ -188,5 +192,5 @@ sub setCustomDataOnce(customData)
   finishRunningSample(false)
   sendOnceCustomData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, customData)
 
-  updateSampleDataAndSendAnalyticsRequest(sendOnceCustomData, true)
+  updateSampleDataAndSendAnalyticsRequest(sendOnceCustomData)
 end sub
