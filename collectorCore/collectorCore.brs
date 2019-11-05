@@ -96,6 +96,8 @@ sub updateSampleAndSendAnalyticsRequest(updateSampleData)
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(updateSampleData)
+  if updateSampleData = invalid return
+
   sendOnceSample = createSendOnceSample(updateSampleData)
   m.analyticsDataTask.eventData = sendOnceSample
 
