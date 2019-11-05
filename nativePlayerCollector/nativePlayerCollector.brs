@@ -129,6 +129,7 @@ sub checkForNewMetadata()
   if m.newMetadata = invalid then return
 
   updateSampleDataAndSendAnalyticsRequest(m.newMetadata)
+  m.newMetadata = invalid
 end sub
 
 function validateMetaData(metadata)
