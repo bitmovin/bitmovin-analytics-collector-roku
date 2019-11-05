@@ -192,5 +192,5 @@ sub setCustomDataOnce(customData)
   finishRunningSample(false)
   sendOnceCustomData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, customData)
 
-  updateSampleDataAndSendAnalyticsRequest(sendOnceCustomData)
+  createTempMetadataSampleAndSendAnalyticsRequest(sendOnceCustomData)
 end sub
