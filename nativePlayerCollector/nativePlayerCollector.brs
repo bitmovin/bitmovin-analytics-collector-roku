@@ -184,6 +184,8 @@ end sub
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
+  finishRunningSample(false)
+
   sendOnceCustomData = {}
   sendOnceCustomData.Append(createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates))
   sendOnceCustomData.Append(customData)
