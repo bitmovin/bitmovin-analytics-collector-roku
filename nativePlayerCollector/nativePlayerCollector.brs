@@ -11,7 +11,7 @@ sub initializePlayer(player)
 
   setUpObservers()
   setUpHelperVariables()
-  
+
   m.player.observeFieldScoped("content", "onSourceChanged")
   m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.previousState = ""
@@ -44,6 +44,8 @@ end sub
 sub setUpHelperVariables()
   m.seekStartPosition = invalid
   m.alreadySeeking = false
+
+  m.newMetadata = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -113,5 +115,36 @@ sub onVideoStart()
 end sub
 
 sub onSourceChanged()
+  checkForNewMetadata()
   m.changeImpressionId = true
+end sub
+
+sub setNewMetadata(metadata = invalid)
+  if metadata = invalid then return
+  updatedMetadata = {}
+
+  allowedFields = [
+    "customUserId",
+    "customData1",
+    "customData2",
+    "customData3",
+    "customData4",
+    "customData5",
+    "videoId",
+    "videoTitle",
+    "experimentName",
+    "cdnProvider",
+    "isLive"
+  ]
+
+  for each field in allowedFields
+    if metadata[field] <> invalid then updatedMetadata.AddReplace(field, metadata[field])
+  end for
+
+  m.newMetadata = updatedMetadata
+end sub
+
+sub checkForNewMetadata()
+  if m.newMetadata = invalid then return
+  updateSampleDataAndSendAnalyticsRequest(m.newMetadata)
 end sub
