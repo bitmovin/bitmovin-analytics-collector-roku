@@ -86,7 +86,7 @@ function getLicensingData()
 end function
 
 ' TODO: Error handling if the keys are invalid
-sub updateSampleAndSendAnalyticsRequest(updateSampleData)
+sub updateSampleAndSendAnalyticsRequest(updatedSampleData)
   if updateSampleData = invalid return
 
   updateSample(updateSampleData)
@@ -95,7 +95,7 @@ sub updateSampleAndSendAnalyticsRequest(updateSampleData)
   sendAnalyticsRequest()
 end sub
 
-sub createTempMetadataSampleAndSendAnalyticsRequest(updateSampleData)
+sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData)
   if updateSampleData = invalid return
 
   sendOnceSample = createSendOnceSample(updateSampleData)
