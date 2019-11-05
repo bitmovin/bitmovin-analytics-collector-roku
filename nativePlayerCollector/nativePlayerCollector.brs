@@ -77,7 +77,7 @@ sub onPlayerStateChanged()
 end sub
 
 sub onHeartBeat()
-  finishRunningSample(false)
+  finishRunningSample()
 end sub
 
 sub setPreviousAndCurrentPlayerState()
@@ -176,7 +176,7 @@ end sub
 
 function setCustomData(customData)
   if customData = invalid then return invalid
-  finishRunningSample(false)
+  finishRunningSample()
   return m.collectorCore.callFunc("updateSample", customData)
 end function
 
@@ -189,7 +189,7 @@ end sub
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
-  finishRunningSample(false)
+  finishRunningSample()
   sendOnceCustomData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, customData)
 
   createTempMetadataSampleAndSendAnalyticsRequest(sendOnceCustomData)
