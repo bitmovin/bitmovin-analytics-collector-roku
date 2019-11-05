@@ -121,9 +121,18 @@ end sub
 
 sub setNewMetadata(metadata = invalid)
   if metadata = invalid then return
-  updatedMetadata = {}
 
-  allowedFields = [
+  m.newMetadata = validateMetaData(metadata)
+end sub
+
+sub checkForNewMetadata()
+  if m.newMetadata = invalid then return
+  updateSampleDataAndSendAnalyticsRequest(m.newMetadata)
+end sub
+
+function validateMetaData(metadata)
+  validMetadata = {}
+  validFields = [
     "customUserId",
     "customData1",
     "customData2",
@@ -137,14 +146,9 @@ sub setNewMetadata(metadata = invalid)
     "isLive"
   ]
 
-  for each field in allowedFields
-    if metadata[field] <> invalid then updatedMetadata.AddReplace(field, metadata[field])
+  for each field in validFields
+    if metadata[field] <> invalid then validMetadata.AddReplace(field, metadata[field])
   end for
 
-  m.newMetadata = updatedMetadata
-end sub
-
-sub checkForNewMetadata()
-  if m.newMetadata = invalid then return
-  updateSampleDataAndSendAnalyticsRequest(m.newMetadata)
-end sub
+  return validMetadata
+end function
