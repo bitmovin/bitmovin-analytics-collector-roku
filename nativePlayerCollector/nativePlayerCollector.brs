@@ -127,6 +127,7 @@ end sub
 
 sub checkForNewMetadata()
   if m.newMetadata = invalid then return
+
   updateSampleDataAndSendAnalyticsRequest(m.newMetadata)
 end sub
 
