@@ -85,7 +85,7 @@ sub setPreviousAndCurrentPlayerState()
   m.currentState = m.player.state
 end sub
 
-function createUpdatedSampleData(state, timer, possiblePlayerStates)
+function createUpdatedSampleData(state, timer, possiblePlayerStates, customData = invalid)
   if state = invalid or timer = invalid or possiblePlayerStates = invalid
     return invalid
   end if
@@ -93,6 +93,10 @@ function createUpdatedSampleData(state, timer, possiblePlayerStates)
   sampleData = {}
   sampleData.Append(getDefaultStateTimeData())
   sampleData.Append(getCommonSampleData(timer, state))
+  if customData <> invalid
+    sampleData.Append(customData)
+  end if
+
   if state = possiblePlayerStates.PLAYING or state = possiblePlayerStates.PAUSED
     previousState = mapPlayerStateForAnalytic(possiblePlayerStates, state)
     sampleData[previousState] = sampleData.duration
@@ -185,11 +189,7 @@ end sub
 sub setCustomDataOnce(customData)
   if customData = invalid then return
   finishRunningSample(false)
+  sendOnceCustomData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, customData)
 
-  sendOnceCustomData = {}
-  sendOnceCustomData.Append(createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates))
-  sendOnceCustomData.Append(customData)
   updateSampleDataAndSendAnalyticsRequest(sendOnceCustomData, true)
-
-  return true
 end sub
