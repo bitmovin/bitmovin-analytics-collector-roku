@@ -128,6 +128,6 @@ end sub
 sub checkForNewMetadata()
   if m.newMetadata = invalid then return
 
-  updateSampleDataAndSendAnalyticsRequest(m.newMetadata)
+  m.collectorCore.callFunc("updateSample", m.newMetadata)
   m.newMetadata = invalid
 end sub
