@@ -191,6 +191,7 @@ end sub
 function setCustomData(customData)
   if customData = invalid then return invalid
   finishRunningSample()
+
   return updateSample(customData)
 end function
 
@@ -198,6 +199,7 @@ sub finishRunningSample()
   setPreviousAndCurrentPlayerState()
   runningSampleData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
+
   updateSampleDataAndSendAnalyticsRequest(runningSampleData)
 end sub
 
