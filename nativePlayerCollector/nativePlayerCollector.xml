@@ -9,6 +9,7 @@
   <interface>
     <field id="optionalAnalyticsData" type="assocarray"/>
     <function name="initializePlayer"/>
+    <function name="setNewMetadata" />
     <function name="setCustomData"/>
   </interface>
 </component>

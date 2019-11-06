@@ -47,6 +47,8 @@ end sub
 sub setUpHelperVariables()
   m.seekStartPosition = invalid
   m.alreadySeeking = false
+
+  m.newMetadata = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -150,7 +152,21 @@ sub onVideoStart()
 end sub
 
 sub onSourceChanged()
+  checkForNewMetadata()
   m.changeImpressionId = true
+end sub
+
+sub setNewMetadata(metadata = invalid)
+  if metadata = invalid then return
+
+  m.newMetadata = metadata
+end sub
+
+sub checkForNewMetadata()
+  if m.newMetadata = invalid then return
+
+  m.collectorCore.callFunc("updateSample", m.newMetadata)
+  m.newMetadata = invalid
 end sub
 
 sub onError()
