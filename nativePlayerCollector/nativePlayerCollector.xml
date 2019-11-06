@@ -7,7 +7,7 @@
     <collectorCore id="collectorCore"/>
   </children>
   <interface>
-    <field id="optionalAnalyticsData" type="assocarray"/>
+    <function name="setAnalyticsConfig"/>
     <function name="initializePlayer"/>
     <function name="setCustomData"/>
   </interface>

@@ -117,6 +117,12 @@ sub updateSampleDataAndSendAnalyticsRequest(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
+function updateSample(sampleData)
+  if sampleData = invalid return false
+
+  return m.collectorCore.callFunc("updateSample", sampleData)
+end function
+
 sub onSeek()
   if m.alreadySeeking = true then return
 
@@ -169,7 +175,7 @@ end sub
 function setCustomData(customData)
   if customData = invalid then return invalid
   finishRunningSample()
-  return m.collectorCore.callFunc("updateSample", customData)
+  return updateSample(customData)
 end function
 
 sub finishRunningSample()
@@ -178,3 +184,9 @@ sub finishRunningSample()
   m.playerStateTimer.Mark()
   updateSampleDataAndSendAnalyticsRequest(runningSampleData)
 end sub
+
+function setAnalyticsConfig(configData)
+  if configData = invalid return invalid
+
+  return updateSample(configData)
+end function
