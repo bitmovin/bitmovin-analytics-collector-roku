@@ -171,7 +171,7 @@ end sub
 sub checkForNewMetadata()
   if m.newMetadata = invalid then return
 
-  m.collectorCore.callFunc("updateSample", m.newMetadata)
+  updateSample(m.newMetadata)
   m.newMetadata = invalid
 end sub
 
