@@ -8,7 +8,7 @@ end sub
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
-  updateSampleDataAndSendAnalyticsRequest({"playerStartupTime": 1})
+  updateSample({"playerStartupTime": 1})
 
   setUpObservers()
   setUpHelperVariables()
