@@ -1,6 +1,5 @@
 sub init()
   m.tag = "[nativePlayerCollector] "
-  m.changeImpressionId = false
   m.collectorCore = m.top.findNode("collectorCore")
   m.playerStates = getPlayerStates()
   m.playerStateTimer = CreateObject("roTimespan")
@@ -50,6 +49,7 @@ sub setUpHelperVariables()
   m.seekStartPosition = invalid
   m.alreadySeeking = false
 
+  m.changeImpressionId = false
   m.newMetadata = invalid
 end sub
 
