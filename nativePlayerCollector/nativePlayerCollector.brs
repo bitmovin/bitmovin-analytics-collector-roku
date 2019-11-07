@@ -87,7 +87,7 @@ sub setPreviousAndCurrentPlayerState()
   m.currentState = m.player.state
 end sub
 
-function createUpdatedSampleData(state, timer, possiblePlayerStates)
+function createUpdatedSampleData(state, timer, possiblePlayerStates, customData = invalid)
   if state = invalid or timer = invalid or possiblePlayerStates = invalid
     return invalid
   end if
@@ -95,6 +95,10 @@ function createUpdatedSampleData(state, timer, possiblePlayerStates)
   sampleData = {}
   sampleData.Append(getDefaultStateTimeData())
   sampleData.Append(getCommonSampleData(timer, state))
+  if customData <> invalid
+    sampleData.Append(customData)
+  end if
+
   if state = possiblePlayerStates.PLAYING or state = possiblePlayerStates.PAUSED
     previousState = mapPlayerStateForAnalytic(possiblePlayerStates, state)
     sampleData[previousState] = sampleData.duration
@@ -117,6 +121,10 @@ end function
 
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
+end sub
+
+sub createTempMetadataSampleAndSendAnalyticsRequest(sampleData)
+  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 sub onSeek()
@@ -193,4 +201,12 @@ sub finishRunningSample()
   runningSampleData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
   updateSampleDataAndSendAnalyticsRequest(runningSampleData)
+end sub
+
+sub setCustomDataOnce(customData)
+  if customData = invalid then return
+  finishRunningSample()
+  sendOnceCustomData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, customData)
+
+  createTempMetadataSampleAndSendAnalyticsRequest(sendOnceCustomData)
 end sub
