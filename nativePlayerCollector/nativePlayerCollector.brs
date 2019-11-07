@@ -14,8 +14,6 @@ sub initializePlayer(player)
   setUpObservers()
   setUpHelperVariables()
 
-  m.player.observeFieldScoped("content", "onSourceChanged")
-  m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.previousState = ""
   m.currentState = player.state
   m.currentTimestamp = getCurrentTimeInMilliseconds()
@@ -28,6 +26,8 @@ sub initializePlayer(player)
 end sub
 
 sub setUpObservers()
+  m.player.observeFieldScoped("content", "onSourceChanged")
+  m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
   m.collectorCore.observeFieldScoped("fireHeartBeat", "onHeartBeat")
   m.player.observeFieldScoped("seek", "onSeek")
@@ -38,6 +38,8 @@ end sub
 sub unobserveFields()
   if m.player = invalid then return
 
+  m.player.unobserveFieldScoped("content")
+  m.player.unobserveFieldScoped("contentIndex")
   m.player.unobserveFieldScoped("state")
   m.player.unobserveFieldScoped("seek")
 
