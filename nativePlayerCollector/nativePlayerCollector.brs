@@ -1,7 +1,6 @@
 sub init()
   m.tag = "[nativePlayerCollector] "
   m.collectorCore = m.top.findNode("collectorCore")
-  m.playerStates = getPlayerStates()
   m.playerStateTimer = CreateObject("roTimespan")
 end sub
 
@@ -10,8 +9,8 @@ sub initializePlayer(player)
   m.player = player
   updateSample({"playerStartupTime": 1})
 
-  setUpObservers()
   setUpHelperVariables()
+  setUpObservers()
 
   m.previousState = ""
   m.currentState = player.state
@@ -54,6 +53,9 @@ sub setUpHelperVariables()
 
   m.changeImpressionId = false
   m.newMetadata = invalid
+
+  m.playerStates = getPlayerStates()
+  m.playerControls = getPlayerControls()
 end sub
 
 sub onPlayerStateChanged()
@@ -63,16 +65,16 @@ sub onPlayerStateChanged()
   stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
 
-  if m.currentState = "playing"
+  if m.currentState = m.playerStates.PLAYING
     onSeeked()
     onVideoStart()
     stateChangedData.impressionId = getImpressionIdForSample()
     updateChangeImpressionId(false)
-  else if m.currentState = "finished"
+  else if m.currentState = m.playerStates.FINISHED
     updateChangeImpressionId(true)
-  else if m.currentState = "paused"
+  else if m.currentState = m.playerStates.PAUSED
     onSeek()
-  else if m.currentState = "error"
+  else if m.currentState = m.playerStates.ERROR
     onError()
   end if
 
@@ -153,7 +155,7 @@ sub onSeeked()
 end sub
 
 sub onControlChanged()
-  if m.player.control = "play"
+  if m.player.control = m.playerControls.PLAY
     m.videoStartupTimer = createObject("roTimeSpan")
   end if
 end sub
