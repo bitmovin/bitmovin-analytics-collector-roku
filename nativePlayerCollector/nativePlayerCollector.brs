@@ -127,6 +127,12 @@ sub createTempMetadataSampleAndSendAnalyticsRequest(sampleData)
   m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
+function updateSample(sampleData)
+  if sampleData = invalid return false
+
+  return m.collectorCore.callFunc("updateSample", sampleData)
+end function
+
 sub onSeek()
   if m.alreadySeeking = true then return
 
@@ -173,7 +179,7 @@ end sub
 sub checkForNewMetadata()
   if m.newMetadata = invalid then return
 
-  m.collectorCore.callFunc("updateSample", m.newMetadata)
+  updateSample(m.newMetadata)
   m.newMetadata = invalid
 end sub
 
@@ -193,13 +199,15 @@ end sub
 function setCustomData(customData)
   if customData = invalid then return invalid
   finishRunningSample()
-  return m.collectorCore.callFunc("updateSample", customData)
+
+  return updateSample(customData)
 end function
 
 sub finishRunningSample()
   setPreviousAndCurrentPlayerState()
   runningSampleData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
+
   updateSampleDataAndSendAnalyticsRequest(runningSampleData)
 end sub
 
@@ -210,3 +218,9 @@ sub setCustomDataOnce(customData)
 
   createTempMetadataSampleAndSendAnalyticsRequest(sendOnceCustomData)
 end sub
+
+function setAnalyticsConfig(configData)
+  if configData = invalid return invalid
+
+  return updateSample(configData)
+end function
