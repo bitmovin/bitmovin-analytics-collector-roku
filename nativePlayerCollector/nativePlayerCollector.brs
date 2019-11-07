@@ -61,14 +61,10 @@ sub onPlayerStateChanged()
   if m.currentState = "playing"
     onSeeked()
     onVideoStart()
-    if m.changeImpressionId = true
-      stateChangedData.impressionId = m.collectorCore.callFunc("createImpressionId")
-      m.changeImpressionId = false
-    else
-      stateChangedData.impressionId = m.collectorCore.callFunc("getCurrentImpressionId")
-    end if
+    stateChangedData.impressionId = getImpressionIdForSample()
+    updateChangeImpressionId(false)
   else if m.currentState = "finished"
-    m.changeImpressionId = true
+    updateChangeImpressionId(true)
   else if m.currentState = "paused"
     onSeek()
   else if m.currentState = "error"
@@ -161,7 +157,7 @@ end sub
 
 sub onSourceChanged()
   checkForNewMetadata()
-  m.changeImpressionId = true
+  updateChangeImpressionId(true)
 end sub
 
 sub setNewMetadata(metadata = invalid)
@@ -209,4 +205,22 @@ sub setCustomDataOnce(customData)
   sendOnceCustomData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, customData)
 
   createTempMetadataSampleAndSendAnalyticsRequest(sendOnceCustomData)
+end sub
+
+function getImpressionIdForSample()
+  if m.changeImpressionId = true
+    impressionId = m.collectorCore.callFunc("createImpressionId")
+  else
+    impressionId = m.collectorCore.callFunc("getCurrentImpressionId")
+  end if
+
+  return impressionId
+end function
+
+sub updateChangeImpressionId(updatedState)
+  if m.changeImpressionId = invalid or updatedState = invalid then return
+
+  if m.changeImpressionId <> updatedState
+    m.changeImpressionId = updatedState
+  end if
 end sub
