@@ -28,14 +28,15 @@ sub setUpObservers()
   m.player.observeFieldScoped("content", "onSourceChanged")
   m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
-  m.collectorCore.observeFieldScoped("fireHeartBeat", "onHeartBeat")
   m.player.observeFieldScoped("seek", "onSeek")
 
   m.player.observeFieldScoped("control", "onControlChanged")
+
+  m.collectorCore.observeFieldScoped("fireHeartBeat", "onHeartBeat")
 end sub
 
 sub unobserveFields()
-  if m.player = invalid then return
+  if m.player = invalid or m.collectorCore = invalid then return
 
   m.player.unobserveFieldScoped("content")
   m.player.unobserveFieldScoped("contentIndex")
@@ -43,6 +44,8 @@ sub unobserveFields()
   m.player.unobserveFieldScoped("seek")
 
   m.player.unobserveFieldScoped("control")
+
+  m.collectorCore.unobserveFieldScoped("fireHeartBeat")
 end sub
 
 sub setUpHelperVariables()
