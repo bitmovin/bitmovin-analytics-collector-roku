@@ -43,15 +43,15 @@ sub updateVersion()
   m.sample.analyticsVersion = getVersion()
 end sub
 
-function getVersion()
+function getVersion(param = invalid)
   return m.version
 end function
 
-function createImpressionId()
+function createImpressionId(param = invalid)
   return lcase(m.deviceInfo.GetRandomUUID())
 end function
 
-function getCurrentImpressionId()
+function getCurrentImpressionId(param = invalid)
   return m.sample.impressionId
 end function
 

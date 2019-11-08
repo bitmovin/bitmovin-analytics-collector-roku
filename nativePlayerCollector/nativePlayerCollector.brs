@@ -1,21 +1,17 @@
 sub init()
   m.tag = "[nativePlayerCollector] "
-  m.changeImpressionId = false
   m.collectorCore = m.top.findNode("collectorCore")
-  m.playerStates = getPlayerStates()
   m.playerStateTimer = CreateObject("roTimespan")
 end sub
 
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
-  updateSampleDataAndSendAnalyticsRequest({"playerStartupTime": 1})
+  updateSample({"playerStartupTime": 1})
 
-  setUpObservers()
   setUpHelperVariables()
+  setUpObservers()
 
-  m.player.observeFieldScoped("content", "onSourceChanged")
-  m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.previousState = ""
   m.currentState = player.state
   m.currentTimestamp = getCurrentTimeInMilliseconds()
@@ -28,20 +24,26 @@ sub initializePlayer(player)
 end sub
 
 sub setUpObservers()
+  m.player.observeFieldScoped("content", "onSourceChanged")
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
-  m.collectorCore.observeFieldScoped("fireHeartBeat", "onHeartBeat")
   m.player.observeFieldScoped("seek", "onSeek")
 
   m.player.observeFieldScoped("control", "onControlChanged")
+
+  m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
 
 sub unobserveFields()
-  if m.player = invalid then return
+  if m.player = invalid or m.collectorCore = invalid then return
 
+  m.player.unobserveFieldScoped("content")
+  m.player.unobserveFieldScoped("contentIndex")
   m.player.unobserveFieldScoped("state")
   m.player.unobserveFieldScoped("seek")
 
   m.player.unobserveFieldScoped("control")
+
+  m.collectorCore.unobserveFieldScoped("fireHeartbeat")
 end sub
 
 sub setUpHelperVariables()
@@ -49,36 +51,30 @@ sub setUpHelperVariables()
   m.alreadySeeking = false
 
   m.newMetadata = invalid
+
+  m.playerStates = getPlayerStates()
+  m.playerControls = getPlayerControls()
 end sub
 
 sub onPlayerStateChanged()
   setPreviousAndCurrentPlayerState()
   m.collectorCore.playerState = m.currentState
-
   stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
 
-  if m.currentState = "playing"
+  if m.currentState = m.playerStates.PLAYING
     onSeeked()
     onVideoStart()
-    if m.changeImpressionId = true
-      stateChangedData.impressionId = m.collectorCore.callFunc("createImpressionId")
-      m.changeImpressionId = false
-    else
-      stateChangedData.impressionId = m.collectorCore.callFunc("getCurrentImpressionId")
-    end if
-  else if m.currentState = "finished"
-    m.changeImpressionId = true
-  else if m.currentState = "paused"
+  else if m.currentState = m.playerStates.PAUSED
     onSeek()
-  else if m.currentState = "error"
+  else if m.currentState = m.playerStates.ERROR
     onError()
   end if
 
   updateSampleDataAndSendAnalyticsRequest(stateChangedData)
 end sub
 
-sub onHeartBeat()
+sub onHeartbeat()
   finishRunningSample()
 end sub
 
@@ -152,7 +148,7 @@ sub onSeeked()
 end sub
 
 sub onControlChanged()
-  if m.player.control = "play"
+  if m.player.control = m.playerControls.PLAY
     m.videoStartupTimer = createObject("roTimeSpan")
   end if
 end sub
@@ -167,7 +163,16 @@ end sub
 
 sub onSourceChanged()
   checkForNewMetadata()
-  m.changeImpressionId = true
+  handleImpressionIdChange()
+end sub
+
+sub handleImpressionIdChange()
+  if m.player.content.getChildCount() > 0
+    m.player.unobserveFieldScoped("contentIndex")
+    m.player.observeFieldScoped("contentIndex", "onSourceChanged")
+  end if
+
+  updateSample({impressionId: getImpressionIdForSample()})
 end sub
 
 sub setNewMetadata(metadata = invalid)
@@ -223,4 +228,8 @@ function setAnalyticsConfig(configData)
   if configData = invalid return invalid
 
   return updateSample(configData)
+end function
+
+function getImpressionIdForSample()
+  return m.collectorCore.callFunc("createImpressionId")
 end function
