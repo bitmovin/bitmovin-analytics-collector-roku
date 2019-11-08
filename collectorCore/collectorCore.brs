@@ -43,15 +43,15 @@ sub updateVersion()
   m.sample.analyticsVersion = getVersion()
 end sub
 
-function getVersion(param = invalid) ' invalid param, unused but due to nature, required to be passed in.
+function getVersion(param = invalid)
   return m.version
 end function
 
-function createImpressionId(param = invalid) ' invalid param, unused but due to nature, required to be passed in.
+function createImpressionId(param = invalid)
   return lcase(m.deviceInfo.GetRandomUUID())
 end function
 
-function getCurrentImpressionId(param = invalid) ' invalid param, unused but due to nature, required to be passed in.
+function getCurrentImpressionId(param = invalid)
   return m.sample.impressionId
 end function
 
