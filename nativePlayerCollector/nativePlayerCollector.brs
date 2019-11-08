@@ -74,7 +74,7 @@ sub onPlayerStateChanged()
   updateSampleDataAndSendAnalyticsRequest(stateChangedData)
 end sub
 
-sub onHeartBeat()
+sub onHeartbeat()
   finishRunningSample()
 end sub
 
