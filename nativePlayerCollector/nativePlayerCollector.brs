@@ -25,7 +25,6 @@ end sub
 
 sub setUpObservers()
   m.player.observeFieldScoped("content", "onSourceChanged")
-  m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
 
@@ -51,7 +50,6 @@ sub setUpHelperVariables()
   m.seekStartPosition = invalid
   m.alreadySeeking = false
 
-  m.changeImpressionId = false
   m.newMetadata = invalid
 
   m.playerStates = getPlayerStates()
@@ -61,17 +59,12 @@ end sub
 sub onPlayerStateChanged()
   setPreviousAndCurrentPlayerState()
   m.collectorCore.playerState = m.currentState
-
   stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
 
   if m.currentState = m.playerStates.PLAYING
     onSeeked()
     onVideoStart()
-    stateChangedData.impressionId = getImpressionIdForSample()
-    updateChangeImpressionId(false)
-  else if m.currentState = m.playerStates.FINISHED
-    updateChangeImpressionId(true)
   else if m.currentState = m.playerStates.PAUSED
     onSeek()
   else if m.currentState = m.playerStates.ERROR
@@ -170,7 +163,16 @@ end sub
 
 sub onSourceChanged()
   checkForNewMetadata()
-  updateChangeImpressionId(true)
+  handleImpressionIdChange()
+end sub
+
+sub handleImpressionIdChange()
+  if m.player.content.getChildCount() > 0
+    m.player.unobserveFieldScoped("contentIndex")
+    m.player.observeFieldScoped("contentIndex", "onSourceChanged")
+  end if
+
+  updateSample({impressionId: getImpressionIdForSample()})
 end sub
 
 sub setNewMetadata(metadata = invalid)
@@ -229,19 +231,5 @@ function setAnalyticsConfig(configData)
 end function
 
 function getImpressionIdForSample()
-  if m.changeImpressionId = true
-    impressionId = m.collectorCore.callFunc("createImpressionId")
-  else
-    impressionId = m.collectorCore.callFunc("getCurrentImpressionId")
-  end if
-
-  return impressionId
+  return m.collectorCore.callFunc("createImpressionId")
 end function
-
-sub updateChangeImpressionId(updatedState)
-  if m.changeImpressionId = invalid or updatedState = invalid then return
-
-  if m.changeImpressionId <> updatedState
-    m.changeImpressionId = updatedState
-  end if
-end sub
