@@ -30,7 +30,7 @@ sub setUpObservers()
 
   m.player.observeFieldScoped("control", "onControlChanged")
 
-  m.collectorCore.observeFieldScoped("fireHeartBeat", "onHeartBeat")
+  m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
 
 sub unobserveFields()
@@ -43,7 +43,7 @@ sub unobserveFields()
 
   m.player.unobserveFieldScoped("control")
 
-  m.collectorCore.unobserveFieldScoped("fireHeartBeat")
+  m.collectorCore.unobserveFieldScoped("fireHeartbeat")
 end sub
 
 sub setUpHelperVariables()
