@@ -37,7 +37,6 @@ sub unobserveFields()
   if m.player = invalid or m.collectorCore = invalid then return
 
   m.player.unobserveFieldScoped("sourceLoaded")
-  m.player.unobserveFieldScoped("contentIndex")
   m.player.unobserveFieldScoped("state")
   m.player.unobserveFieldScoped("seek")
 
@@ -167,11 +166,6 @@ function updateSample(sampleData)
   end sub
 
   sub handleImpressionIdChange()
-    if m.player.content.getChildCount() > 0
-      m.player.unobserveFieldScoped("contentIndex")
-      m.player.observeFieldScoped("contentIndex", "onSourceChanged")
-    end if
-
     updateSample({ impressionId: getImpressionIdForSample() })
   end sub
 
