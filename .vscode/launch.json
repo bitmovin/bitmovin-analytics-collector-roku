@@ -23,7 +23,8 @@
       "files": [
         "manifest",
         "source/**/*.*",
-        "components/**/*.*"
+        "components/**/*.*",
+        "config/**/*.*"
       ]
     }
   ]
