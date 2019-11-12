@@ -21,7 +21,7 @@ function mapPlayerStateForAnalytic(playerStates, state)
   map = {}
   map[playerStates.PLAYING] = "played"
   map[playerStates.PAUSED] = "paused"
-  map[playerStates.BUFFERING] = "buffered"
+  map[playerStates.STALLING] = "buffered"
   map[playerStates.NONE] = "none"
 
   return map[state]
