@@ -11,17 +11,7 @@ function init()
   m.bitmovinPlayerSDK.observeField("loadStatus", "onLoadStatusChanged")
 end function
 
-sub onLoadStatusChanged()
-  print m.tag; "Load status for collector: "; m.bitmovinPlayerCollectorLib.loadStatus
-  print m.tag; "Load status for player: "; m.bitmovinPlayerSDK.loadStatus
-  if m.bitmovinPlayerSDK.loadStatus = "ready" and m.bitmovinPlayerCollectorLib.loadStatus = "ready"
-    m.collector = CreateObject("roSgNode", "bitmovinPlayerCollectorLib:bitmovinPlayerCollector")
-    m.collector.observeField("collectorReady", "onCollectorReady")
-  end if
-end sub
-
 sub onCollectorReady()
-  print m.tag; "Collector status: "; m.collector.collectorReady
     m.bitmovinPlayer = CreateObject("roSgNode", "bitmovinPlayerSdk:bitmovinPlayer")
     m.top.appendChild(m.bitmovinPlayer)
     m.bitmovinFunctions = m.bitmovinPlayer.bitmovinFunctions
