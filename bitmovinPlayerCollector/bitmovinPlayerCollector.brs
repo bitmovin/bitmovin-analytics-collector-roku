@@ -7,7 +7,7 @@ end sub
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
-  updateSample({ "playerStartupTime": 1 })
+  updateSample({"playerStartupTime": 1})
 
   setUpHelperVariables()
   setUpObservers()
@@ -138,7 +138,7 @@ function updateSample(sampleData)
 
   sub onSeeked()
     if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position and m.seekTimer <> invalid
-      updateSampleDataAndSendAnalyticsRequest({ "seeked": m.seekTimer.TotalMilliseconds() })
+      updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()})
     end if
 
     m.alreadySeeking = false
@@ -155,7 +155,7 @@ function updateSample(sampleData)
   sub onVideoStart()
     if m.videoStartupTimer = invalid then return
 
-    updateSampleDataAndSendAnalyticsRequest({ "videoStartupTime": m.videoStartupTimer.TotalMilliseconds() })
+    updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()})
 
     m.videoStartupTimer = invalid
   end sub
@@ -166,7 +166,7 @@ function updateSample(sampleData)
   end sub
 
   sub handleImpressionIdChange()
-    updateSample({ impressionId: getImpressionIdForSample() })
+    updateSample({impressionId: getImpressionIdForSample()})
   end sub
 
   sub setNewMetadata(metadata = invalid)
