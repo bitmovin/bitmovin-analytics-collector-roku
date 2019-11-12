@@ -65,10 +65,13 @@ sub onPlayerStateChanged()
   if m.currentState = m.playerStates.PLAYING
     onSeeked()
     onVideoStart()
+    onBufferingEnd()
   else if m.currentState = m.playerStates.PAUSED
     onSeek()
   else if m.currentState = m.playerStates.ERROR
     onError()
+  else if m.currentState = m.playerStates.BUFFERING
+    onBuffering()
   end if
 
   updateSampleDataAndSendAnalyticsRequest(stateChangedData)
@@ -233,3 +236,14 @@ end function
 function getImpressionIdForSample()
   return m.collectorCore.callFunc("createImpressionId")
 end function
+
+sub onBuffering()
+  if m.previousState <> m.playerStates.PLAYING then return
+  m.bufferTimer = CreateObject("roTimespan")
+end sub
+
+sub onBufferingEnd()
+  if m.bufferTimer = invalid then return
+  updateSampleDataAndSendAnalyticsRequest({"buffered": m.bufferTimer.TotalMilliseconds()})
+  m.bufferTimer = invalid
+end sub
