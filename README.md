@@ -67,8 +67,6 @@ set custom initial data for the collector:
 m.nativePlayerCollector.callFunc("setAnalyticsConfig", {customData1: "overlay-off"})
 ```
 
-or
-
 #### Bitmovin player collector
 
 ```
