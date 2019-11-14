@@ -7,7 +7,6 @@ Roku client that allows you to monitor your Native ROKU or Bitmovin Player playb
 In the `root` folder of your project find `manifest` file
  and add licence key for the Anlaytics:
 ```
-
 # License key
 bitmovin_analytics_license_key=INSERT-LICENSE-KEY-HERE
 ```
