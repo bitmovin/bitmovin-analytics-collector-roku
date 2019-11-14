@@ -17,7 +17,15 @@ function getDuration(timer)
   return timer.TotalMilliseconds()
 end function
 
-function mapPlayerStateForAnalytic(playerStates, state)
+function getDefaultStateTimeData()
+  return {
+    played: 0,
+    buffered: 0,
+    paused: 0
+  }
+end function
+
+function mapNativePlayerStateForAnalytic(playerStates, state)
   map = {}
   map[playerStates.PLAYING] = "played"
   map[playerStates.PAUSED] = "paused"
@@ -27,10 +35,12 @@ function mapPlayerStateForAnalytic(playerStates, state)
   return map[state]
 end function
 
-function getDefaultStateTimeData()
-  return {
-    played: 0,
-    buffered: 0,
-    paused: 0
-  }
+function mapBitmovinPlayerStateForAnalytic(playerStates, state)
+  map = {}
+  map[playerStates.PLAYING] = "played"
+  map[playerStates.PAUSED] = "paused"
+  map[playerStates.STALLING] = "buffered"
+  map[playerStates.NONE] = "none"
+
+  return map[state]
 end function

@@ -95,7 +95,7 @@ function createUpdatedSampleData(state, timer, possiblePlayerStates, customData 
   end if
 
   if state = possiblePlayerStates.PLAYING or state = possiblePlayerStates.PAUSED
-    previousState = mapPlayerStateForAnalytic(possiblePlayerStates, state)
+    previousState = mapBitmovinPlayerStateForAnalytic(possiblePlayerStates, state)
     sampleData[previousState] = sampleData.duration
   end if
 
