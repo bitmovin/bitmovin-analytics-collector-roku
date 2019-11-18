@@ -79,7 +79,7 @@ end sub
 sub handleCurrentState()
   if m.currentState = m.playerStates.PLAYING
     onVideoStart()
-    checkIfSeeked()
+    if wasSeeking() then onSeeked()
   else if m.currentState = m.playerStates.PAUSED
     onPause()
   else if m.currentState = m.playerStates.ERROR
@@ -98,13 +98,8 @@ sub onPlayed()
   updateSampleDataAndSendAnalyticsRequest(newSampleData)
 end sub
 
-function checkIfSeeked()
-  if m.seekTimer <> invalid
-    onSeeked()
-    return true
-  end if
-
-  return false
+function wasSeeking()
+  return m.seekTimer <> invalid
 end function
 
 sub onPause()
