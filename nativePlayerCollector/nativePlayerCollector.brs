@@ -115,6 +115,7 @@ sub onPause()
 end sub
 
 sub onPaused()
+  ' If we did not change from the pause state to playing that means a seek is happening
   if m.currentState <> m.playerStates.PLAYING then return
 
   newSampleData = getClearSampleData()
@@ -133,6 +134,7 @@ sub resetSeekHelperVariables()
 end sub
 
 sub onBuffering()
+  ' If we did not change from playing to buffering that means the buffering was caused by a seek and thus we do not report it
   if m.previousState <> m.playerStates.PLAYING then return
   m.bufferTimer = CreateObject("roTimespan")
 end sub
