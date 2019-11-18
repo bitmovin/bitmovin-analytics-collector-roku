@@ -60,13 +60,13 @@ sub onPlayerStateChanged()
   setPreviousAndCurrentPlayerState()
   m.collectorCore.playerState = m.currentState
 
-  checkPreviousState()
-  checkCurrentState()
+  handlePreviousState()
+  handleCurrentState()
 
   m.playerStateTimer.Mark()
 end sub
 
-sub checkPreviousState()
+sub handlePreviousState()
   if m.previousState = m.playerStates.PLAYING
     onPlayed()
   else if m.previousState = m.playerStates.PAUSED
@@ -76,7 +76,7 @@ sub checkPreviousState()
   end if
 end sub
 
-sub checkCurrentState()
+sub handleCurrentState()
   if m.currentState = m.playerStates.PLAYING
     onVideoStart()
     checkIfSeeked()
