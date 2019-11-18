@@ -59,6 +59,99 @@ end sub
 sub onPlayerStateChanged()
   setPreviousAndCurrentPlayerState()
   m.collectorCore.playerState = m.currentState
+
+  checkPreviousState()
+  checkCurrentState()
+
+  m.playerStateTimer.Mark()
+end sub
+
+sub checkPreviousState()
+  if m.previousState = m.playerStates.PLAYING
+    onPlayed()
+  else if m.previousState = m.playerStates.PAUSED
+    onPaused()
+  else if m.previousState = m.playerStates.BUFFERING
+    onBufferingEnd()
+  end if
+end sub
+
+sub checkCurrentState()
+  if m.currentState = m.playerStates.PLAYING
+    onVideoStart()
+    checkIfSeeked()
+  else if m.currentState = m.playerStates.PAUSED
+    onPause()
+  else if m.currentState = m.playerStates.ERROR
+    onError()
+  else if m.currentState = m.playerStates.BUFFERING
+    onBuffering()
+  end if
+end sub
+
+sub onPlayed()
+  newSampleData = getClearSampleData()
+
+  newSampleData.Append(getCommonSampleData(m.playerStateTimer, m.previousState))
+  newSampleData.played = m.playerStateTimer.TotalMilliseconds()
+
+  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+end sub
+
+function checkIfSeeked()
+  if m.seekTimer <> invalid
+    onSeeked()
+    return true
+  end if
+
+  return false
+end function
+
+sub onPause()
+  m.alreadySeeking = true
+  m.seekStartPosition = m.player.position
+  m.seekTimer = createObject("roTimeSpan")
+end sub
+
+sub onPaused()
+  if m.currentState <> m.playerStates.PLAYING then return
+
+  newSampleData = getClearSampleData()
+
+  newSampleData.Append(getCommonSampleData(m.seekTimer, m.previousState))
+  newSampleData.paused = m.playerStateTimer.TotalMilliseconds()
+
+  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+  resetSeekHelperVariables()
+end sub
+
+sub resetSeekHelperVariables()
+  m.alreadySeeking = false
+  m.seekStartPosition = invalid
+  m.seekTimer = invalid
+end sub
+
+sub onBuffering()
+  if m.previousState <> m.playerStates.PLAYING then return
+  m.bufferTimer = CreateObject("roTimespan")
+end sub
+
+sub onBufferingEnd()
+  if m.bufferTimer = invalid then return
+
+  newSampleData = getClearSampleData()
+
+  newSampleData.Append(getCommonSampleData(m.bufferTimer, m.previousState))
+  newSampleData.buffered = m.bufferTimer.TotalMilliseconds()
+
+  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+
+  m.bufferTimer = invalid
+end sub
+
+sub onPlayerStateChangedDeprecated()
+  setPreviousAndCurrentPlayerState()
+  m.collectorCore.playerState = m.currentState
   stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
   m.playerStateTimer.Mark()
 
@@ -85,6 +178,13 @@ sub setPreviousAndCurrentPlayerState()
   m.previousState = m.currentState
   m.currentState = m.player.state
 end sub
+
+function getClearSampleData()
+  sampleData = {}
+  sampleData.Append(getDefaultStateTimeData())
+
+  return sampleData
+end function
 
 function createUpdatedSampleData(state, timer, possiblePlayerStates, customData = invalid)
   if state = invalid or timer = invalid or possiblePlayerStates = invalid
@@ -119,6 +219,8 @@ function getCommonSampleData(timer, state)
 end function
 
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)
+  print "UPDATING SAMPLE "; sampleData
+  print "==============================================="
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
@@ -141,13 +243,15 @@ sub onSeek()
 end sub
 
 sub onSeeked()
-  if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position and m.seekTimer <> invalid
-    updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()})
-  end if
+  newSampleData = getClearSampleData()
 
-  m.alreadySeeking = false
-  m.seekStartPosition = invalid
-  m.seekTimer = invalid
+  newSampleData.Append(getCommonSampleData(m.seekTimer, m.previousState))
+  newSampleData.seeked = m.seekTimer.TotalMilliseconds()
+  newSampleData.state = "seeking"
+
+  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+
+  resetSeekHelperVariables()
 end sub
 
 sub onControlChanged()
@@ -192,6 +296,8 @@ sub checkForNewMetadata()
 end sub
 
 sub onError()
+  newSampleData = getClearSampleData()
+
   errorSample = {
     errorCode: m.player.errorCode,
     errorMessage: m.player.errorMsg,
@@ -201,7 +307,8 @@ sub onError()
   if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
   if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
 
-  updateSampleDataAndSendAnalyticsRequest(errorSample)
+  newSampleData.Append(errorSample)
+  updateSampleDataAndSendAnalyticsRequest(newSampleData)
 end sub
 
 function setCustomData(customData)
@@ -236,14 +343,3 @@ end function
 function getImpressionIdForSample()
   return m.collectorCore.callFunc("createImpressionId")
 end function
-
-sub onBuffering()
-  if m.previousState <> m.playerStates.PLAYING then return
-  m.bufferTimer = CreateObject("roTimespan")
-end sub
-
-sub onBufferingEnd()
-  if m.bufferTimer = invalid then return
-  updateSampleDataAndSendAnalyticsRequest({"buffered": m.bufferTimer.TotalMilliseconds()})
-  m.bufferTimer = invalid
-end sub

@@ -12,7 +12,7 @@ function getCurrentTimeInSeconds()
 end function
 
 function getDuration(timer)
-  if timer = invalid then return invalid
+  if timer = invalid then return 0
 
   return timer.TotalMilliseconds()
 end function
