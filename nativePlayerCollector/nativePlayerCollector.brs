@@ -108,6 +108,7 @@ function checkIfSeeked()
 end function
 
 sub onPause()
+  ' The video node does not have a seeking state, because of that we have to assume that on pause is the beginning of a seek operation until proven otherwise
   m.alreadySeeking = true
   m.seekStartPosition = m.player.position
   m.seekTimer = createObject("roTimeSpan")
