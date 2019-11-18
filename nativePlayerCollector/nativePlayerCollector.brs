@@ -149,27 +149,6 @@ sub onBufferingEnd()
   m.bufferTimer = invalid
 end sub
 
-sub onPlayerStateChangedDeprecated()
-  setPreviousAndCurrentPlayerState()
-  m.collectorCore.playerState = m.currentState
-  stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
-  m.playerStateTimer.Mark()
-
-  if m.currentState = m.playerStates.PLAYING
-    onSeeked()
-    onVideoStart()
-    onBufferingEnd()
-  else if m.currentState = m.playerStates.PAUSED
-    onSeek()
-  else if m.currentState = m.playerStates.ERROR
-    onError()
-  else if m.currentState = m.playerStates.BUFFERING
-    onBuffering()
-  end if
-
-  updateSampleDataAndSendAnalyticsRequest(stateChangedData)
-end sub
-
 sub onHeartbeat()
   finishRunningSample()
 end sub
