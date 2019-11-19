@@ -86,6 +86,8 @@ sub handleCurrentState()
     onError()
   else if m.currentState = m.playerStates.BUFFERING
     onBuffering()
+  else if m.currentState = m.palyerState.FINISHED
+    onFinished()
   end if
 end sub
 
@@ -144,7 +146,16 @@ sub onBufferingEnd()
 
   updateSampleDataAndSendAnalyticsRequest(newSampleData)
 
+  resetBufferingTimer()
+end sub
+
+sub resetBufferingTimer()
   m.bufferTimer = invalid
+end sub
+
+sub onFinished()
+  resetBufferingTimer()
+  resetSeekHelperVariables()
 end sub
 
 sub onHeartbeat()
@@ -281,6 +292,9 @@ sub onError()
 
   if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
   if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
+
+  resetSeekHelperVariables()
+  resetBufferingTimer()
 
   newSampleData.Append(errorSample)
   updateSampleDataAndSendAnalyticsRequest(newSampleData)
