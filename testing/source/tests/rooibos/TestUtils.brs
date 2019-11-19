@@ -11,7 +11,6 @@ Function TU_MakeTestUtils() as Object
     return {
       SayHello:TU_SayHello
     }
-  
 End Function
 
 Function TU_SayHello(name) as Void
