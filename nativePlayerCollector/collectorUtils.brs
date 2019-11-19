@@ -31,6 +31,7 @@ function getDefaultStateTimeData()
   return {
     played: 0,
     buffered: 0,
-    paused: 0
+    paused: 0,
+    seeked: 0
   }
 end function
