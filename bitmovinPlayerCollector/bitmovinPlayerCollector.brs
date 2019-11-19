@@ -188,7 +188,7 @@ function getCommonSampleData(timer, state)
   if timer <> invalid and state <> invalid
     commonSampleData.duration = getDuration(timer)
     commonSampleData.state = state
-    commonSampleData.time =  getCurrentTimeInMilliseconds()
+    commonSampleData.time = getCurrentTimeInMilliseconds()
   end if
 
   return commonSampleData
