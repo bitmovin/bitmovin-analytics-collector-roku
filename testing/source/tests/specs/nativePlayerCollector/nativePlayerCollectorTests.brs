@@ -2,7 +2,7 @@
 '@TestSuite [NPCT] Native Player Collector Tests
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It tests methods present on the node
+'@It tests nativePlayerCollector API
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 '@Test setAnalyticsConfig with valid params - returns true
