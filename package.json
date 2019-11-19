@@ -1,0 +1,28 @@
+{
+  "name": "bitmovin-analytics-collector-roku",
+  "version": "1.0.0",
+  "description": "",
+  "watch": {
+    "build": {
+      "patterns": [
+        "./**/*.*"
+      ],
+      "extensions": "brs,xml"
+    }
+  },
+  "scripts": {
+    "remove-test-collectors": "rm -rf testing/components/collectorCore & rm -rf testing/components/nativePlayerCollector & rm -rf testing/components/bitmovinPlayerCollector",
+    "refresh-collectors": "npm run remove-test-collectors && npm run copy-test-collectors",
+    "copy-test-collectors": "cp -R collectorCore testing/components & cp -R nativePlayerCollector testing/components & cp -R bitmovinPlayerCollector testing/components",
+    "run-tests": "rooibos-cli r testing/source/tests/rooibos/testConfig.json && cd testing && make test -e ROKU_DEV_TARGET=YOUR_DEVICE_IP_HERE DEVPASSWORD=YOUR_DEV_PASSWORD_HERE"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "rooibos-cli":"^1.0.1",
+    "mkdirp": "^0.5.1",
+    "npm-run-all": "^4.1.5",
+    "npm-watch": "^0.6.0"
+  },
+  "dependencies": {}
+}
