@@ -58,19 +58,92 @@ end sub
 sub onPlayerStateChanged()
   setPreviousAndCurrentPlayerState()
   m.collectorCore.playerState = m.currentState
-  stateChangedData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
-  m.playerStateTimer.Mark()
 
+  handlePreviousState()
+  handleCurrentState()
+
+  m.playerStateTimer.Mark()
+end sub
+
+sub handlePreviousState()
+  if m.previousState = m.playerStates.PLAYING
+    onPlayed()
+  else if m.previousState = m.playerStates.PAUSED
+    onPaused()
+  else if m.previousState = m.playerStates.BUFFERING
+    onBufferingEnd()
+  end if
+end sub
+
+sub handleCurrentState()
   if m.currentState = m.playerStates.PLAYING
-    onSeeked()
     onVideoStart()
+    if wasSeeking() then onSeeked()
   else if m.currentState = m.playerStates.PAUSED
-    onSeek()
+    onPause()
   else if m.currentState = m.playerStates.ERROR
     onError()
+  else if m.currentState = m.playerStates.BUFFERING
+    onBuffering()
   end if
+end sub
 
-  updateSampleDataAndSendAnalyticsRequest(stateChangedData)
+sub onPlayed()
+  newSampleData = getClearSampleData()
+
+  newSampleData.Append(getCommonSampleData(m.playerStateTimer, m.previousState))
+  newSampleData.played = m.playerStateTimer.TotalMilliseconds()
+
+  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+end sub
+
+function wasSeeking()
+  return m.seekTimer <> invalid
+end function
+
+sub onPause()
+  ' The video node does not have a seeking state, because of that we have to assume that on pause is the beginning of a seek operation until proven otherwise
+  m.alreadySeeking = true
+  m.seekStartPosition = m.player.position
+  m.seekTimer = createObject("roTimeSpan")
+end sub
+
+sub onPaused()
+  ' If we did not change from the pause state to playing that means a seek is happening
+  if m.currentState <> m.playerStates.PLAYING then return
+
+  newSampleData = getClearSampleData()
+
+  newSampleData.Append(getCommonSampleData(m.seekTimer, m.previousState))
+  newSampleData.paused = m.playerStateTimer.TotalMilliseconds()
+
+  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+  resetSeekHelperVariables()
+end sub
+
+sub resetSeekHelperVariables()
+  m.alreadySeeking = false
+  m.seekStartPosition = invalid
+  m.seekTimer = invalid
+end sub
+
+sub onBuffering()
+  ' If we did not change from playing to buffering that means the buffering was caused by a seek and thus we do not report it
+  if m.previousState <> m.playerStates.PLAYING then return
+  m.bufferTimer = CreateObject("roTimespan")
+end sub
+
+sub onBufferingEnd()
+  if m.bufferTimer = invalid then return
+
+  newSampleData = getClearSampleData()
+
+  newSampleData.Append(getCommonSampleData(m.bufferTimer, m.previousState))
+  newSampleData.buffered = m.bufferTimer.TotalMilliseconds()
+
+  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+
+  m.bufferTimer = invalid
 end sub
 
 sub onHeartbeat()
@@ -81,6 +154,13 @@ sub setPreviousAndCurrentPlayerState()
   m.previousState = m.currentState
   m.currentState = m.player.state
 end sub
+
+function getClearSampleData()
+  sampleData = {}
+  sampleData.Append(getDefaultStateTimeData())
+
+  return sampleData
+end function
 
 function createUpdatedSampleData(state, timer, possiblePlayerStates, customData = invalid)
   if state = invalid or timer = invalid or possiblePlayerStates = invalid
@@ -108,7 +188,7 @@ function getCommonSampleData(timer, state)
   if timer <> invalid and state <> invalid
     commonSampleData.duration = getDuration(timer)
     commonSampleData.state = state
-    commonSampleData.time = getCurrentTimeInMilliseconds()
+    commonSampleData.time =  getCurrentTimeInMilliseconds()
   end if
 
   return commonSampleData
@@ -137,13 +217,15 @@ sub onSeek()
 end sub
 
 sub onSeeked()
-  if m.seekStartPosition <> invalid and m.seekStartPosition <> m.player.position and m.seekTimer <> invalid
-    updateSampleDataAndSendAnalyticsRequest({"seeked": m.seekTimer.TotalMilliseconds()})
-  end if
+  newSampleData = getClearSampleData()
 
-  m.alreadySeeking = false
-  m.seekStartPosition = invalid
-  m.seekTimer = invalid
+  newSampleData.Append(getCommonSampleData(m.seekTimer, m.previousState))
+  newSampleData.seeked = m.seekTimer.TotalMilliseconds()
+  newSampleData.state = m.playerStates.SEEKING ' Manually override the state since the video node does not have a `seeking` state
+
+  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+
+  resetSeekHelperVariables()
 end sub
 
 sub onControlChanged()
@@ -183,6 +265,8 @@ sub checkForNewMetadata()
 end sub
 
 sub onError()
+  newSampleData = getClearSampleData()
+
   errorSample = {
     errorCode: m.player.errorCode,
     errorMessage: m.player.errorMsg,
@@ -192,7 +276,8 @@ sub onError()
   if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
   if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
 
-  updateSampleDataAndSendAnalyticsRequest(errorSample)
+  newSampleData.Append(errorSample)
+  updateSampleDataAndSendAnalyticsRequest(newSampleData)
 end sub
 
 function setCustomData(customData)
