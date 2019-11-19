@@ -6,7 +6,8 @@ function getPlayerStates()
     PAUSED: "paused",
     FINISHED: "finished",
     ERROR: "error",
-    NONE: "none"
+    NONE: "none",
+    SEEKING: "seeking"
   }
   return playerStates
 end function

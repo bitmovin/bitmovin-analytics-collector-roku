@@ -12,7 +12,7 @@ function getCurrentTimeInSeconds()
 end function
 
 function getDuration(timer)
-  if timer = invalid then return invalid
+  if timer = invalid then return 0
 
   return timer.TotalMilliseconds()
 end function
@@ -31,6 +31,7 @@ function getDefaultStateTimeData()
   return {
     played: 0,
     buffered: 0,
-    paused: 0
+    paused: 0,
+    seeked: 0
   }
 end function
