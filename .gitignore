@@ -1,1 +1,8 @@
 *.zip
+.DS_Store
+node_modules/
+testing/components/collectorCore/
+testing/components/nativePlayerCollector/
+testing/components/bitmovinPlayerCollector/
+testing/source/buildinfo.brs
+testing/source/tests/rooibos/rooibosFunctionMap.brs
