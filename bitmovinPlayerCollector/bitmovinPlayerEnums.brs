@@ -8,7 +8,8 @@ function getPlayerStates()
     ERROR: "error",
     NONE: "none",
     SETUP: "setup",
-    READY: "ready"
+    READY: "ready",
+    SEEKING: "seeking"
   }
   return playerStates
 end function
