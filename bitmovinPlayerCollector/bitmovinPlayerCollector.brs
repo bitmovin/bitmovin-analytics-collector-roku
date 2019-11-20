@@ -13,7 +13,7 @@ sub initializePlayer(player)
   setUpObservers()
 
   m.previousState = ""
-  m.currentState = player.state
+  m.currentState = player.playerState
   m.currentTimestamp = getCurrentTimeInMilliseconds()
   playerData = {
     player: "Roku",
@@ -27,6 +27,7 @@ sub setUpObservers()
   m.player.observeFieldScoped("sourceLoaded", "onSourceChanged")
   m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
+  m.player.observeFieldScoped("seeked", "onSeeked")
 
   m.player.observeFieldScoped("control", "onControlChanged")
 
@@ -39,6 +40,7 @@ sub unobserveFields()
   m.player.unobserveFieldScoped("sourceLoaded")
   m.player.unobserveFieldScoped("state")
   m.player.unobserveFieldScoped("seek")
+  m.player.unobserveFieldScoped("seeked")
 
   m.player.unobserveFieldScoped("control")
 
@@ -78,7 +80,6 @@ end sub
 sub handleCurrentState()
   if m.currentState = m.playerStates.PLAYING
     onVideoStart()
-    if wasSeeking() then onSeeked()
   else if m.currentState = m.playerStates.PAUSED
     onPause()
   else if m.currentState = m.playerStates.ERROR
@@ -152,7 +153,7 @@ end sub
 
 sub setPreviousAndCurrentPlayerState()
   m.previousState = m.currentState
-  m.currentState = m.player.state
+  m.currentState = m.player.playerState
 end sub
 
 function getClearSampleData()
