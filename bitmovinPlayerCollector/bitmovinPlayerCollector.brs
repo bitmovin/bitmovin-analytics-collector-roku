@@ -13,7 +13,7 @@ sub initializePlayer(player)
   setUpObservers()
 
   m.previousState = ""
-  m.currentState = player.state
+  m.currentState = player.playerState
   m.currentTimestamp = getCurrentTimeInMilliseconds()
   playerData = {
     player: "Roku",
@@ -152,7 +152,7 @@ end sub
 
 sub setPreviousAndCurrentPlayerState()
   m.previousState = m.currentState
-  m.currentState = m.player.state
+  m.currentState = m.player.playerState
 end sub
 
 function getClearSampleData()
