@@ -91,8 +91,7 @@ analyticsConfig = {
 ```
 # Testing
 ## How to run the tests
-If you have not done so, do an `npm install` at this point. In order to use the unit testing framework please install rooibos-cli with command:
-`npm install rooibos-cli -g`
+If you have not done so, do an `npm install` at this point. This will also install the `Rooibos-cli` preprocessor.
 Rooibos-cli is a preprocessor tool that rooibos unit testing framework use in order to preprocess the files needed to run the tests.
 
 Next step is copying of `collectorCore`, `nativePlayerCollector` and `bitmovinPlayerCollector` into `testing` folder. You can do this by running the `npm run refresh-collectors` command.
