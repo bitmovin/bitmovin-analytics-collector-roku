@@ -38,8 +38,6 @@ sub unobserveFields()
   m.player.unobserveFieldScoped("state")
   m.player.unobserveFieldScoped("seek")
 
-  m.player.unobserveFieldScoped("control")
-
   m.collectorCore.unobserveFieldScoped("fireHeartbeat")
 end sub
 
