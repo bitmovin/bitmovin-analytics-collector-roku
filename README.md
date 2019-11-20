@@ -89,3 +89,15 @@ analyticsConfig = {
   heartbeatInterval: 59700 // value is in ms
 }
 ```
+# Testing
+## How to run the tests
+If you have not done so, do an `npm install` at this point. In order to use the unit testing framework please install rooibos-cli with command:
+`npm install rooibos-cli -g`
+Rooibos-cli is a preprocessor tool that rooibos unit testing framework use in order to preprocess the files needed to run the tests.
+
+Next step is copying of `collectorCore`, `nativePlayerCollector` and `bitmovinPlayerCollector` into `testing` folder. You can do this by running the `npm run refresh-collectors` command.
+
+After appropriate folders are copied to `testing` folder but before we can run the tests successfully we should add our device ip and developer password to the `package.json` file in `run-tests` script. In order to do this, please change the values for `ROKU_DEV_TARGET` and `DEVPASSWORD` to your device ip address and to your developer password.
+
+The last step is running the tests. We should position ourselves to root of the repository and run the following command:
+`npm run run-tests`.
