@@ -13,7 +13,7 @@ sub initializePlayer(player)
   setUpObservers()
 
   m.previousState = ""
-  m.currentState = player.state
+  m.currentState = player.playerState
   m.currentTimestamp = getCurrentTimeInMilliseconds()
   playerData = {
     player: "Roku",
@@ -27,8 +27,6 @@ sub setUpObservers()
   m.player.observeFieldScoped("sourceLoaded", "onSourceChanged")
   m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
-
-  m.player.observeFieldScoped("control", "onControlChanged")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
@@ -72,6 +70,8 @@ sub handlePreviousState()
     onPaused()
   else if m.previousState = m.playerStates.BUFFERING
     onBufferingEnd()
+  else if m.previousState = m.playerStates.READY
+    onStartUp()
   end if
 end sub
 
@@ -152,7 +152,7 @@ end sub
 
 sub setPreviousAndCurrentPlayerState()
   m.previousState = m.currentState
-  m.currentState = m.player.state
+  m.currentState = m.player.playerState
 end sub
 
 function getClearSampleData()
@@ -228,10 +228,8 @@ sub onSeeked()
   resetSeekHelperVariables()
 end sub
 
-sub onControlChanged()
-  if m.player.control = m.playerControls.PLAY
-    m.videoStartupTimer = createObject("roTimeSpan")
-  end if
+sub onStartUp()
+  m.videoStartupTimer = createObject("roTimeSpan")
 end sub
 
 sub onVideoStart()
