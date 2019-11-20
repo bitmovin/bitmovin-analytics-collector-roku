@@ -1,5 +1,5 @@
 sub init()
-  m.tag = "[nativePlayerCollector] "
+  m.tag = "[bitmovinPlayerCollector] "
   m.collectorCore = m.top.findNode("collectorCore")
   m.playerStateTimer = CreateObject("roTimespan")
 end sub
@@ -17,15 +17,15 @@ sub initializePlayer(player)
   m.currentTimestamp = getCurrentTimeInMilliseconds()
   playerData = {
     player: "Roku",
-    playerTech: "native",
+    playerTech: "bitmovin",
     version: "unknown"
   }
   updateSampleDataAndSendAnalyticsRequest(playerData)
 end sub
 
 sub setUpObservers()
-  m.player.observeFieldScoped("content", "onSourceChanged")
-  m.player.observeFieldScoped("state", "onPlayerStateChanged")
+  m.player.observeFieldScoped("sourceLoaded", "onSourceChanged")
+  m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
 
   m.player.observeFieldScoped("control", "onControlChanged")
@@ -36,8 +36,7 @@ end sub
 sub unobserveFields()
   if m.player = invalid or m.collectorCore = invalid then return
 
-  m.player.unobserveFieldScoped("content")
-  m.player.unobserveFieldScoped("contentIndex")
+  m.player.unobserveFieldScoped("sourceLoaded")
   m.player.unobserveFieldScoped("state")
   m.player.unobserveFieldScoped("seek")
 
@@ -86,8 +85,6 @@ sub handleCurrentState()
     onError()
   else if m.currentState = m.playerStates.BUFFERING
     onBuffering()
-  else if m.currentState = m.palyerState.FINISHED
-    onFinished()
   end if
 end sub
 
@@ -146,16 +143,7 @@ sub onBufferingEnd()
 
   updateSampleDataAndSendAnalyticsRequest(newSampleData)
 
-  resetBufferingTimer()
-end sub
-
-sub resetBufferingTimer()
   m.bufferTimer = invalid
-end sub
-
-sub onFinished()
-  resetBufferingTimer()
-  resetSeekHelperVariables()
 end sub
 
 sub onHeartbeat()
@@ -187,7 +175,7 @@ function createUpdatedSampleData(state, timer, possiblePlayerStates, customData 
   end if
 
   if state = possiblePlayerStates.PLAYING or state = possiblePlayerStates.PAUSED
-    previousState = mapNativePlayerStateForAnalytic(possiblePlayerStates, state)
+    previousState = mapBitmovinPlayerStateForAnalytic(possiblePlayerStates, state)
     sampleData[previousState] = sampleData.duration
   end if
 
@@ -260,11 +248,6 @@ sub onSourceChanged()
 end sub
 
 sub handleImpressionIdChange()
-  if m.player.content.getChildCount() > 0
-    m.player.unobserveFieldScoped("contentIndex")
-    m.player.observeFieldScoped("contentIndex", "onSourceChanged")
-  end if
-
   updateSample({impressionId: getImpressionIdForSample()})
 end sub
 
@@ -292,9 +275,6 @@ sub onError()
 
   if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
   if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
-
-  resetSeekHelperVariables()
-  resetBufferingTimer()
 
   newSampleData.Append(errorSample)
   updateSampleDataAndSendAnalyticsRequest(newSampleData)

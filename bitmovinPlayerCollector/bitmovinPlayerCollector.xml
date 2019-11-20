@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="bitmovinPlayerCollector" extends="baseCollector">
+  <script type="text/brightscript" uri="./bitmovinPlayerCollector.brs"/>
+  <script type="text/brightscript" uri="./bitmovinPlayerEnums.brs"/>
+  <children>
+    <collectorCore id="collectorCore"/>
+  </children>
+</component>
