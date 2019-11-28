@@ -14,9 +14,10 @@ end function
 sub onLoadStatusChanged()
   m.bitmovinPlayer = CreateObject("roSgNode", "bitmovinPlayerSdk:bitmovinPlayer")
   m.top.appendChild(m.bitmovinPlayer)
+  m.bitmovinPlayerCollector.callFunc("initializePlayer", m.bitmovinPlayer)
+
   m.bitmovinFunctions = m.bitmovinPlayer.bitmovinFunctions
   m.bitmovinFields = m.bitmovinPlayer.bitmovinFields
   m.bitmovinPlayer.callFunc(m.bitmovinFunctions.setup, m.playerConfig)
-  m.bitmovinPlayerCollector.callFunc("initializePlayer", m.bitmovinPlayer)
   m.bitmovinPlayer.setFocus(true)
 end sub
