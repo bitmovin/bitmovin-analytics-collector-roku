@@ -222,7 +222,7 @@ sub onSeeked()
 
   newSampleData.Append(getCommonSampleData(m.seekTimer, m.previousState))
   newSampleData.seeked = m.seekTimer.TotalMilliseconds()
-  newSampleData.state = m.playerStates.SEEKING ' Manually override the state since the video node does not have a `seeking` state
+  newSampleData.state = "seeking" ' Manually override the state since the video node does not have a `seeking` state
 
   updateSampleDataAndSendAnalyticsRequest(newSampleData)
 
