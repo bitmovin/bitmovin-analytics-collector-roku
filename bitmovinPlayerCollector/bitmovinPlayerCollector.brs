@@ -29,6 +29,10 @@ sub setUpObservers()
   m.player.observeFieldScoped("seek", "onSeek")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
+
+  m.player.observeFieldScoped("play", "onPlay")
+  m.player.observeFieldScoped("sourceLoaded", "onSourceLoaded")
+  m.player.observeFieldScoped("sourceUnloaded", "onSourceUnloaded")
 end sub
 
 sub unobserveFields()
@@ -39,6 +43,10 @@ sub unobserveFields()
   m.player.unobserveFieldScoped("seek")
 
   m.collectorCore.unobserveFieldScoped("fireHeartbeat")
+
+  m.player.unobserveFieldScoped("play")
+  m.player.unobserveFieldScoped("sourceLoaded")
+  m.player.unobserveFieldScoped("sourceUnloaded")
 end sub
 
 sub setUpHelperVariables()
@@ -49,6 +57,8 @@ sub setUpHelperVariables()
 
   m.playerStates = getPlayerStates()
   m.playerControls = getPlayerControls()
+
+  m.videoStartUpTime = -1
 end sub
 
 sub onPlayerStateChanged()
@@ -83,6 +93,8 @@ sub handleCurrentState()
     onError()
   else if m.currentState = m.playerStates.BUFFERING
     onBuffering()
+  else if m.currentState = m.playerStates.FINISHED
+    onFinished()
   end if
 end sub
 
@@ -231,11 +243,8 @@ sub onStartUp()
 end sub
 
 sub onVideoStart()
-  if m.videoStartupTimer = invalid then return
-
-  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()})
-
-  m.videoStartupTimer = invalid
+  if m.videoStartupTimer = invalid or m.videoStartupTime >= 0 then return
+  stopVideoStartUpTimer()
 end sub
 
 sub onSourceChanged()
@@ -308,3 +317,30 @@ end function
 function getImpressionIdForSample()
   return m.collectorCore.callFunc("createImpressionId")
 end function
+
+sub onPlay()
+  startVideoStartUpTimer()
+end sub
+
+sub onSourceLoaded()
+  if m.player.callFunc("getConfig", invalid).autoplay = false then return
+
+  startVideoStartUpTimer()
+end sub
+
+sub onSourceUnloaded()
+  m.videoStartUpTime = -1
+end sub
+
+sub startVideoStartUpTimer()
+  m.videoStartupTimer = createObject("roTimeSpan")
+end sub
+
+sub stopVideoStartUpTimer()
+  m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
+  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTime})
+end sub
+
+sub onFinished()
+  m.videoStartUpTime = -1
+end sub
