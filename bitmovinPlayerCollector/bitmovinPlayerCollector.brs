@@ -237,10 +237,6 @@ sub onSeeked()
   resetSeekHelperVariables()
 end sub
 
-sub onStartUp()
-  m.videoStartupTimer = createObject("roTimeSpan")
-end sub
-
 sub onVideoStart()
   if m.videoStartupTimer = invalid or m.videoStartupTime >= 0 then return
   stopVideoStartUpTimer()
