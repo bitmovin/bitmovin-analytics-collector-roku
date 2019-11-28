@@ -31,10 +31,6 @@ sub setUpObservers()
   m.player.observeFieldScoped("control", "onControlChanged")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
-
-  m.player.observeFieldScoped("play", "onPlay")
-  m.player.observeFieldScoped("sourceLoaded", "onSourceLoaded")
-  m.player.observeFieldScoped("sourceUnloaded", "onSourceUnloaded")
 end sub
 
 sub unobserveFields()
@@ -48,10 +44,6 @@ sub unobserveFields()
   m.player.unobserveFieldScoped("control")
 
   m.collectorCore.unobserveFieldScoped("fireHeartbeat")
-
-  m.player.unobserveFieldScoped("play")
-  m.player.unobserveFieldScoped("sourceLoaded")
-  m.player.unobserveFieldScoped("sourceUnloaded")
 end sub
 
 sub setUpHelperVariables()
@@ -62,8 +54,6 @@ sub setUpHelperVariables()
 
   m.playerStates = getPlayerStates()
   m.playerControls = getPlayerControls()
-
-  m.videoStartUpTime = -1
 end sub
 
 sub onPlayerStateChanged()
@@ -166,7 +156,6 @@ end sub
 sub onFinished()
   resetBufferingTimer()
   resetSeekHelperVariables()
-  m.videoStartUpTime = -1
 end sub
 
 sub onHeartbeat()
@@ -253,15 +242,14 @@ end sub
 
 sub onControlChanged()
   if m.player.control = m.playerControls.PLAY
-    startVideoStartUpTimer()
+    m.videoStartupTimer = createObject("roTimeSpan")
   end if
 end sub
 
 sub onVideoStart()
-  if m.videoStartupTimer = invalid or m.videoStartUptime > -1 then return
+  if m.videoStartupTimer = invalid then return
 
-  ' updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()})
-  stopVideoStartUpTimer()
+  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()})
 
   m.videoStartupTimer = invalid
 end sub
@@ -344,24 +332,3 @@ end function
 function getImpressionIdForSample()
   return m.collectorCore.callFunc("createImpressionId")
 end function
-
-sub onPlay()
-  startVideoStartUpTimer()
-end sub
-
-sub onSourceLoaded()
-  startVideoStartUpTimer()
-end sub
-
-sub onSourceUnloaded()
-  m.videoStartUpTime = -1
-end sub
-
-sub startVideoStartUpTimer()
-  m.videoStartupTimer = createObject("roTimeSpan")
-end sub
-
-sub stopVideoStartUpTimer()
-  m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
-  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTime})
-end sub
