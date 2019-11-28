@@ -203,7 +203,6 @@ function getCommonSampleData(timer, state)
 end function
 
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)
-  print sampleData
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
