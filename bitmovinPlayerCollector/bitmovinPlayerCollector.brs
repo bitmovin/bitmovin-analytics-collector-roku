@@ -237,7 +237,6 @@ sub onSeeked()
 end sub
 
 sub onVideoStart()
-  if m.videoStartupTimer = invalid or m.videoStartupTime >= 0 then return
   stopVideoStartUpTimer()
 end sub
 
@@ -331,6 +330,8 @@ sub startVideoStartUpTimer()
 end sub
 
 sub stopVideoStartUpTimer()
+  if m.videoStartupTimer = invalid or m.videoStartupTime >= 0 then return
+
   m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
   updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTime})
 end sub
