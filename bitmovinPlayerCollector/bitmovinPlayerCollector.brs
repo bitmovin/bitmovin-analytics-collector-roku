@@ -27,6 +27,7 @@ sub setUpObservers()
   m.player.observeFieldScoped("sourceLoaded", "onSourceChanged")
   m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
+  m.player.observeFieldScoped("seeked", "onSeeked")
 
   m.player.observeFieldScoped("control", "onControlChanged")
 
@@ -39,6 +40,7 @@ sub unobserveFields()
   m.player.unobserveFieldScoped("sourceLoaded")
   m.player.unobserveFieldScoped("state")
   m.player.unobserveFieldScoped("seek")
+  m.player.unobserveFieldScoped("seeked")
 
   m.player.unobserveFieldScoped("control")
 
@@ -78,7 +80,6 @@ end sub
 sub handleCurrentState()
   if m.currentState = m.playerStates.PLAYING
     onVideoStart()
-    if wasSeeking() then onSeeked()
   else if m.currentState = m.playerStates.PAUSED
     onPause()
   else if m.currentState = m.playerStates.ERROR
@@ -221,7 +222,7 @@ sub onSeeked()
 
   newSampleData.Append(getCommonSampleData(m.seekTimer, m.previousState))
   newSampleData.seeked = m.seekTimer.TotalMilliseconds()
-  newSampleData.state = m.playerStates.SEEKING ' Manually override the state since the video node does not have a `seeking` state
+  newSampleData.state = "seeking" ' Manually override the state since the video node does not have a `seeking` state
 
   updateSampleDataAndSendAnalyticsRequest(newSampleData)
 
