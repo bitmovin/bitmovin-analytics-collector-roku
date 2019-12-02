@@ -27,12 +27,15 @@ sub setUpObservers()
   m.player.observeFieldScoped("sourceLoaded", "onSourceChanged")
   m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
+  m.player.observeFieldScoped("seeked", "onSeeked")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 
   m.player.observeFieldScoped("play", "onPlay")
   m.player.observeFieldScoped("sourceLoaded", "onSourceLoaded")
   m.player.observeFieldScoped("sourceUnloaded", "onSourceUnloaded")
+
+  m.player.observeFieldScoped("error", "onError")
 end sub
 
 sub unobserveFields()
@@ -41,12 +44,16 @@ sub unobserveFields()
   m.player.unobserveFieldScoped("sourceLoaded")
   m.player.unobserveFieldScoped("state")
   m.player.unobserveFieldScoped("seek")
+  m.player.unobserveFieldScoped("seeked")
 
   m.collectorCore.unobserveFieldScoped("fireHeartbeat")
+
 
   m.player.unobserveFieldScoped("play")
   m.player.unobserveFieldScoped("sourceLoaded")
   m.player.unobserveFieldScoped("sourceUnloaded")
+
+  m.collectorCore.unobserveFieldScoped("error")
 end sub
 
 sub setUpHelperVariables()
@@ -84,11 +91,8 @@ end sub
 sub handleCurrentState()
   if m.currentState = m.playerStates.PLAYING
     onVideoStart()
-    if wasSeeking() then onSeeked()
   else if m.currentState = m.playerStates.PAUSED
     onPause()
-  else if m.currentState = m.playerStates.ERROR
-    onError()
   else if m.currentState = m.playerStates.BUFFERING
     onBuffering()
   else if m.currentState = m.playerStates.FINISHED
@@ -229,7 +233,7 @@ sub onSeeked()
 
   newSampleData.Append(getCommonSampleData(m.seekTimer, m.previousState))
   newSampleData.seeked = m.seekTimer.TotalMilliseconds()
-  newSampleData.state = m.playerStates.SEEKING ' Manually override the state since the video node does not have a `seeking` state
+  newSampleData.state = "seeking" ' Manually override the state since the video node does not have a `seeking` state
 
   updateSampleDataAndSendAnalyticsRequest(newSampleData)
 
@@ -264,15 +268,15 @@ end sub
 
 sub onError()
   newSampleData = getClearSampleData()
-
   errorSample = {
-    errorCode: m.player.errorCode,
-    errorMessage: m.player.errorMsg,
+    errorCode: m.player.error.code,
+    errorMessage: m.player.error.message,
     errorSegments: []
   }
 
-  if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
-  if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
+  if m.player.downloadFinished <> invalid then errorSample.errorSegments.push(m.player.downloadFinished)
+
+  resetSeekHelperVariables()
 
   newSampleData.Append(errorSample)
   updateSampleDataAndSendAnalyticsRequest(newSampleData)

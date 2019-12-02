@@ -1,0 +1,9 @@
+{
+	"logLevel": 4,
+	"projectPath": "./testing",
+	"failFast": false,
+	"showOnlyFailures": false,
+	"maxLinesWithoutSuiteDirective": 30,
+  "supportLegacyTests": false,
+  "outputPath": "./source/tests/rooibos"
+}
