@@ -29,9 +29,11 @@ sub setUpObservers()
   m.player.observeFieldScoped("seek", "onSeek")
   m.player.observeFieldScoped("seeked", "onSeeked")
 
-  m.player.observeFieldScoped("control", "onControlChanged")
-
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
+
+  m.player.observeFieldScoped("play", "onPlay")
+  m.player.observeFieldScoped("sourceLoaded", "onSourceLoaded")
+  m.player.observeFieldScoped("sourceUnloaded", "onSourceUnloaded")
 
   m.player.observeFieldScoped("error", "onError")
 end sub
@@ -44,9 +46,12 @@ sub unobserveFields()
   m.player.unobserveFieldScoped("seek")
   m.player.unobserveFieldScoped("seeked")
 
-  m.player.unobserveFieldScoped("control")
-
   m.collectorCore.unobserveFieldScoped("fireHeartbeat")
+
+
+  m.player.unobserveFieldScoped("play")
+  m.player.unobserveFieldScoped("sourceLoaded")
+  m.player.unobserveFieldScoped("sourceUnloaded")
 
   m.collectorCore.unobserveFieldScoped("error")
 end sub
@@ -59,6 +64,8 @@ sub setUpHelperVariables()
 
   m.playerStates = getPlayerStates()
   m.playerControls = getPlayerControls()
+
+  m.videoStartUpTime = -1
 end sub
 
 sub onPlayerStateChanged()
@@ -88,6 +95,8 @@ sub handleCurrentState()
     onPause()
   else if m.currentState = m.playerStates.BUFFERING
     onBuffering()
+  else if m.currentState = m.playerStates.FINISHED
+    onFinished()
   end if
 end sub
 
@@ -231,18 +240,8 @@ sub onSeeked()
   resetSeekHelperVariables()
 end sub
 
-sub onControlChanged()
-  if m.player.control = m.playerControls.PLAY
-    m.videoStartupTimer = createObject("roTimeSpan")
-  end if
-end sub
-
 sub onVideoStart()
-  if m.videoStartupTimer = invalid then return
-
-  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTimer.TotalMilliseconds()})
-
-  m.videoStartupTimer = invalid
+  stopVideoStartUpTimer()
 end sub
 
 sub onSourceChanged()
@@ -315,3 +314,32 @@ end function
 function getImpressionIdForSample()
   return m.collectorCore.callFunc("createImpressionId")
 end function
+
+sub onPlay()
+  startVideoStartUpTimer()
+end sub
+
+sub onSourceLoaded()
+  if m.player.callFunc("getConfig", invalid).autoplay = false then return
+
+  startVideoStartUpTimer()
+end sub
+
+sub onSourceUnloaded()
+  m.videoStartUpTime = -1
+end sub
+
+sub startVideoStartUpTimer()
+  m.videoStartupTimer = createObject("roTimeSpan")
+end sub
+
+sub stopVideoStartUpTimer()
+  if m.videoStartupTimer = invalid or m.videoStartupTime >= 0 then return
+
+  m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
+  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTime})
+end sub
+
+sub onFinished()
+  m.videoStartUpTime = -1
+end sub
