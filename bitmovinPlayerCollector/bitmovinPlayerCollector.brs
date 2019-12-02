@@ -32,6 +32,8 @@ sub setUpObservers()
   m.player.observeFieldScoped("control", "onControlChanged")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
+
+  m.player.observeFieldScoped("error", "onError")
 end sub
 
 sub unobserveFields()
@@ -45,6 +47,8 @@ sub unobserveFields()
   m.player.unobserveFieldScoped("control")
 
   m.collectorCore.unobserveFieldScoped("fireHeartbeat")
+
+  m.collectorCore.unobserveFieldScoped("error")
 end sub
 
 sub setUpHelperVariables()
@@ -82,8 +86,6 @@ sub handleCurrentState()
     onVideoStart()
   else if m.currentState = m.playerStates.PAUSED
     onPause()
-  else if m.currentState = m.playerStates.ERROR
-    onError()
   else if m.currentState = m.playerStates.BUFFERING
     onBuffering()
   end if
@@ -267,15 +269,15 @@ end sub
 
 sub onError()
   newSampleData = getClearSampleData()
-
   errorSample = {
-    errorCode: m.player.errorCode,
-    errorMessage: m.player.errorMsg,
+    errorCode: m.player.error.code,
+    errorMessage: m.player.error.message,
     errorSegments: []
   }
 
-  if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
-  if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
+  if m.player.downloadFinished <> invalid then errorSample.errorSegments.push(m.player.downloadFinished)
+
+  resetSeekHelperVariables()
 
   newSampleData.Append(errorSample)
   updateSampleDataAndSendAnalyticsRequest(newSampleData)
