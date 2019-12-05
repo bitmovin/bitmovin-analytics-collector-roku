@@ -320,7 +320,10 @@ sub onPlay()
 end sub
 
 sub onSourceLoaded()
-  if m.player.callFunc("getConfig", invalid).autoplay = false then return
+  config = m.player.callFunc("getConfig", invalid)
+
+  checkForSourceSpecificMetadata(config)
+  if config.autoplay = false then return
 
   startVideoStartUpTimer()
 end sub
@@ -342,4 +345,10 @@ end sub
 
 sub onFinished()
   m.videoStartUpTime = -1
+end sub
+
+sub checkForSourceSpecificMetadata(config)
+  if config.analytics = invalid then return
+
+  updateSampleAndSendAnalyticsRequest(config.analytics)
 end sub
