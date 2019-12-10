@@ -1,0 +1,16 @@
+# Channel Details
+title=Demo
+major_version=0
+minor_version=1
+build_version=1
+
+# Resolution
+ui_resolutions=fhd
+
+# Splash Screen + Loading Screen Artwork
+splash_color=#808080
+splash_min_time=0
+
+# License key
+bitmovin_player_license_key=YOUR_PLAYER_KEY
+bitmovin_analytics_license_key=YOUR_ANALYTICS_KEY
