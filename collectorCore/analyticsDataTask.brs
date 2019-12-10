@@ -17,7 +17,8 @@ sub execute()
   url = m.top.url
 
   analyticsDataTaskPort = CreateObject("roMessagePort")
-  m.top.observeField("sendData", analyticsDataTaskPort)
+  m.top.observeFieldScoped("sendData", analyticsDataTaskPort)
+  m.top.observeFieldScoped("eventData", analyticsDataTaskPort)
 
   http = CreateObject("roUrlTransfer")
   http.setCertificatesFile("common:/certs/ca-bundle.crt")
@@ -65,9 +66,11 @@ sub execute()
             m.unsentAnalyticEvents.Push(m.top.eventData)
           else
             sendUnsentAnalyticEvents()
-            sendAnalyticsData(m.top.eventData)
           end if
         end if
+      else if msg.GetField() = "eventData"
+        event = msg.GetData()
+        m.unsentAnalyticEvents.Push(event)
       end if
     end if
 

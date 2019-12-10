@@ -106,9 +106,8 @@ end sub
 
 function updateSample(newSampleData)
   if newSampleData = invalid then return false
-  for each data in newSampleData
-    m.sample.append(newSampleData)
-  end for
+
+  m.sample.append(newSampleData)
 
   return true
 end function
@@ -117,9 +116,7 @@ function createSendOnceSample(metadata)
   if metadata = invalid then return invalid
   tempSample = {}
   tempSample.append(m.sample)
-  for each data in metadata
-    tempSample.append(metadata)
-  end for
+  tempSample.append(metadata)
 
   return tempSample
 end function
