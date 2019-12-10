@@ -1,18 +1,3 @@
-' Player states
-function getPlayerStates()
-  playerStates = {
-    PLAYING: "playing",
-    STALLING: "stalling",
-    PAUSED: "paused",
-    FINISHED: "finished",
-    ERROR: "error",
-    NONE: "none",
-    SETUP: "setup",
-    READY: "ready"
-  }
-  return playerStates
-end function
-
 ' Player controls
 function getPlayerControls()
   controlStates = {
