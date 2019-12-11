@@ -129,15 +129,17 @@ sub sendAnalyticsEventsFromQueue()
 end sub
 
 function clearAnalyticsEventsQueue()
-  if m.analyticsEventsQueue.Count() = 0 then return invalid
+  if m.analyticsEventsQueue.Count() = 0 then return false
+  m.analyticsEventsQueue.Clear()
 
-  return m.analyticsEventsQueue.Clear()
+  return true
 end function
 
 function pushToAnalyticsEventsQueue(event)
-  if event = invalid then return invalid
+  if event = invalid then return false
+  m.analyticsEventsQueue.Push(event)
 
-  return m.analyticsEventsQueue.Push(event)
+  return true
 end function
 
 sub clearLicensingResponseAndAnalyticsEventsQueue()
