@@ -7,12 +7,13 @@ sub init()
   m.licensingData = getLicensingData()
 
   clearSample()
-  setLicensingAnalyticsDataTask(m.licensingData)
+  checkAnalyticsLicenseKey(m.licensingData)
 end sub
 
-sub setLicensingAnalyticsDataTask(licensingData)
+sub checkAnalyticsLicenseKey(licensingData)
   if m.analyticsDataTask = invalid or licensingData = invalid then return
   m.analyticsDataTask.licensingData = licensingData
+  m.analyticsDataTask.checkLicenseKey = true
 end sub
 
 sub clearSample()
