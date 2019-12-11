@@ -78,13 +78,12 @@ function checkLicenseKey(licensingData, url)
           m.licensingState = m.licensingResponse.status
         end if
       else
-        m.licensingResponse = {}
-        clearAnalyticsEventsQueue()
+        clearLicensingResponseAndAnalyticsEventsQueue()
       end if
       m.isLicensingCallDone = true
       http.asyncCancel()
     else if msg = invalid
-      m.licensingResponse = {}
+      clearLicensingResponseAndAnalyticsEventsQueue()
       http.asyncCancel()
     end if
   end if
@@ -140,3 +139,8 @@ function pushToAnalyticsEventsQueue(event)
 
   return m.analyticsEventsQueue.Push(event)
 end function
+
+sub clearLicensingResponseAndAnalyticsEventsQueue()
+  m.licensingResponse = {}
+  clearAnalyticsEventsQueue()
+end sub
