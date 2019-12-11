@@ -43,7 +43,7 @@ sub execute()
     end if
 
     if m.licensingState <> "granted"
-      clearAnalyticsEventsQueue()()
+      clearAnalyticsEventsQueue()
       return
     end if
 
@@ -79,7 +79,7 @@ function checkLicenseKey(licensingData, url)
         end if
       else
         m.licensingResponse = {}
-        clearAnalyticsEventsQueue()()
+        clearAnalyticsEventsQueue()
       end if
       m.isLicensingCallDone = true
       http.asyncCancel()
