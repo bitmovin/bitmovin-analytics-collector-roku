@@ -62,7 +62,7 @@ sub setUpHelperVariables()
 
   m.newMetadata = invalid
 
-  m.playerStates = getPlayerStates()
+  m.playerStates = m.player.BitmovinPlayerState
   m.playerControls = getPlayerControls()
 
   m.videoStartUpTime = -1
