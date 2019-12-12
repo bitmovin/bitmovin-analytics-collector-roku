@@ -7,13 +7,13 @@
 
 '@Test pushToAnalyticsEventsQueue - valid params - returns true
 '@Params[{"customDataTest": "customData"}]
-function ADTT__setAnalyticsConfig_valid_params(sampleEvent) as void
+function ADTT__pushToAnalyticsEventsQueue_valid_params(sampleEvent) as void
   m.AssertTrue(pushToAnalyticsEventsQueue(sampleEvent))
 end function
 
 '@Test pushToAnalyticsEventsQueue - invalid params - returns false
 '@Params[invalid]
-function ADTT__setAnalyticsConfig_invalid_params(sampleEvent) as void
+function ADTT__pushToAnalyticsEventsQueue_invalid_params(sampleEvent) as void
   m.AssertFalse(pushToAnalyticsEventsQueue(sampleEvent))
 end function
 
