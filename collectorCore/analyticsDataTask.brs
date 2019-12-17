@@ -26,19 +26,15 @@ sub execute()
     if type(msg) = "roSGNodeEvent"
       field = msg.GetField()
       data = msg.GetData()
-      if field = "sendData"
-        if data = true
-          if m.isLicensingCallDone = true
-            sendAnalyticsEventsFromQueue()
-          end if
+      if field = "sendData" and data = true
+        if m.isLicensingCallDone = true
+          sendAnalyticsEventsFromQueue()
         end if
       else if field = "eventData"
         event = data
         pushToAnalyticsEventsQueue(event)
-      else if field = "checkLicenseKey"
-        if data = true
-          checkLicenseKey(m.top.licensingData, m.top.url)
-        end if
+      else if field = "checkLicenseKey" and data = true
+        checkLicenseKey(m.top.licensingData, m.top.url)
       end if
     end if
 
