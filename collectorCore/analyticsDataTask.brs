@@ -13,6 +13,7 @@ sub init()
   m.top.observeFieldScoped("checkLicenseKey", m.analyticsDataTaskPort)
   m.top.observeFieldScoped("sendData", m.analyticsDataTaskPort)
   m.top.observeFieldScoped("eventData", m.analyticsDataTaskPort)
+  m.runExecute = true
   m.top.functionName = "execute"
   m.top.control = "RUN"
 end sub
@@ -20,14 +21,14 @@ end sub
 sub execute()
   m.timer.Mark()
 
-  while true
+  while m.runExecute
     msg = wait(500, m.analyticsDataTaskPort)
 
     if type(msg) = "roSGNodeEvent"
       field = msg.GetField()
       data = msg.GetData()
       if field = "sendData" and data = true
-        if m.isLicensingCallDone = true
+        if m.isLicensingCallDone = true and m.licensingState = "granted"
           sendAnalyticsEventsFromQueue()
         end if
       else if field = "eventData"
@@ -36,11 +37,6 @@ sub execute()
       else if field = "checkLicenseKey" and data = true
         checkLicenseKey(m.top.licensingData, m.top.url)
       end if
-    end if
-
-    if m.licensingState <> "granted"
-      clearAnalyticsEventsQueue()
-      return
     end if
 
     if m.top.playerState = "playing" and m.timer.totalMilliseconds() > 59*1000
@@ -72,6 +68,8 @@ function checkLicenseKey(licensingData, url)
         m.licensingResponse = parseJson(msg.getString())
         if m.licensingResponse.status = "granted"
           m.licensingState = m.licensingResponse.status
+        else
+          clearLicensingResponseAndAnalyticsEventsQueue()
         end if
       else
         clearLicensingResponseAndAnalyticsEventsQueue()
@@ -141,4 +139,5 @@ end function
 sub clearLicensingResponseAndAnalyticsEventsQueue()
   m.licensingResponse = {}
   clearAnalyticsEventsQueue()
+  m.runExecute = false
 end sub
