@@ -13,7 +13,7 @@ sub init()
   m.top.observeFieldScoped("checkLicenseKey", m.analyticsDataTaskPort)
   m.top.observeFieldScoped("sendData", m.analyticsDataTaskPort)
   m.top.observeFieldScoped("eventData", m.analyticsDataTaskPort)
-  m.runExecute = true
+  m.runExecuteLoop = true
   m.top.functionName = "execute"
   m.top.control = "RUN"
 end sub
@@ -21,7 +21,7 @@ end sub
 sub execute()
   m.timer.Mark()
 
-  while m.runExecute
+  while m.runExecuteLoop
     msg = wait(500, m.analyticsDataTaskPort)
 
     if type(msg) = "roSGNodeEvent"
@@ -70,14 +70,17 @@ function checkLicenseKey(licensingData, url)
           m.licensingState = m.licensingResponse.status
         else
           clearLicensingResponseAndAnalyticsEventsQueue()
+          stopExecuteLoop()
         end if
       else
         clearLicensingResponseAndAnalyticsEventsQueue()
+        stopExecuteLoop()
       end if
       m.isLicensingCallDone = true
       http.asyncCancel()
     else if msg = invalid
       clearLicensingResponseAndAnalyticsEventsQueue()
+      stopExecuteLoop()
       http.asyncCancel()
     end if
   end if
@@ -139,5 +142,8 @@ end function
 sub clearLicensingResponseAndAnalyticsEventsQueue()
   m.licensingResponse = {}
   clearAnalyticsEventsQueue()
-  m.runExecute = false
+end sub
+
+sub stopExecuteLoop()
+  m.runExecuteLoop = false
 end sub
