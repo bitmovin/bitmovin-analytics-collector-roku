@@ -12,7 +12,6 @@ function BPCT__getPlayerKeyFromManifest_invalid_params(appInfo) as void
   m.AssertInvalid(bitmovinPlayerKey)
 end function
 
-
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests bitmovinPlayerCollector API
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
