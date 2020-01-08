@@ -86,7 +86,7 @@ sub handleCurrentState()
     onError()
   else if m.currentState = m.playerStates.BUFFERING
     onBuffering()
-  else if m.currentState = m.palyerState.FINISHED
+  else if m.currentState = m.playerStates.FINISHED
     onFinished()
   end if
 end sub
