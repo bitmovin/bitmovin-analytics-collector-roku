@@ -7,12 +7,13 @@ sub init()
   m.licensingData = getLicensingData()
 
   clearSample()
-  setLicensingAnalyticsDataTask(m.licensingData)
+  checkAnalyticsLicenseKey(m.licensingData)
 end sub
 
-sub setLicensingAnalyticsDataTask(licensingData)
+sub checkAnalyticsLicenseKey(licensingData)
   if m.analyticsDataTask = invalid or licensingData = invalid then return
   m.analyticsDataTask.licensingData = licensingData
+  m.analyticsDataTask.checkLicenseKey = true
 end sub
 
 sub clearSample()
@@ -106,9 +107,8 @@ end sub
 
 function updateSample(newSampleData)
   if newSampleData = invalid then return false
-  for each data in newSampleData
-    m.sample.append(newSampleData)
-  end for
+
+  m.sample.append(newSampleData)
 
   return true
 end function
@@ -117,9 +117,7 @@ function createSendOnceSample(metadata)
   if metadata = invalid then return invalid
   tempSample = {}
   tempSample.append(m.sample)
-  for each data in metadata
-    tempSample.append(metadata)
-  end for
+  tempSample.append(metadata)
 
   return tempSample
 end function

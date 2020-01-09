@@ -4,70 +4,38 @@ sub init()
   m.deviceinfo = CreateObject("roDeviceInfo")
   m.licensingState = m.top.findNode("licensingState")
   m.isLicensingCallDone = false
-  m.unsentAnalyticEvents = []
+  m.analyticsEventsQueue = []
   m.timer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
   m.top.url = m.config.serviceEndpoints.analyticsLicense
   m.licensingResponse = {}
+  m.analyticsDataTaskPort = CreateObject("roMessagePort")
+  m.top.observeFieldScoped("checkLicenseKey", m.analyticsDataTaskPort)
+  m.top.observeFieldScoped("sendData", m.analyticsDataTaskPort)
+  m.top.observeFieldScoped("eventData", m.analyticsDataTaskPort)
+  m.runExecuteLoop = true
   m.top.functionName = "execute"
   m.top.control = "RUN"
 end sub
 
 sub execute()
-  url = m.top.url
-
-  analyticsDataTaskPort = CreateObject("roMessagePort")
-  m.top.observeField("sendData", analyticsDataTaskPort)
-
-  http = CreateObject("roUrlTransfer")
-  http.setCertificatesFile("common:/certs/ca-bundle.crt")
-  port = CreateObject("roMessagePort")
-  http.setPort(port)
-  http.setUrl(url)
-  http.addHeader("Origin", m.appInfo.getID())
-
-  data = formatJson(m.top.licensingData)
-
-  if http.asyncPostFromString(data)
-    msg = wait(0, port)
-    if type(msg) = "roUrlEvent"
-      if msg.getResponseCode() >= 200 and msg.getResponseCode() < 300
-        m.licensingResponse = parseJson(msg.getString())
-        if m.licensingResponse.status = "granted"
-          m.licensingState = m.licensingResponse.status
-        end if
-      else
-        m.licensingResponse = {}
-        m.unsentAnalyticEvents.Clear()
-      end if
-      m.isLicensingCallDone = true
-      http.asyncCancel()
-    else if msg = invalid
-      m.licensingResponse = {}
-      http.asyncCancel()
-    end if
-  end if
-
-  if m.licensingState <> "granted"
-    m.unsentAnalyticEvents.Clear()
-    return
-  end if
-
   m.timer.Mark()
 
-  while true
-    msg = wait(500, analyticsDataTaskPort)
+  while m.runExecuteLoop
+    msg = wait(500, m.analyticsDataTaskPort)
 
     if type(msg) = "roSGNodeEvent"
-      if msg.GetField() = "sendData"
-        if msg.GetData() = true
-          if m.isLicensingCallDone = false
-            m.unsentAnalyticEvents.Push(m.top.eventData)
-          else
-            sendUnsentAnalyticEvents()
-            sendAnalyticsData(m.top.eventData)
-          end if
+      field = msg.GetField()
+      data = msg.GetData()
+      if field = "sendData" and data = true
+        if m.isLicensingCallDone = true and m.licensingState = "granted"
+          sendAnalyticsEventsFromQueue()
         end if
+      else if field = "eventData"
+        event = data
+        pushToAnalyticsEventsQueue(event)
+      else if field = "checkLicenseKey" and data = true
+        checkLicenseKey(m.top.licensingData, m.top.url)
       end if
     end if
 
@@ -75,11 +43,50 @@ sub execute()
       parent = m.top.getParent()
       if parent.fireHeartbeat <> invalid
         parent.fireHeartbeat = true
+        m.timer.Mark()
       end if
     end if
 
   end while
 end sub
+
+function checkLicenseKey(licensingData, url)
+  http = CreateObject("roUrlTransfer")
+  http.setCertificatesFile("common:/certs/ca-bundle.crt")
+  port = CreateObject("roMessagePort")
+  http.setPort(port)
+  http.setUrl(url)
+  http.addHeader("Origin", m.appInfo.getID())
+
+  data = formatJson(licensingData)
+
+  if http.asyncPostFromString(data)
+    msg = wait(0, port)
+    if type(msg) = "roUrlEvent"
+      responseCode = msg.getResponseCode()
+      if responseCode >= 200 and responseCode < 300
+        m.licensingResponse = parseJson(msg.getString())
+        if m.licensingResponse.status = "granted"
+          m.licensingState = m.licensingResponse.status
+        else
+          clearLicensingResponseAndAnalyticsEventsQueue()
+          stopExecuteLoop()
+        end if
+      else
+        clearLicensingResponseAndAnalyticsEventsQueue()
+        stopExecuteLoop()
+      end if
+      m.isLicensingCallDone = true
+      http.asyncCancel()
+    else if msg = invalid
+      clearLicensingResponseAndAnalyticsEventsQueue()
+      stopExecuteLoop()
+      http.asyncCancel()
+    end if
+  end if
+
+  m.timer.Mark()
+end function
 
 sub sendAnalyticsData(eventData)
   url = m.config.serviceEndpoints.analyticsData
@@ -110,10 +117,33 @@ sub sendAnalyticsData(eventData)
   m.timer.mark()
 end sub
 
-sub sendUnsentAnalyticEvents()
-  if m.unsentAnalyticEvents.Count() = 0 then return
-  for each event in m.unsentAnalyticEvents
+sub sendAnalyticsEventsFromQueue()
+  if m.analyticsEventsQueue.Count() = 0 then return
+  for each event in m.analyticsEventsQueue
     sendAnalyticsData(event)
   end for
-  m.unsentAnalyticEvents.Clear()
+  clearAnalyticsEventsQueue()
+end sub
+
+function clearAnalyticsEventsQueue()
+  if m.analyticsEventsQueue.Count() = 0 then return false
+  m.analyticsEventsQueue.Clear()
+
+  return true
+end function
+
+function pushToAnalyticsEventsQueue(event)
+  if event = invalid then return false
+  m.analyticsEventsQueue.Push(event)
+
+  return true
+end function
+
+sub clearLicensingResponseAndAnalyticsEventsQueue()
+  m.licensingResponse = {}
+  clearAnalyticsEventsQueue()
+end sub
+
+sub stopExecuteLoop()
+  m.runExecuteLoop = false
 end sub
