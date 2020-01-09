@@ -5,6 +5,14 @@
 '@It tests bitmovinPlayerCollector
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+'@Test getPlayerKeyFromManifest with valid params - returns valid playerKey
+'@Params["dummyKeyValue"]
+function BPCT__getPlayerKeyFromManifest_valid_params(dummyKeyValue) as void
+  appInfo = getMockedAppInfoWithPlayerKeyData()
+
+  m.AssertEqual(getPlayerKeyFromManifest(appInfo), dummyKeyValue)
+end function
+
 '@Test getPlayerKeyFromManifest with invalid params - returns invalid
 '@Params[invalid]
 function BPCT__getPlayerKeyFromManifest_invalid_params(appInfo) as void
@@ -28,4 +36,27 @@ end function
 function BPCT__setAnalyticsConfig_invalid_params(analyticsConfig) as void
   isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
   m.AssertInvalid(isAnalyticsConfigSet)
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'Mock Data
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function getMockedAppInfoWithPlayerKeyData()
+  mockAppInfo = {}
+  'mimic behaviour of roAppInfo's getValue() function
+  mockAppInfo.getValue = function(key)
+    mockManifestData = {}
+    mockManifestData = { "bitmovin_player_license_key" : "dummyKeyValue" }
+
+    if mockManifestData[key] <> invalid
+      value = mockManifestData[key]
+    else
+      value = ""
+    end if
+
+    return value
+  end function
+
+  return mockAppInfo
 end function
