@@ -6,11 +6,12 @@
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 '@Test getPlayerKeyFromManifest with valid params - returns valid playerKey
-'@Params["dummyKeyValue"]
-function BPCT__getPlayerKeyFromManifest_valid_params(dummyKeyValue) as void
-  appInfo = getMockedAppInfoWithPlayerKeyData()
+'@Params[{"bitmovin_player_license_key": "dummyKeyValue"}]
+function BPCT__getPlayerKeyFromManifest_valid_params(manifestData) as void
+  appInfo = getMockedAppInfoWithPlayerKeyData(manifestData)
+  expectedPlayerKey = manifestData.bitmovin_player_license_key
 
-  m.AssertEqual(getPlayerKeyFromManifest(appInfo), dummyKeyValue)
+  m.AssertEqual(getPlayerKeyFromManifest(appInfo), expectedPlayerKey)
 end function
 
 '@Test getPlayerKeyFromManifest with invalid params - returns invalid
@@ -42,15 +43,13 @@ end function
 'Mock Data
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function getMockedAppInfoWithPlayerKeyData()
+function getMockedAppInfoWithPlayerKeyData(manifestData)
   mockAppInfo = {}
   'mimic behaviour of roAppInfo's getValue() function
+  mockAppInfo.mockManifestData = manifestData
   mockAppInfo.getValue = function(key)
-    mockManifestData = {}
-    mockManifestData = { "bitmovin_player_license_key" : "dummyKeyValue" }
-
-    if mockManifestData[key] <> invalid
-      value = mockManifestData[key]
+    if m.mockManifestData[key] <> invalid
+      value = m.mockManifestData[key]
     else
       value = ""
     end if
