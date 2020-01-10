@@ -2,12 +2,14 @@ sub init()
   m.tag = "[bitmovinPlayerCollector] "
   m.collectorCore = m.top.findNode("collectorCore")
   m.playerStateTimer = CreateObject("roTimespan")
+  m.appInfo = CreateObject("roAppInfo")
 end sub
 
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
   updateSample({"playerStartupTime": 1})
+  updateSample({"playerKey": getPlayerKeyFromManifest(m.appInfo)})
 
   setUpHelperVariables()
   setUpObservers()
@@ -313,6 +315,12 @@ end function
 
 function getImpressionIdForSample()
   return m.collectorCore.callFunc("createImpressionId")
+end function
+
+function getPlayerKeyFromManifest(appInfo)
+  if appInfo = invalid then return invalid
+
+  return appInfo.getValue("bitmovin_player_license_key")
 end function
 
 sub onPlay()
