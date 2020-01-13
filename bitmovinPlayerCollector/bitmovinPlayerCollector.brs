@@ -176,26 +176,6 @@ function getClearSampleData()
   return sampleData
 end function
 
-function createUpdatedSampleData(state, timer, possiblePlayerStates, customData = invalid)
-  if state = invalid or timer = invalid or possiblePlayerStates = invalid
-    return invalid
-  end if
-
-  sampleData = {}
-  sampleData.Append(getDefaultStateTimeData())
-  sampleData.Append(getCommonSampleData(timer, state))
-  if customData <> invalid
-    sampleData.Append(customData)
-  end if
-
-  if state = possiblePlayerStates.PLAYING or state = possiblePlayerStates.PAUSED
-    previousState = mapBitmovinPlayerStateForAnalytic(possiblePlayerStates, state)
-    sampleData[previousState] = sampleData.duration
-  end if
-
-  return sampleData
-end function
-
 function getCommonSampleData(timer, state)
   commonSampleData = {}
 
@@ -293,7 +273,8 @@ end function
 
 sub finishRunningSample()
   setPreviousAndCurrentPlayerState()
-  runningSampleData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates)
+  runningSampleData = getClearSampleData()
+  runningSampleData.Append(getCommonSampleData(m.playerStateTimer, m.previousState))
   m.playerStateTimer.Mark()
 
   updateSampleDataAndSendAnalyticsRequest(runningSampleData)
@@ -302,7 +283,10 @@ end sub
 sub setCustomDataOnce(customData)
   if customData = invalid then return
   finishRunningSample()
-  sendOnceCustomData = createUpdatedSampleData(m.previousState, m.playerStateTimer, m.playerStates, customData)
+
+  sendOnceCustomData = getClearSampleData()
+  sendOnceCustomData.Append(getCommonSampleData(m.playerStateTimer, m.previousState))
+  sendOnceCustomData.Append(customData)
 
   createTempMetadataSampleAndSendAnalyticsRequest(sendOnceCustomData)
 end sub
