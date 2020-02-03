@@ -6,3 +6,6 @@ testing/components/nativePlayerCollector/
 testing/components/bitmovinPlayerCollector/
 testing/source/buildinfo.brs
 testing/source/tests/rooibos/rooibosFunctionMap.brs
+
+DemoBitmovinPlayerCollector/components/bitmovinPlayerCollector
+DemoBitmovinPlayerCollector/components/collectorCore

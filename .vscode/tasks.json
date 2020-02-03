@@ -22,6 +22,25 @@
       },
       "problemMatcher": [],
       "command": "npm run clean"
+    },
+    {
+      "label": "copy-components-to-demo",
+      "type": "shell",
+      "command": "rm -rf ${workspaceFolder}/${input:demoTarget}/components/{collectorCore,${input:collectorAdapterTarget}} && cp -r ${workspaceFolder}/{collectorCore,${input:collectorAdapterTarget}} ${workspaceFolder}/${input:demoTarget}/components/"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "demoTarget",
+      "type": "pickString",
+      "description": "Pick a demo target",
+      "options": ["DemoBitmovinPlayerCollector", "DemoNativePlayerCollector"]
+    },
+    {
+      "id": "collectorAdapterTarget",
+      "description": "Select target adapter for build",
+      "type": "pickString",
+      "options": ["bitmovinPlayerCollector", "nativePlayerCollector"]
     }
   ]
 }
