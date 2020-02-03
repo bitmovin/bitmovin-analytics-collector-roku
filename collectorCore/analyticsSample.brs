@@ -20,7 +20,7 @@ function getAnalyticsSample()
     pageLoadType: 0,
     path: "",
     paused: 0,
-    platform: "",
+    platform: "roku",
     played: 0,
     player: "",
     playerKey: "",
