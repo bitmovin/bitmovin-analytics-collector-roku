@@ -17,7 +17,7 @@ function getAnalyticsSample()
     key: "",
     language: "",
     pageLoadTime: 0,
-    pageLoadType: 0,
+    pageLoadType: 1,
     path: "",
     paused: 0,
     platform: "roku",

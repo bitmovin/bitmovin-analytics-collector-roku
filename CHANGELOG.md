@@ -13,4 +13,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- `pageLoadType` was not set to `FOREGROUND` (AN-1145)
 - `platform` field not set to `roku` (AN-1134)
