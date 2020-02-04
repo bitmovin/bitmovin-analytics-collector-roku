@@ -170,26 +170,11 @@ sub setPreviousAndCurrentPlayerState()
   m.currentState = m.player.playerState
 end sub
 
-'Return the video window size as reported by the video element of the player.
-'@return {Object} - Object containing videoWindowHeight and videoWindowWidth as required by the analytics sample.
-function getVideoWindowSize()
-  video = m.player.getChild(0)
-  height = m.deviceInfo.GetDisplaySize().h
-  width = m.deviceInfo.GetDisplaySize().w
-  if video.height <> 0
-    height = video.height
-  end if
-  if video.width <> 0
-    width = video.width
-  end if
-  return {videoWindowHeight: height, videoWindowWidth: width}
-end function
-
 sub decorateSampleWithPlaybackData(sampleData)
   if sampleData = invalid then return
 
-  sampleData.Append(getVideoWindowSize())
-  sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth, m.deviceInfo)})
+  sampleData.Append(getVideoWindowSize(m.player.getChild(0)))
+  sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
 end sub
 
 function getClearSampleData()
