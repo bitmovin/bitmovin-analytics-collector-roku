@@ -8,6 +8,7 @@ end sub
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
+  m.deviceInfo = CreateObject("roDeviceInfo")
   updateSample({"playerStartupTime": 1})
   updateSample({"playerKey": getPlayerKeyFromManifest(m.appInfo)})
 
@@ -169,6 +170,27 @@ sub setPreviousAndCurrentPlayerState()
   m.currentState = m.player.playerState
 end sub
 
+'Return the video window size as reported by the video element of the player.
+'@return {Object} - Object containing videoWindowHeight and videoWindowWidth as required by the analytics sample.
+function getVideoWindowSize()
+  video = m.player.getChild(0)
+  height = m.deviceInfo.GetDisplaySize().h
+  width = m.deviceInfo.GetDisplaySize().w
+  if video.height <> 0
+    height = video.height
+  end if
+  if video.width <> 0
+    width = video.width
+  end if
+  return {videoWindowHeight: height, videoWindowWidth: width}
+end function
+
+sub decorateSampleWithPlaybackData(sampleData)
+  if sampleData = invalid then return
+
+  sampleData.Append(getVideoWindowSize())
+end sub
+
 function getClearSampleData()
   sampleData = {}
   sampleData.Append(getDefaultStateTimeData())
@@ -189,10 +211,14 @@ function getCommonSampleData(timer, state)
 end function
 
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)
+  decorateSampleWithPlaybackData(sampleData)
+
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(sampleData)
+  decorateSampleWithPlaybackData(sampleData)
+
   m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 

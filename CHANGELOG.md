@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - `streamFormat` and corresponding `url` to sample (AN-1135)
+- `videoWindowHeight` and `videoWindowWidth` to sample for bitmovin and native player (AN-1139)
 
 ### Fixed
 
