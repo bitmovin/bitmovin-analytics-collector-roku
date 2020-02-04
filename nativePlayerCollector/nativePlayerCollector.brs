@@ -213,6 +213,7 @@ sub decorateSampleWithPlaybackData(sampleData)
   if sampleData = invalid then return
 
   sampleData.Append(getVideoWindowSize())
+  sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth, m.deviceInfo)})
 end sub
 
 function getCommonSampleData(timer, state)

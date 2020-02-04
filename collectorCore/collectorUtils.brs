@@ -45,3 +45,15 @@ function mapBitmovinPlayerStateForAnalytic(playerStates, state)
 
   return map[state]
 end function
+
+'Return the playback size type (FULLSCREEN, WINDOW) of the stream
+'@param {videoWindowWidth}
+'@param {videoWindowHeight}
+'@param {deviceInfo} - The roDeviceInfo node
+'@return {String} - Either FULLSCREEN or WINDOW depending on the width and height of the video window
+function getSizeType(videoWindowHeight, videoWindowWidth, deviceInfo)
+  if videoWindowHeight.GetInt() >= deviceInfo.GetDisplaySize().h.GetInt() and videoWindowWidth.GetInt() >= deviceInfo.GetDisplaySize().w.GetInt()
+    return "FULLSCREEN"
+  end if
+  return "WINDOW"
+end function
