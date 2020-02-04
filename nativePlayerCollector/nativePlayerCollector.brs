@@ -254,7 +254,23 @@ sub onVideoStart()
   m.videoStartupTimer = invalid
 end sub
 
+function mapContent(content)
+  if content.STREAMFORMAT = "dash"
+    return { streamFormat: "dash", mpdUrl: content.URL }
+  else if content.STREAMFORMAT = "hls"
+    return { streamFormat: "hls", m3u8Url: content.URL }
+  else if content.STREAMFORMAT = "smooth"
+    return { streamFormat: "smooth"}
+  else if content.STREAMFORMAT = "mp4"
+    return { streamFormat: "mp4", progUrl: content.URL }
+  else
+    return {}
+  end if
+end function
+
 sub onSourceChanged()
+  newStreamMetadata = mapContent(m.player.content)
+  setNewMetadata(newStreamMetadata)
   checkForNewMetadata()
   handleImpressionIdChange()
 end sub
