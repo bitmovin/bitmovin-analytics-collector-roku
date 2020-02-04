@@ -339,7 +339,28 @@ sub onFinished()
   m.videoStartUpTime = -1
 end sub
 
+'Function to map source to object valid for video node to accept. Sets stream format based upon which stream type entered and value as url.
+'@params {Object} source - Source object conforming to Bitmovin API standards
+'@return {Object} - Source object formatted for video node to acccept.
+function mapStream(source)
+  if source.dash <> invalid
+    return { streamFormat: "dash", mpdUrl: source.dash }
+  else if source.hls <> invalid
+    return { streamFormat: "hls", m3u8Url: source.hls }
+  else if source.smooth <> invalid
+    return { streamFormat: "smooth"}
+  else if source.progressive <> invalid and type(source.progressive) = "roString"
+    return { streamFormat: "mp4", progUrl: source.progressive }
+  else if source.progressive <> invalid and type(source.progressive) = "roAssociativeArray"
+    return { streamFormat: source.progressive.type , progUrl: source.progressive.url }
+  else
+    return {}
+  end if
+end function
+
 sub checkForSourceSpecificMetadata(config)
+  updatedMetadata = mapStream(config.source)
+  updateSample(updatedMetadata)
   if config.analytics = invalid then return
 
   updateSampleAndSendAnalyticsRequest(config.analytics)
