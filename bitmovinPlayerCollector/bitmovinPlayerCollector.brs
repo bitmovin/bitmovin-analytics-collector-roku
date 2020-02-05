@@ -26,7 +26,6 @@ sub initializePlayer(player)
 end sub
 
 sub setUpObservers()
-  m.player.observeFieldScoped("sourceLoaded", "onSourceChanged")
   m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
   m.player.observeFieldScoped("seeked", "onSeeked")
@@ -43,8 +42,7 @@ end sub
 sub unobserveFields()
   if m.player = invalid or m.collectorCore = invalid then return
 
-  m.player.unobserveFieldScoped("sourceLoaded")
-  m.player.unobserveFieldScoped("state")
+  m.player.unobserveFieldScoped("playerState")
   m.player.unobserveFieldScoped("seek")
   m.player.unobserveFieldScoped("seeked")
 
@@ -226,11 +224,6 @@ sub onVideoStart()
   stopVideoStartUpTimer()
 end sub
 
-sub onSourceChanged()
-  checkForNewMetadata()
-  handleImpressionIdChange()
-end sub
-
 sub handleImpressionIdChange()
   updateSample({impressionId: getImpressionIdForSample()})
 end sub
@@ -318,6 +311,12 @@ sub onSourceLoaded()
   if config.autoplay = false then return
 
   startVideoStartUpTimer()
+
+  checkForNewMetadata()
+  ' Do not change impression id when it is a initial source change
+  if m.currentState <> m.player.BitmovinPlayerState.SETUP
+    handleImpressionIdChange()
+  end if
 end sub
 
 sub onSourceUnloaded()
