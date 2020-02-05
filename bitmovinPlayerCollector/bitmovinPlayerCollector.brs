@@ -8,21 +8,24 @@ end sub
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
-  updateSample({"playerStartupTime": 1})
-  updateSample({"playerKey": getPlayerKeyFromManifest(m.appInfo)})
 
   setUpHelperVariables()
   setUpObservers()
 
   m.previousState = ""
   m.currentState = player.playerState
-  m.currentTimestamp = getCurrentTimeInMilliseconds()
-  playerData = {
-    player: "Roku",
+
+  sampleData = {
     playerTech: "bitmovin",
-    version: "unknown"
+    version: "unknown",
+    playerKey: getPlayerKeyFromManifest(m.appInfo),
+
+    playerStartupTime: 1,
+    impressionId: getImpressionIdForSample(),
+    state: m.currentState
   }
-  updateSampleDataAndSendAnalyticsRequest(playerData)
+
+  sendAnalyticsRequestAndClearValues(sampleData)
 end sub
 
 sub setUpObservers()
@@ -186,6 +189,12 @@ function getCommonSampleData(timer, state)
   return commonSampleData
 end function
 
+sub sendAnalyticsRequestAndClearValues(sampleData)
+  updateSample({time: getCurrentTimeInMilliseconds()})
+  updateSample(sampleData)
+  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
+end sub
+
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
@@ -331,7 +340,12 @@ sub stopVideoStartUpTimer()
   if m.videoStartupTimer = invalid or m.videoStartupTime >= 0 then return
 
   m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
-  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTime})
+  sampleData = {
+    state: "startup"
+    videoStartupTime: m.videoStartupTime,
+    startupTime: m.videoStartUpTime
+  }
+  sendAnalyticsRequestAndClearValues(sampleData)
 end sub
 
 sub onFinished()
