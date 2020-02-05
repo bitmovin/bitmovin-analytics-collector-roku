@@ -14,3 +14,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - `platform` field not set to `roku` (AN-1134)
+- missing player `version` in samples for native player (AN-1137)
