@@ -15,3 +15,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - `pageLoadType` was not set to `FOREGROUND` (AN-1145)
 - `platform` field not set to `roku` (AN-1134)
+- missing `state` for setup and startup samples (AN-1140, AN-1141)
+- missing `startuptime` in the sample and reset startup/setup measurements (AN-1145)
