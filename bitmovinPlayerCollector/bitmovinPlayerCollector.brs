@@ -22,7 +22,8 @@ sub initializePlayer(player)
 
     playerStartupTime: 1,
     impressionId: getImpressionIdForSample(),
-    state: m.currentState
+    state: m.currentState,
+    time: getCurrentTimeInMilliseconds()
   }
 
   sendAnalyticsRequestAndClearValues(sampleData)
@@ -190,7 +191,6 @@ function getCommonSampleData(timer, state)
 end function
 
 sub sendAnalyticsRequestAndClearValues(sampleData)
-  updateSample({time: getCurrentTimeInMilliseconds()})
   updateSample(sampleData)
   m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
 end sub
@@ -341,10 +341,10 @@ sub stopVideoStartUpTimer()
 
   m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
   sampleData = {
-    state: "startup"
     videoStartupTime: m.videoStartupTime,
     startupTime: m.videoStartUpTime
   }
+  sampleData.Append(getCommonSampleData(m.videoStartUpTimer, "startup"))
   sendAnalyticsRequestAndClearValues(sampleData)
 end sub
 
