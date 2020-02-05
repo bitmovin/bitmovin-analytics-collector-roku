@@ -2,6 +2,7 @@ sub init()
   m.tag = "[nativePlayerCollector] "
   m.collectorCore = m.top.findNode("collectorCore")
   m.playerStateTimer = CreateObject("roTimespan")
+  m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
 
 sub initializePlayer(player)
@@ -18,7 +19,7 @@ sub initializePlayer(player)
   playerData = {
     player: "Roku",
     playerTech: "native",
-    version: "unknown"
+    version: getPlayerVersion()
   }
   updateSampleDataAndSendAnalyticsRequest(playerData)
 end sub
@@ -347,4 +348,9 @@ end function
 
 function getImpressionIdForSample()
   return m.collectorCore.callFunc("createImpressionId")
+end function
+
+function getPlayerVersion()
+  version = m.deviceInfo.GetOSVersion()
+  return "roku-" + version.major + "." + version.minor + "." + version.build
 end function

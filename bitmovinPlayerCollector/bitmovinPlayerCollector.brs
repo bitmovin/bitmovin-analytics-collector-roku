@@ -20,7 +20,7 @@ sub initializePlayer(player)
   playerData = {
     player: "Roku",
     playerTech: "bitmovin",
-    version: "unknown"
+    version: getPlayerVersion()
   }
   updateSampleDataAndSendAnalyticsRequest(playerData)
 end sub
@@ -365,3 +365,7 @@ sub checkForSourceSpecificMetadata(config)
 
   updateSampleAndSendAnalyticsRequest(config.analytics)
 end sub
+
+function getPlayerVersion()
+  return "unknown"
+end function
