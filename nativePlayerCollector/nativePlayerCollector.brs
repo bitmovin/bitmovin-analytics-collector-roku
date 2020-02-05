@@ -2,12 +2,12 @@ sub init()
   m.tag = "[nativePlayerCollector] "
   m.collectorCore = m.top.findNode("collectorCore")
   m.playerStateTimer = CreateObject("roTimespan")
+  m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
 
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
-  m.deviceInfo = CreateObject("roDeviceInfo")
   updateSample({"playerStartupTime": 1})
 
   setUpHelperVariables()
