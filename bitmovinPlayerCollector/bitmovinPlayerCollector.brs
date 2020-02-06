@@ -15,18 +15,15 @@ sub initializePlayer(player)
   m.previousState = ""
   m.currentState = player.playerState
 
-  sampleData = {
+  eventData = {
     playerTech: "bitmovin",
     version: "unknown",
     playerKey: getPlayerKeyFromManifest(m.appInfo),
 
     playerStartupTime: 1,
-    impressionId: getImpressionIdForSample(),
-    state: m.currentState,
-    time: getCurrentTimeInMilliseconds()
+    impressionId: getImpressionIdForSample()
   }
-
-  sendAnalyticsRequestAndClearValues(sampleData)
+  sendAnalyticsRequestAndClearValues(eventData, 0, m.currentState)
 end sub
 
 sub setUpObservers()
@@ -76,10 +73,12 @@ sub onPlayerStateChanged()
   transitionToState(m.player.playerState)
   m.collectorCore.playerState = m.currentState
 
+  setVideoTimeEnd()
   handlePreviousState()
   handleCurrentState()
 
   m.playerStateTimer.Mark()
+  setVideoTimeStart()
 end sub
 
 sub handlePreviousState()
@@ -105,12 +104,12 @@ sub handleCurrentState()
 end sub
 
 sub onPlayed()
-  newSampleData = getClearSampleData()
+  played = m.playerStateTimer.TotalMilliseconds()
+  eventData = {
+    played: played
+  }
 
-  newSampleData.Append(getCommonSampleData(m.playerStateTimer, m.previousState))
-  newSampleData.played = m.playerStateTimer.TotalMilliseconds()
-
-  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+  sendAnalyticsRequestAndClearValues(eventData, played)
 end sub
 
 function wasSeeking()
@@ -128,12 +127,12 @@ sub onPaused()
   ' If we did not change from the pause state to playing that means a seek is happening
   if m.currentState <> m.playerStates.PLAYING then return
 
-  newSampleData = getClearSampleData()
+  paused = m.playerStateTimer.TotalMilliseconds()
+  eventData = {
+    paused: paused
+  }
 
-  newSampleData.Append(getCommonSampleData(m.seekTimer, m.previousState))
-  newSampleData.paused = m.playerStateTimer.TotalMilliseconds()
-
-  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+  sendAnalyticsRequestAndClearValues(eventData, paused)
   resetSeekHelperVariables()
 end sub
 
@@ -152,55 +151,29 @@ end sub
 sub onBufferingEnd()
   if m.bufferTimer = invalid then return
 
-  newSampleData = getClearSampleData()
-
-  newSampleData.Append(getCommonSampleData(m.bufferTimer, m.previousState))
-  newSampleData.buffered = m.bufferTimer.TotalMilliseconds()
-
-  updateSampleDataAndSendAnalyticsRequest(newSampleData)
-
+  buffered = m.bufferTimer.TotalMilliseconds()
   m.bufferTimer = invalid
+
+  eventData = {
+    buffered: buffered
+  }
+
+  sendAnalyticsRequestAndClearValues(eventData, buffered)
 end sub
 
 sub onHeartbeat()
-  finishRunningSample()
+  setVideoTimeEnd()
+
+  duration = getDuration(m.playerStateTimer)
+  m.playerStateTimer.Mark()
+
+  sendAnalyticsRequestAndClearValues({}, duration, m.player.playerState)
+  setVideoTimeStart()
 end sub
 
 sub transitionToState(nextState)
   m.previousState = m.currentState
   m.currentState = nextState
-end sub
-
-function getClearSampleData()
-  sampleData = {}
-  sampleData.Append(getDefaultStateTimeData())
-
-  return sampleData
-end function
-
-function getCommonSampleData(timer, state)
-  commonSampleData = {}
-
-  if timer <> invalid and state <> invalid
-    commonSampleData.duration = getDuration(timer)
-    commonSampleData.state = state
-    commonSampleData.time = getCurrentTimeInMilliseconds()
-  end if
-
-  return commonSampleData
-end function
-
-sub sendAnalyticsRequestAndClearValues(sampleData)
-  updateSample(sampleData)
-  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
-end sub
-
-sub updateSampleDataAndSendAnalyticsRequest(sampleData)
-  m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
-end sub
-
-sub createTempMetadataSampleAndSendAnalyticsRequest(sampleData)
-  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 function updateSample(sampleData)
@@ -218,14 +191,11 @@ sub onSeek()
 end sub
 
 sub onSeeked()
-  newSampleData = getClearSampleData()
-
-  newSampleData.Append(getCommonSampleData(m.seekTimer, m.previousState))
-  newSampleData.seeked = m.seekTimer.TotalMilliseconds()
-  newSampleData.state = "seeking" ' Manually override the state since the video node does not have a `seeking` state
-
-  updateSampleDataAndSendAnalyticsRequest(newSampleData)
-
+  seeked = m.seekTimer.TotalMilliseconds()
+  eventData = {
+    seeked: seeked
+  }
+  sendAnalyticsRequestAndClearValues(eventData, seeked, "seeked")
   resetSeekHelperVariables()
 end sub
 
@@ -251,7 +221,8 @@ sub checkForNewMetadata()
 end sub
 
 sub onError()
-  newSampleData = getClearSampleData()
+  setVideoTimeEnd()
+
   errorSample = {
     errorCode: m.player.error.code,
     errorMessage: m.player.error.message,
@@ -262,8 +233,8 @@ sub onError()
 
   resetSeekHelperVariables()
 
-  newSampleData.Append(errorSample)
-  updateSampleDataAndSendAnalyticsRequest(newSampleData)
+  duration = getDuration(m.playerStateTimer)
+  sendAnalyticsRequestAndClearValues(errorSample, duration, m.player.playerState)
 end sub
 
 function setCustomData(customData)
@@ -274,23 +245,18 @@ function setCustomData(customData)
 end function
 
 sub finishRunningSample()
-  transitionToState(m.player.playerState)
-  runningSampleData = getClearSampleData()
-  runningSampleData.Append(getCommonSampleData(m.playerStateTimer, m.previousState))
+  duration = getDuration(m.playerStateTimer)
   m.playerStateTimer.Mark()
 
-  updateSampleDataAndSendAnalyticsRequest(runningSampleData)
+  sendAnalyticsRequestAndClearValues({}, duration)
 end sub
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
   finishRunningSample()
 
-  sendOnceCustomData = getClearSampleData()
-  sendOnceCustomData.Append(getCommonSampleData(m.playerStateTimer, m.previousState))
-  sendOnceCustomData.Append(customData)
-
-  createTempMetadataSampleAndSendAnalyticsRequest(sendOnceCustomData)
+  duration = getDuration(m.playerStateTimer)
+  createTempMetadataSampleAndSendAnalyticsRequest(customData, duration)
 end sub
 
 function setAnalyticsConfig(configData)
@@ -326,6 +292,8 @@ sub onSourceLoaded()
   if m.currentState <> m.player.BitmovinPlayerState.SETUP
     handleImpressionIdChange()
   end if
+
+  print "Current ImpressionId: ";m.collectorCore.callFunc("getCurrentImpressionId")
 end sub
 
 sub onSourceUnloaded()
@@ -340,12 +308,12 @@ sub stopVideoStartUpTimer()
   if m.videoStartupTimer = invalid or m.videoStartupTime >= 0 then return
 
   m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
-  sampleData = {
+  eventData = {
     videoStartupTime: m.videoStartupTime,
     startupTime: m.videoStartUpTime
   }
-  sampleData.Append(getCommonSampleData(m.videoStartUpTimer, "startup"))
-  sendAnalyticsRequestAndClearValues(sampleData)
+
+  sendAnalyticsRequestAndClearValues(eventData, m.videoStartUpTime, "startup")
 end sub
 
 sub onFinished()
@@ -377,4 +345,33 @@ sub checkForSourceSpecificMetadata(config)
   if config.analytics = invalid then return
 
   updateSampleAndSendAnalyticsRequest(config.analytics)
+end sub
+
+sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
+  sampleData = eventData
+  sampleData.Append({
+    state: state,
+    duration: duration,
+    time: getCurrentTimeInMilliseconds()
+  })
+  updateSample(sampleData)
+  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
+end sub
+
+sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
+  sampleData = eventData
+  sampleData.Append({
+    state: state,
+    duration: duration,
+    time: getCurrentTimeInMilliseconds()
+  })
+  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
+end sub
+
+sub setVideoTimeStart()
+  m.collectorCore.callFunc("setVideoTimeStart", m.player.currentTime)
+end sub
+
+sub setVideoTimeEnd()
+  m.collectorCore.callFunc("setVideoTimeEnd", m.player.currentTime)
 end sub
