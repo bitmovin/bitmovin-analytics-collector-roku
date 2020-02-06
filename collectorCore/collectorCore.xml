@@ -7,7 +7,6 @@
   </children>
   <interface>
     <function name="createImpressionId"/>
-    <function name="generateNewImpressionId"/>
     <function name="getCurrentImpressionId"/>
     <function name="getVersion"/>
     <function name="sendAnalyticsRequestAndClearValues"/>

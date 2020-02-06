@@ -51,10 +51,6 @@ function createImpressionId(param = invalid)
   return lcase(m.deviceInfo.GetRandomUUID())
 end function
 
-sub generateNewImpressionId()
-  m.sample.impressionId = createImpressionId()
-end sub
-
 function getCurrentImpressionId(param = invalid)
   return m.sample.impressionId
 end function
