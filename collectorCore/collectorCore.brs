@@ -118,6 +118,14 @@ function updateSample(newSampleData)
   return true
 end function
 
+sub setVideoTimeStart(time)
+  m.sample.videoTimeStart = time
+end sub
+
+sub setVideoTimeEnd(time)
+  m.sample.videoTimeEnd = time
+end sub
+
 function createSendOnceSample(metadata)
   if metadata = invalid then return invalid
   tempSample = {}
