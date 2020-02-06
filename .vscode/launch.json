@@ -11,10 +11,11 @@
       "stopOnEntry": false,
       "host": "${promptForHost}",
       "password": "${promptForPassword}",
-      "rootDir": "${workspaceFolder}/demo/",
+      "rootDir": "${workspaceFolder}/${input:demoTarget}/",
       "sourceDirs": [
-        "${workspaceFolder}/demo"
+        "${workspaceFolder}/${input:demoTarget}"
       ],
+      "preLaunchTask": "copy-components-to-demo",
       // "preLaunchTask": "debug-roku",
       // "postDebugTask": "clean-roku",
       "enableDebuggerAutoRecovery": true,
@@ -26,6 +27,14 @@
         "components/**/*.*",
         "config/**/*.*"
       ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "demoTarget",
+      "type": "pickString",
+      "description": "Pick a demo target",
+      "options": ["DemoBitmovinPlayerCollector", "DemoNativePlayerCollector"]
     }
   ]
 }
