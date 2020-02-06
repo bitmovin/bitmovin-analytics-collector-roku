@@ -120,7 +120,7 @@ end function
 sub onPause()
   ' The video node does not have a seeking state, because of that we have to assume that on pause is the beginning of a seek operation until proven otherwise
   m.alreadySeeking = true
-  m.seekStartPosition = m.player.position
+  m.seekStartPosition = getCurrentPlayerTimeInMs()
   m.seekTimer = createObject("roTimeSpan")
 end sub
 
@@ -187,16 +187,19 @@ sub onSeek()
   if m.alreadySeeking = true then return
 
   m.alreadySeeking = true
-  m.seekStartPosition = m.player.position
+  m.seekStartPosition = getCurrentPlayerTimeInMs()
   m.seekTimer = createObject("roTimeSpan")
 end sub
 
 sub onSeeked()
-  seeked = m.seekTimer.TotalMilliseconds()
+  duration = m.seekTimer.TotalMilliseconds()
   eventData = {
-    seeked: seeked
+    videoTimeStart: m.seekStartPosition,
+    seeked: duration
   }
-  sendAnalyticsRequestAndClearValues(eventData, seeked, "seeked")
+
+  sendAnalyticsRequestAndClearValues(eventData, duration, "seeked")
+  setVideoTimeStart() 'Finished seeking does not trigger a state change, need to manually set videoTimeStart
   resetSeekHelperVariables()
 end sub
 
