@@ -73,7 +73,7 @@ sub setUpHelperVariables()
 end sub
 
 sub onPlayerStateChanged()
-  setPreviousAndCurrentPlayerState()
+  transitionToState(m.player.playerState)
   m.collectorCore.playerState = m.currentState
 
   handlePreviousState()
@@ -166,9 +166,9 @@ sub onHeartbeat()
   finishRunningSample()
 end sub
 
-sub setPreviousAndCurrentPlayerState()
+sub transitionToState(nextState)
   m.previousState = m.currentState
-  m.currentState = m.player.playerState
+  m.currentState = nextState
 end sub
 
 function getClearSampleData()
@@ -274,7 +274,7 @@ function setCustomData(customData)
 end function
 
 sub finishRunningSample()
-  setPreviousAndCurrentPlayerState()
+  transitionToState(m.player.playerState)
   runningSampleData = getClearSampleData()
   runningSampleData.Append(getCommonSampleData(m.playerStateTimer, m.previousState))
   m.playerStateTimer.Mark()
