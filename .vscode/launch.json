@@ -34,7 +34,16 @@
       "id": "demoTarget",
       "type": "pickString",
       "description": "Pick a demo target",
-      "options": ["DemoBitmovinPlayerCollector", "DemoNativePlayerCollector"]
+      "options": [
+        {
+          "label": "Bitmovin Player",
+          "value": "DemoBitmovinPlayerCollector"
+        },
+        {
+          "label": "Native Player",
+          "value": "DemoNativePlayerCollector"
+        }
+      ]
     }
   ]
 }

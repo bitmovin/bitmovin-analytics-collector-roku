@@ -33,14 +33,32 @@
     {
       "id": "demoTarget",
       "type": "pickString",
-      "description": "Pick a demo target",
-      "options": ["DemoBitmovinPlayerCollector", "DemoNativePlayerCollector"]
+      "description": "Select a demo target",
+      "options": [
+        {
+          "label": "Bitmovin Player",
+          "value": "DemoBitmovinPlayerCollector"
+        },
+        {
+          "label": "Native Player",
+          "value": "DemoNativePlayerCollector"
+        }
+      ]
     },
     {
       "id": "collectorAdapterTarget",
-      "description": "Select target adapter for build",
+      "description": "Select target adapter",
       "type": "pickString",
-      "options": ["bitmovinPlayerCollector", "nativePlayerCollector"]
+      "options": [
+        {
+          "label": "Bitmovin Adapter",
+          "value": "bitmovinPlayerCollector"
+        },
+        {
+          "label": "Native Adapter",
+          "value": "nativePlayerCollector"
+        }
+      ]
     }
   ]
 }
