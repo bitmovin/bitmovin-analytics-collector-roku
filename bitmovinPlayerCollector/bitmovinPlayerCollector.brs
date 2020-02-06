@@ -368,10 +368,15 @@ sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state =
   m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
+function getCurrentPlayerTimeInMs()
+  time% = m.player.currentTime * 1000
+  return time%
+end function
+
 sub setVideoTimeStart()
-  m.collectorCore.callFunc("setVideoTimeStart", m.player.currentTime)
+  m.collectorCore.callFunc("setVideoTimeStart", getCurrentPlayerTimeInMs())
 end sub
 
 sub setVideoTimeEnd()
-  m.collectorCore.callFunc("setVideoTimeEnd", m.player.currentTime)
+  m.collectorCore.callFunc("setVideoTimeEnd", getCurrentPlayerTimeInMs())
 end sub
