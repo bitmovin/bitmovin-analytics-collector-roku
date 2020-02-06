@@ -41,20 +41,21 @@ sub setUpObservers()
 end sub
 
 sub unobserveFields()
-  if m.player = invalid or m.collectorCore = invalid then return
+  if m.player <> invalid
+    m.player.unobserveFieldScoped("playerState")
+    m.player.unobserveFieldScoped("seek")
+    m.player.unobserveFieldScoped("seeked")
 
-  m.player.unobserveFieldScoped("playerState")
-  m.player.unobserveFieldScoped("seek")
-  m.player.unobserveFieldScoped("seeked")
+    m.player.unobserveFieldScoped("play")
+    m.player.unobserveFieldScoped("sourceLoaded")
+    m.player.unobserveFieldScoped("sourceUnloaded")
 
-  m.collectorCore.unobserveFieldScoped("fireHeartbeat")
+    m.player.unobserveFieldScoped("error")
+  end if
 
-
-  m.player.unobserveFieldScoped("play")
-  m.player.unobserveFieldScoped("sourceLoaded")
-  m.player.unobserveFieldScoped("sourceUnloaded")
-
-  m.collectorCore.unobserveFieldScoped("error")
+  if m.collectorCore <> invalid
+    m.collectorCore.unobserveFieldScoped("fireHeartbeat")
+  end if
 end sub
 
 sub setUpHelperVariables()
