@@ -10,5 +10,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `streamFormat` and corresponding `url` to sample (AN-1135)
 
 ### Fixed
-
 - `platform` field not set to `roku` (AN-1134)
