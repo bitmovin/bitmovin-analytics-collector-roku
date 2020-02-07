@@ -3,6 +3,7 @@ sub init()
   m.collectorCore = m.top.findNode("collectorCore")
   m.playerStateTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
+  m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
 
 sub initializePlayer(player)
@@ -17,7 +18,7 @@ sub initializePlayer(player)
 
   eventData = {
     playerTech: "bitmovin",
-    version: "unknown",
+    version: getPlayerVersion(),
     playerKey: getPlayerKeyFromManifest(m.appInfo),
 
     playerStartupTime: 1,
@@ -175,6 +176,13 @@ end sub
 sub transitionToState(nextState)
   m.previousState = m.currentState
   m.currentState = nextState
+end sub
+
+sub decorateSampleWithPlaybackData(sampleData)
+  if sampleData = invalid then return
+
+  sampleData.Append(getVideoWindowSize(m.player.FindNode("MainVideo")))
+  sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
 end sub
 
 function updateSample(sampleData)
@@ -358,6 +366,8 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
     duration: duration,
     time: getCurrentTimeInMilliseconds()
   })
+  decorateSampleWithPlaybackData(sampleData)
+
   updateSample(sampleData)
   m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
 end sub
@@ -369,6 +379,8 @@ sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state =
     duration: duration,
     time: getCurrentTimeInMilliseconds()
   })
+  decorateSampleWithPlaybackData(sampleData)
+
   m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
@@ -384,3 +396,7 @@ end sub
 sub setVideoTimeEnd()
   m.collectorCore.callFunc("setVideoTimeEnd", getCurrentPlayerTimeInMs())
 end sub
+
+function getPlayerVersion()
+  return "unknown"
+end function
