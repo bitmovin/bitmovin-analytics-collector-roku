@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 ### Added
-
 - `streamFormat` and corresponding `url` to sample (AN-1135)
 
 ### Fixed
