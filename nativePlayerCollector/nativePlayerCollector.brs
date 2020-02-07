@@ -2,6 +2,7 @@ sub init()
   m.tag = "[nativePlayerCollector] "
   m.collectorCore = m.top.findNode("collectorCore")
   m.playerStateTimer = CreateObject("roTimespan")
+  m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
 
 sub initializePlayer(player)
@@ -194,6 +195,13 @@ function createUpdatedSampleData(state, timer, possiblePlayerStates, customData 
   return sampleData
 end function
 
+sub decorateSampleWithPlaybackData(sampleData)
+  if sampleData = invalid then return
+
+  sampleData.Append(getVideoWindowSize(m.player))
+  sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
+end sub
+
 function getCommonSampleData(timer, state)
   commonSampleData = {}
 
@@ -207,10 +215,14 @@ function getCommonSampleData(timer, state)
 end function
 
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)
+  decorateSampleWithPlaybackData(sampleData)
+
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(sampleData)
+  decorateSampleWithPlaybackData(sampleData)
+
   m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 

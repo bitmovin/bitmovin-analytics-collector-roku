@@ -3,6 +3,7 @@ sub init()
   m.collectorCore = m.top.findNode("collectorCore")
   m.playerStateTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
+  m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
 
 sub initializePlayer(player)
@@ -171,6 +172,13 @@ sub setPreviousAndCurrentPlayerState()
   m.currentState = m.player.playerState
 end sub
 
+sub decorateSampleWithPlaybackData(sampleData)
+  if sampleData = invalid then return
+
+  sampleData.Append(getVideoWindowSize(m.player.FindNode("MainVideo")))
+  sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
+end sub
+
 function getClearSampleData()
   sampleData = {}
   sampleData.Append(getDefaultStateTimeData())
@@ -196,10 +204,14 @@ sub sendAnalyticsRequestAndClearValues(sampleData)
 end sub
 
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)
+  decorateSampleWithPlaybackData(sampleData)
+
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(sampleData)
+  decorateSampleWithPlaybackData(sampleData)
+
   m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
