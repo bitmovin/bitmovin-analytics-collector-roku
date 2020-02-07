@@ -9,3 +9,5 @@ testing/source/tests/rooibos/rooibosFunctionMap.brs
 
 DemoBitmovinPlayerCollector/components/bitmovinPlayerCollector
 DemoBitmovinPlayerCollector/components/collectorCore
+DemoNativePlayerCollector/components/nativePlayerCollector
+DemoNativePlayerCollector/components/collectorCore
