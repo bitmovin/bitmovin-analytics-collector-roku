@@ -1,12 +1,13 @@
 sub init()
   m.version = "1.0.0"
   m.tag = "Bitmovin Analytics Collector "
+  m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
   m.licensingData = getLicensingData()
 
-  clearSample()
+  setupSample()
   checkAnalyticsLicenseKey(m.licensingData)
 end sub
 
@@ -16,32 +17,30 @@ sub checkAnalyticsLicenseKey(licensingData)
   m.analyticsDataTask.checkLicenseKey = true
 end sub
 
-sub clearSample()
+sub setupSample()
   m.sample = getAnalyticsSample()
-  updateChannelInfo()
-  updateDeviceInfo()
-  updateVersion()
-  updateKey(m.licensingData.key)
-  m.sample.append({userId: getPersistedUserId(m.sectionRegistryName)})
-end sub
-
-sub updateChannelInfo()
-  appInfo = CreateObject("roAppInfo")
-  m.sample.domain = appInfo.GetID()
-end sub
-
-sub updateKey(key)
-  m.sample.key = key
-end sub
-
-sub updateDeviceInfo()
+  m.sample.analyticsVersion = getVersion()
+  m.sample.key = m.licensingData.key
+  m.sample.domain = m.appInfo.GetID()
   m.sample.userAgent = "roku-" + m.deviceInfo.GetModel() + "-" + m.deviceInfo.GetVersion()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
   m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
+  m.sample.userId = getPersistedUserId(m.sectionRegistryName)
 end sub
 
-sub updateVersion()
-  m.sample.analyticsVersion = getVersion()
+sub clearSampleValues()
+  m.sample.ad = 0
+  m.sample.paused = 0
+  m.sample.played = 0
+  m.sample.seeked = 0
+  m.sample.buffered = 0
+
+  m.sample.playerStartupTime = 0
+  m.sample.videoStartupTime = 0
+  m.sample.startupTime = 0
+
+  m.sample.duration = 0
+  m.sample.droppedFrames = 0
 end sub
 
 function getVersion(param = invalid)
@@ -73,13 +72,12 @@ function getPersistedUserId(sectionRegistryName)
 end function
 
 function getLicensingData()
-  appInfo = CreateObject("roAppInfo")
-  licenceKey = appInfo.getValue("bitmovin_analytics_license_key")
+  licenceKey = m.appInfo.getValue("bitmovin_analytics_license_key")
   if Len(licenceKey) = 0 then print m.tag ; "Warning: license key is not present in the manifest or is set as an empty string"
 
   licensingData = {
     key : licenceKey,
-    domain : appInfo.getID(),
+    domain : m.appInfo.getID(),
     analyticsVersion : getVersion()
   }
 
@@ -94,6 +92,13 @@ sub updateSampleAndSendAnalyticsRequest(updatedSampleData)
   m.analyticsDataTask.eventData = m.sample
 
   sendAnalyticsRequest()
+end sub
+
+sub sendAnalyticsRequestAndClearValues()
+  m.analyticsDataTask.eventData = m.sample
+  ' TODO: check if eventData gets a reference to m.sample or is actually copying it
+  sendAnalyticsRequest()
+  clearSampleValues()
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData)

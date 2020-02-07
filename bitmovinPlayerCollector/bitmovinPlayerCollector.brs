@@ -3,30 +3,34 @@ sub init()
   m.collectorCore = m.top.findNode("collectorCore")
   m.playerStateTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
+  m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
 
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
-  updateSample({"playerStartupTime": 1})
-  updateSample({"playerKey": getPlayerKeyFromManifest(m.appInfo)})
 
   setUpHelperVariables()
   setUpObservers()
 
   m.previousState = ""
   m.currentState = player.playerState
-  m.currentTimestamp = getCurrentTimeInMilliseconds()
-  playerData = {
-    player: "Roku",
+
+  sampleData = {
     playerTech: "bitmovin",
     version: getPlayerVersion()
+    playerKey: getPlayerKeyFromManifest(m.appInfo),
+
+    playerStartupTime: 1,
+    impressionId: getImpressionIdForSample(),
+    state: m.currentState,
+    time: getCurrentTimeInMilliseconds()
   }
-  updateSampleDataAndSendAnalyticsRequest(playerData)
+
+  sendAnalyticsRequestAndClearValues(sampleData)
 end sub
 
 sub setUpObservers()
-  m.player.observeFieldScoped("sourceLoaded", "onSourceChanged")
   m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
   m.player.observeFieldScoped("seeked", "onSeeked")
@@ -43,8 +47,7 @@ end sub
 sub unobserveFields()
   if m.player = invalid or m.collectorCore = invalid then return
 
-  m.player.unobserveFieldScoped("sourceLoaded")
-  m.player.unobserveFieldScoped("state")
+  m.player.unobserveFieldScoped("playerState")
   m.player.unobserveFieldScoped("seek")
   m.player.unobserveFieldScoped("seeked")
 
@@ -169,6 +172,13 @@ sub setPreviousAndCurrentPlayerState()
   m.currentState = m.player.playerState
 end sub
 
+sub decorateSampleWithPlaybackData(sampleData)
+  if sampleData = invalid then return
+
+  sampleData.Append(getVideoWindowSize(m.player.FindNode("MainVideo")))
+  sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
+end sub
+
 function getClearSampleData()
   sampleData = {}
   sampleData.Append(getDefaultStateTimeData())
@@ -188,11 +198,20 @@ function getCommonSampleData(timer, state)
   return commonSampleData
 end function
 
+sub sendAnalyticsRequestAndClearValues(sampleData)
+  updateSample(sampleData)
+  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
+end sub
+
 sub updateSampleDataAndSendAnalyticsRequest(sampleData)
+  decorateSampleWithPlaybackData(sampleData)
+
   m.collectorCore.callFunc("updateSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(sampleData)
+  decorateSampleWithPlaybackData(sampleData)
+
   m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
@@ -224,11 +243,6 @@ end sub
 
 sub onVideoStart()
   stopVideoStartUpTimer()
-end sub
-
-sub onSourceChanged()
-  checkForNewMetadata()
-  handleImpressionIdChange()
 end sub
 
 sub handleImpressionIdChange()
@@ -318,6 +332,12 @@ sub onSourceLoaded()
   if config.autoplay = false then return
 
   startVideoStartUpTimer()
+
+  checkForNewMetadata()
+  ' Do not change impression id when it is a initial source change
+  if m.currentState <> m.player.BitmovinPlayerState.SETUP
+    handleImpressionIdChange()
+  end if
 end sub
 
 sub onSourceUnloaded()
@@ -332,7 +352,12 @@ sub stopVideoStartUpTimer()
   if m.videoStartupTimer = invalid or m.videoStartupTime >= 0 then return
 
   m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
-  updateSampleDataAndSendAnalyticsRequest({"videoStartupTime": m.videoStartupTime})
+  sampleData = {
+    videoStartupTime: m.videoStartupTime,
+    startupTime: m.videoStartUpTime
+  }
+  sampleData.Append(getCommonSampleData(m.videoStartUpTimer, "startup"))
+  sendAnalyticsRequestAndClearValues(sampleData)
 end sub
 
 sub onFinished()
