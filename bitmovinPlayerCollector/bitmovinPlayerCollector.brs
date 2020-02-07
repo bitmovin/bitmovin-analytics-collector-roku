@@ -18,7 +18,7 @@ sub initializePlayer(player)
 
   sampleData = {
     playerTech: "bitmovin",
-    version: getPlayerVersion()
+    version: getPlayerVersion(),
     playerKey: getPlayerKeyFromManifest(m.appInfo),
 
     playerStartupTime: 1,
