@@ -173,7 +173,7 @@ end sub
 sub decorateSampleWithPlaybackData(sampleData)
   if sampleData = invalid then return
 
-  sampleData.Append(getVideoWindowSize(m.player.getChild(0)))
+  sampleData.Append(getVideoWindowSize(m.player.FindNode("MainVideo")))
   sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
 end sub
 
