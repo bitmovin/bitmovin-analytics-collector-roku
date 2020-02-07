@@ -18,7 +18,7 @@ sub initializePlayer(player)
 
   sampleData = {
     playerTech: "bitmovin",
-    version: "unknown",
+    version: getPlayerVersion(),
     playerKey: getPlayerKeyFromManifest(m.appInfo),
 
     playerStartupTime: 1,
@@ -390,3 +390,7 @@ sub checkForSourceSpecificMetadata(config)
 
   updateSampleAndSendAnalyticsRequest(config.analytics)
 end sub
+
+function getPlayerVersion()
+  return "unknown"
+end function
