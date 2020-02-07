@@ -169,7 +169,11 @@ sub onHeartbeat()
   duration = getDuration(m.playerStateTimer)
   m.playerStateTimer.Mark()
 
-  sendAnalyticsRequestAndClearValues({}, duration, m.player.playerState)
+  eventData = {
+    played: duration
+  }
+
+  sendAnalyticsRequestAndClearValues(eventData, duration, m.player.playerState)
   setVideoTimeStart()
 end sub
 
