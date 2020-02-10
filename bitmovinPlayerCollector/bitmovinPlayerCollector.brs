@@ -309,9 +309,9 @@ sub onSourceLoaded()
   config = m.player.callFunc("getConfig", invalid)
 
   checkForSourceSpecificMetadata(config)
-  if config.autoplay = false then return
-
-  startVideoStartUpTimer()
+  if config.autoplay = true
+    startVideoStartUpTimer()
+  end if
 
   checkForNewMetadata()
   ' Do not change impression id when it is a initial source change
