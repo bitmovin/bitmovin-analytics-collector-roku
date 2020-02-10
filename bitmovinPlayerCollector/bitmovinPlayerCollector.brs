@@ -392,5 +392,5 @@ sub checkForSourceSpecificMetadata(config)
 end sub
 
 function getPlayerVersion()
-  return "unknown"
+  return m.player.callFunc(m.player.BitmovinFunctions.VERSION)
 end function
