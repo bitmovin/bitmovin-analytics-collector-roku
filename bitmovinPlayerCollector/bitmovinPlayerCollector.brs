@@ -75,20 +75,20 @@ sub onPlayerStateChanged()
   m.collectorCore.playerState = m.currentState
 
   setVideoTimeEnd()
-  handlePreviousState()
+  handlePreviousState(m.previousState)
   handleCurrentState()
 
   m.playerStateTimer.Mark()
   setVideoTimeStart()
 end sub
 
-sub handlePreviousState()
-  if m.previousState = m.playerStates.PLAYING
-    onPlayed()
-  else if m.previousState = m.playerStates.PAUSED
-    onPaused()
-  else if m.previousState = m.playerStates.BUFFERING
-    onBufferingEnd()
+sub handlePreviousState(previousState)
+  if previousState = m.playerStates.PLAYING and m.currentState <> m.playerStates.READY
+    onPlayed(previousState)
+  else if previousState = m.playerStates.PAUSED and m.currentState <> m.playerStates.READY
+    onPaused(previousState)
+  else if previousState = m.playerStates.BUFFERING and m.currentState <> m.playerStates.READY
+    onBufferingEnd(previousState)
   end if
 end sub
 
@@ -104,13 +104,24 @@ sub handleCurrentState()
   end if
 end sub
 
-sub onPlayed()
+sub handleIntermediateState(intermediateState)
+  transitionToState(intermediateState)
+  setVideoTimeEnd()
+
+  handlePreviousState(m.currentState)
+
+  m.playerStateTimer.Mark()
+  setVideoTimeStart()
+  transitionToState(m.previousState)
+end sub
+
+sub onPlayed(state)
   played = m.playerStateTimer.TotalMilliseconds()
   eventData = {
     played: played
   }
 
-  sendAnalyticsRequestAndClearValues(eventData, played)
+  sendAnalyticsRequestAndClearValues(eventData, played, state)
 end sub
 
 function wasSeeking()
@@ -124,7 +135,7 @@ sub onPause()
   m.seekTimer = createObject("roTimeSpan")
 end sub
 
-sub onPaused()
+sub onPaused(state)
   ' If we did not change from the pause state to playing that means a seek is happening
   if m.currentState <> m.playerStates.PLAYING then return
 
@@ -133,7 +144,7 @@ sub onPaused()
     paused: paused
   }
 
-  sendAnalyticsRequestAndClearValues(eventData, paused)
+  sendAnalyticsRequestAndClearValues(eventData, paused, state)
   resetSeekHelperVariables()
 end sub
 
@@ -149,7 +160,7 @@ sub onBuffering()
   m.bufferTimer = CreateObject("roTimespan")
 end sub
 
-sub onBufferingEnd()
+sub onBufferingEnd(state)
   if m.bufferTimer = invalid then return
 
   buffered = m.bufferTimer.TotalMilliseconds()
@@ -159,7 +170,7 @@ sub onBufferingEnd()
     buffered: buffered
   }
 
-  sendAnalyticsRequestAndClearValues(eventData, buffered)
+  sendAnalyticsRequestAndClearValues(eventData, buffered, state)
 end sub
 
 sub onHeartbeat()
@@ -307,11 +318,10 @@ sub onSourceLoaded()
   if m.currentState <> m.player.BitmovinPlayerState.SETUP
     handleManualSourceChange()
   end if
-
-  print "Current ImpressionId: ";m.collectorCore.callFunc("getCurrentImpressionId")
 end sub
 
 sub onSourceUnloaded()
+  handleIntermediateState(m.currentState)
   m.videoStartUpTime = -1
 end sub
 
