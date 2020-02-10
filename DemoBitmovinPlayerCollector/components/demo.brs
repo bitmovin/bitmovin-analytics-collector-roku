@@ -29,7 +29,7 @@ end sub
 function onKeyEvent(key as String, press as Boolean) as Boolean
   if m.isPlayerLoaded = false then return false
 
-  if key = "up"
+  if key = "up" and press
     m.bitmovinPlayer.callFunc(m.bitmovinFunctions.LOAD, getExamplePlayerConfigWithContentNodeAndPlaylist())
     return true
   end if
