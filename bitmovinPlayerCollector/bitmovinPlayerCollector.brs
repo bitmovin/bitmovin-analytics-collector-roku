@@ -365,11 +365,11 @@ function mapStream(source)
 end function
 
 sub checkForSourceSpecificMetadata(config)
-  updatedMetadata = mapStream(config.source)
-  updateSample(updatedMetadata)
-  if config.analytics = invalid then return
+  updatedVideoMetadata = mapStream(config.source)
+  updateSample(updatedVideoMetadata)
 
-  updateSampleAndSendAnalyticsRequest(config.analytics)
+  if config.analytics = invalid then return
+  updateSample(config.analytics)
 end sub
 
 sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
