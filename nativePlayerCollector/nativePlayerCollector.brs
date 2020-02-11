@@ -22,7 +22,7 @@ sub initializePlayer(player)
 
     playerStartupTime: 1
   }
-  sendAnalyticsRequestAndClearValues(eventData, 0, m.currentState)
+  sendAnalyticsRequestAndClearValues(eventData, 0, "setup")
 end sub
 
 sub setUpObservers()
