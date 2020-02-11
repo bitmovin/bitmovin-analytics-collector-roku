@@ -308,8 +308,6 @@ sub onSourceLoaded()
   if m.currentState <> m.player.BitmovinPlayerState.SETUP
     handleImpressionIdChange()
   end if
-
-  print "Current ImpressionId: ";m.collectorCore.callFunc("getCurrentImpressionId")
 end sub
 
 sub onSourceUnloaded()
