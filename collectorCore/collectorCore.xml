@@ -7,11 +7,9 @@
   </children>
   <interface>
     <function name="setupSample"/>
-    <function name="createImpressionId"/>
     <function name="getCurrentImpressionId"/>
     <function name="getVersion"/>
     <function name="sendAnalyticsRequestAndClearValues"/>
-    <function name="updateSampleAndSendAnalyticsRequest"/>
     <function name="createTempMetadataSampleAndSendAnalyticsRequest"/>
     <function name="updateSample"/>
     <function name="setVideoTimeStart"/>

@@ -90,15 +90,6 @@ function getLicensingData()
 end function
 
 ' TODO: Error handling if the keys are invalid
-sub updateSampleAndSendAnalyticsRequest(updatedSampleData)
-  if updatedSampleData = invalid return
-
-  updateSample(updatedSampleData)
-  m.analyticsDataTask.eventData = m.sample
-
-  sendAnalyticsRequest()
-end sub
-
 sub sendAnalyticsRequestAndClearValues()
   m.analyticsDataTask.eventData = m.sample
   m.sample.sequenceNumber++
