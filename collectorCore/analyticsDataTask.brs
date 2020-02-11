@@ -119,6 +119,8 @@ end sub
 
 sub sendAnalyticsEventsFromQueue()
   if m.analyticsEventsQueue.Count() = 0 then return
+
+  m.heartbeatTimer.Mark()
   for each event in m.analyticsEventsQueue
     sendAnalyticsData(event)
   end for
