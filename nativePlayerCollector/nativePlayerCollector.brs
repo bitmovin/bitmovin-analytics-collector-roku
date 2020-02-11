@@ -266,11 +266,22 @@ function mapContent(content)
   end if
 end function
 
+sub checkForSourceSpecificMetadata(sourceConfig)
+  newVideoMetadata = mapContent(sourceConfig)
+  updateSample(newVideoMetadata)
+end sub
+
 sub onSourceChanged()
-  newStreamMetadata = mapContent(m.player.content)
-  setNewMetadata(newStreamMetadata)
-  checkForNewMetadata()
-  handleManualSourceChange()
+  checkForSourceSpecificMetadata(m.player.content)
+
+  if m.player.state = m.playerStates.PLAYING
+    startVideoStartUpTimer()
+  end if
+
+  ' Do not change impression id when it is an initial source change
+  if m.currentState <> m.playerStates.NONE
+    handleManualSourceChange()
+  end if
 end sub
 
 sub handleManualSourceChange()
