@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - missing `startuptime` in the sample and reset startup/setup measurements (AN-1145)
 - `played` not set in heartbeat samples
 - sample data from previous session being sent out with `impressionId` from new session when a sourceChange happened (AN-1162)
+- buffering sample not having the same videoTimeStart and videoTimeEnd (AN-1149)
 
 ### Changed
 - native collector to be up-to-date with bitmovin collector (AN-1164)
