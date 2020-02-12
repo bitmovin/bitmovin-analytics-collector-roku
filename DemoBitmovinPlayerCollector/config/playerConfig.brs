@@ -8,14 +8,22 @@ function getPlayerConfig()
       preload: false
     },
     source: {
-      dash: "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears.mpd",
-      title: "Test video",
-      drm: {
-        widevine: {
-          LA_URL: "https://proxy.uat.widevine.com/proxy?video_id=HDCP_V1&provider=widevine_test"
-        }
-      }
+      dash: "https://bitmovin-a.akamaihd.net/content/analytics-teststreams/battlefield-60fps/mpds/battlefield-singlespeed.mpd",
+      title: "Battlefield SingleSpeed"
     }
+    ' source: {
+    '   dash: "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears.mpd",
+    '   title: "Tears of Steel",
+    '   drm: {
+    '     widevine: {
+    '       LA_URL: "https://proxy.uat.widevine.com/proxy?video_id=HDCP_V1&provider=widevine_test"
+    '     }
+    '   }
+    ' }
+    ' source: {
+    '   hls: "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+    '   title: "Sintel"
+    ' }
   }
 end function
 

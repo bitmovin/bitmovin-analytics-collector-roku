@@ -5,7 +5,7 @@ function init()
   m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
   m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 
-  source = getPlayerSource1()
+  source = getPlayerSource3()
   changeSource(source)
 
   m.nativePlayer.control = "play"
@@ -29,6 +29,14 @@ function getPlayerSource2()
   videoContent.url = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
   videoContent.streamFormat = "hls"
   videoContent.title = "Sintel"
+  return videoContent
+end function
+
+function getPlayerSource3()
+  videoContent = createObject("RoSGNode", "ContentNode")
+  videoContent.url = "https://bitmovin-a.akamaihd.net/content/analytics-teststreams/battlefield-60fps/mpds/battlefield-singlespeed.mpd"
+  videoContent.streamFormat = "dash"
+  videoContent.title = "Battlefield SingleSpeed"
   return videoContent
 end function
 
