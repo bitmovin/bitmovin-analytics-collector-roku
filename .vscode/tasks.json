@@ -33,12 +33,12 @@
     {
       "id": "demoTarget",
       "type": "pickString",
-      "description": "Pick a demo target",
+      "description": "Select a demo target",
       "options": ["DemoBitmovinPlayerCollector", "DemoNativePlayerCollector"]
     },
     {
       "id": "collectorAdapterTarget",
-      "description": "Select target adapter for build",
+      "description": "Select target adapter",
       "type": "pickString",
       "options": ["bitmovinPlayerCollector", "nativePlayerCollector"]
     }

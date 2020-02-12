@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `streamFormat` and corresponding `url` to sample (AN-1135)
 - `videoWindowHeight` and `videoWindowWidth` to sample for bitmovin and native player (AN-1139)
 - `size` to sample for bitmovin and native player (AN-1136)
+- `videoTimeStart` and `videoTimeEnd` to bitmovin player (AN-1144)
+- `sequenceNumber` to samples (AN-1138)
 
 ### Fixed
 - `pageLoadType` was not set to `FOREGROUND` (AN-1145)
@@ -18,3 +20,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - missing `state` for setup and startup samples (AN-1140, AN-1141)
 - missing `startuptime` in the sample and reset startup/setup measurements (AN-1145)
 - heartbeat timer not resetting after a sample was sent out
+- `played` not set in heartbeat samples
+- sample data from previous session being sent out with `impressionId` from new session when a sourceChange happened (AN-1162)
