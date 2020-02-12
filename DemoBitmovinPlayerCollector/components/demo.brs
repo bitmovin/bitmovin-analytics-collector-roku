@@ -6,9 +6,11 @@ function init()
 
   m.bitmovinPlayerSDK = CreateObject("roSgNode", "componentLibrary")
   m.bitmovinPlayerSDK.id = "bitmovinPlayerSDK"
-  m.bitmovinPLayerSDK.uri = "https://cdn.bitmovin.com/player/roku/1/bitmovinplayer.zip"
+  m.bitmovinPlayerSDK.uri = "https://cdn.bitmovin.com/player/roku/1/bitmovinplayer.zip"
   m.top.appendChild(m.bitmovinPlayerSDK)
   m.bitmovinPlayerSDK.observeFieldScoped("loadStatus", "onLoadStatusChanged")
+
+  m.isPlayerLoaded = false
 end function
 
 sub onLoadStatusChanged()
@@ -20,4 +22,16 @@ sub onLoadStatusChanged()
   m.bitmovinFields = m.bitmovinPlayer.bitmovinFields
   m.bitmovinPlayer.callFunc(m.bitmovinFunctions.setup, m.playerConfig)
   m.bitmovinPlayer.setFocus(true)
+
+  m.isPlayerLoaded = true
 end sub
+
+function onKeyEvent(key as String, press as Boolean) as Boolean
+  if m.isPlayerLoaded = false then return false
+
+  if key = "up" and press
+    m.bitmovinPlayer.callFunc(m.bitmovinFunctions.LOAD, getExamplePlayerConfigWithContentNodeAndPlaylist())
+    return true
+  end if
+  return false
+end function

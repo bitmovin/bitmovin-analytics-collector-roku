@@ -21,8 +21,7 @@ sub initializePlayer(player)
     version: getPlayerVersion(),
     playerKey: getPlayerKeyFromManifest(m.appInfo),
 
-    playerStartupTime: 1,
-    impressionId: getImpressionIdForSample()
+    playerStartupTime: 1
   }
   sendAnalyticsRequestAndClearValues(eventData, 0, m.currentState)
 end sub
@@ -219,8 +218,8 @@ sub onVideoStart()
   stopVideoStartUpTimer()
 end sub
 
-sub handleImpressionIdChange()
-  updateSample({impressionId: getImpressionIdForSample()})
+sub handleManualSourceChange()
+  m.collectorCore.callFunc("setupSample")
 end sub
 
 sub setNewMetadata(metadata = invalid)
@@ -306,7 +305,7 @@ sub onSourceLoaded()
   checkForNewMetadata()
   ' Do not change impression id when it is a initial source change
   if m.currentState <> m.player.BitmovinPlayerState.SETUP
-    handleImpressionIdChange()
+    handleManualSourceChange()
   end if
 end sub
 

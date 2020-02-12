@@ -26,6 +26,9 @@ sub setupSample()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
   m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
   m.sample.userId = getPersistedUserId(m.sectionRegistryName)
+
+  m.sample.sequenceNumber = 0
+  m.sample.impressionId = createImpressionId()
 end sub
 
 sub clearSampleValues()
@@ -96,7 +99,8 @@ end sub
 
 sub sendAnalyticsRequestAndClearValues()
   m.analyticsDataTask.eventData = m.sample
-  ' TODO: check if eventData gets a reference to m.sample or is actually copying it
+  m.sample.sequenceNumber++
+
   sendAnalyticsRequest()
   clearSampleValues()
 end sub

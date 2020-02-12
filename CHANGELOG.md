@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `videoWindowHeight` and `videoWindowWidth` to sample for bitmovin and native player (AN-1139)
 - `size` to sample for bitmovin and native player (AN-1136)
 - `videoTimeStart` and `videoTimeEnd` to bitmovin player (AN-1144)
+- `sequenceNumber` to samples (AN-1138)
 
 ### Fixed
 - `pageLoadType` was not set to `FOREGROUND` (AN-1145)
