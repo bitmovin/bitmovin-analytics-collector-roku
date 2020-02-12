@@ -7,10 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 ### Added
-- `streamFormat` and corresponding `url` to sample (AN-1135)
-- `videoWindowHeight` and `videoWindowWidth` to sample for bitmovin and native player (AN-1139)
-- `size` to sample for bitmovin and native player (AN-1136)
-- `videoTimeStart` and `videoTimeEnd` to bitmovin player (AN-1144)
+- `streamFormat` and corresponding `url` to samples (AN-1135)
+- `videoWindowHeight` and `videoWindowWidth` to samples (AN-1139)
+- `size` (fullscreen or window) to samples (AN-1136)
+- `videoTimeStart` and `videoTimeEnd` to samples (AN-1144)
 - `sequenceNumber` to samples (AN-1138)
 
 ### Fixed
@@ -21,3 +21,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - missing `startuptime` in the sample and reset startup/setup measurements (AN-1145)
 - `played` not set in heartbeat samples
 - sample data from previous session being sent out with `impressionId` from new session when a sourceChange happened (AN-1162)
+
+### Changed
+- native collector to be up-to-date with bitmovin collector (AN-1164)
