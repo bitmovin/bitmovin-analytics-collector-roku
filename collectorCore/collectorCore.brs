@@ -18,7 +18,9 @@ sub checkAnalyticsLicenseKey(licensingData)
 end sub
 
 sub setupSample()
-  m.sample = getAnalyticsSample()
+  if m.sample = invalid
+    m.sample = getAnalyticsSample()
+  end if
   m.sample.analyticsVersion = getVersion()
   m.sample.key = m.licensingData.key
   m.sample.domain = m.appInfo.GetID()
