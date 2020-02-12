@@ -87,7 +87,7 @@ sub handlePreviousState(previousState)
     onPlayed(previousState)
   else if previousState = m.playerStates.PAUSED and m.currentState <> m.playerStates.READY
     onPaused(previousState)
-  else if previousState = m.playerStates.BUFFERING and m.currentState <> m.playerStates.READY
+  else if previousState = m.playerStates.STALLING and m.currentState <> m.playerStates.READY
     onBufferingEnd(previousState)
   end if
 end sub
@@ -97,7 +97,7 @@ sub handleCurrentState()
     onVideoStart()
   else if m.currentState = m.playerStates.PAUSED
     onPause()
-  else if m.currentState = m.playerStates.BUFFERING
+  else if m.currentState = m.playerStates.STALLING
     onBuffering()
   else if m.currentState = m.playerStates.FINISHED
     onFinished()
