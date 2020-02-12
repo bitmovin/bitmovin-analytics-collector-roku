@@ -13,6 +13,8 @@
     <function name="updateSampleAndSendAnalyticsRequest"/>
     <function name="createTempMetadataSampleAndSendAnalyticsRequest"/>
     <function name="updateSample"/>
+    <function name="setVideoTimeStart"/>
+    <function name="setVideoTimeEnd"/>
     <field id="playerState" alias="analyticsDataTask.playerState" type="string"/>
     <field id="fireHeartbeat" type="boolean" alwaysnotify="true"/>
   </interface>
