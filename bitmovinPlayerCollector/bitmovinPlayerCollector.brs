@@ -154,6 +154,10 @@ sub resetSeekHelperVariables()
   m.seekTimer = invalid
 end sub
 
+sub resetBufferingTimer()
+  m.bufferTimer = invalid
+end sub
+
 sub onBuffering()
   ' If we did not change from playing to buffering that means the buffering was caused by a seek and thus we do not report it
   if m.previousState <> m.playerStates.PLAYING then return
@@ -164,13 +168,13 @@ sub onBufferingEnd(state)
   if m.bufferTimer = invalid then return
 
   buffered = m.bufferTimer.TotalMilliseconds()
-  m.bufferTimer = invalid
-
   eventData = {
     buffered: buffered
   }
 
+  setVideoTimeStart()
   sendAnalyticsRequestAndClearValues(eventData, buffered, state)
+  resetBufferingTimer()
 end sub
 
 sub onHeartbeat()
@@ -257,10 +261,10 @@ sub onError()
 
   if m.player.downloadFinished <> invalid then errorSample.errorSegments.push(m.player.downloadFinished)
 
-  resetSeekHelperVariables()
-
   duration = getDuration(m.playerStateTimer)
   sendAnalyticsRequestAndClearValues(errorSample, duration, m.player.playerState)
+  resetSeekHelperVariables()
+  resetBufferingTimer()
 end sub
 
 function setCustomData(customData)
@@ -343,6 +347,8 @@ end sub
 
 sub onFinished()
   m.videoStartUpTime = -1
+  resetBufferingTimer()
+  resetSeekHelperVariables()
 end sub
 
 'Function to map source to object valid for video node to accept. Sets stream format based upon which stream type entered and value as url.
