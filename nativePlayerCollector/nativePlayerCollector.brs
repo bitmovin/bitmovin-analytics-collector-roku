@@ -58,9 +58,13 @@ sub setUpHelperVariables()
   m.playerControls = getPlayerControls()
 
   m.videoStartupTime = -1
+  m.manualSourceChangeInProgress = false
 end sub
 
 sub onPlayerStateChanged()
+  if m.manualSourceChangeInProgress = true and m.player.state <> m.playerStates.PLAYING
+    return
+  end if
   transitionToState(m.player.state)
   m.collectorCore.playerState = m.currentState
 
@@ -73,7 +77,9 @@ sub onPlayerStateChanged()
 end sub
 
 sub handlePreviousState(previousState)
-  if previousState = m.playerStates.PLAYING and m.currentState <> m.playerStates.READY
+  if m.manualSourceChangeInProgress = true and m.currentState = m.playerStates.PLAYING
+    onSourceLoaded()
+  else if previousState = m.playerStates.PLAYING and m.currentState <> m.playerStates.READY
     onPlayed(previousState)
   else if previousState = m.playerStates.PAUSED and m.currentState <> m.playerStates.READY
     onPaused(previousState)
@@ -99,6 +105,17 @@ sub handleCurrentState()
   else if m.currentState = m.playerStates.FINISHED
     onFinished()
   end if
+end sub
+
+sub handleIntermediateState(intermediateState)
+  transitionToState(intermediateState)
+  setVideoTimeEnd()
+
+  handlePreviousState(m.currentState)
+
+  m.playerStateTimer.Mark()
+  setVideoTimeStart()
+  transitionToState(m.previousState)
 end sub
 
 sub onPlayed(state)
@@ -271,6 +288,11 @@ sub checkForSourceSpecificMetadata(sourceConfig)
   updateSample(newVideoMetadata)
 end sub
 
+sub onSourceLoaded()
+  m.manualSourceChangeInProgress = false
+  stopVideoStartUpTimer()
+end sub
+
 sub onSourceChanged()
   checkForSourceSpecificMetadata(m.player.content)
 
@@ -289,7 +311,10 @@ sub handleManualSourceChange()
     m.player.unobserveFieldScoped("contentIndex")
     m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   end if
-
+  print "Handling manual source change"
+  m.manualSourceChangeInProgress = true
+  startVideoStartUpTimer()
+  handleIntermediateState(m.currentState)
   m.collectorCore.callFunc("setupSample")
 end sub
 
