@@ -111,7 +111,7 @@ sub handleIntermediateState(intermediateState)
   transitionToState(intermediateState)
   setVideoTimeEnd()
 
-  handlePreviousState(m.currentState)
+  handlePreviousState(intermediateState)
 
   m.playerStateTimer.Mark()
   setVideoTimeStart()
@@ -258,11 +258,14 @@ sub stopVideoStartUpTimer()
   m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
   eventData = {
     videoStartupTime: m.videoStartupTime,
-    startupTime: m.videoStartUpTime
+    startupTime: m.videoStartUpTime,
+    videoTimeStart: 0,
+    videoTimeEnd: 0
   }
 
   sendAnalyticsRequestAndClearValues(eventData, m.videoStartUpTime, "startup")
   m.videoStartupTimer = invalid
+  m.videoStartUpTime = -1
 end sub
 
 sub onVideoStart()
@@ -290,7 +293,6 @@ end sub
 
 sub onSourceLoaded()
   m.manualSourceChangeInProgress = false
-  stopVideoStartUpTimer()
 end sub
 
 sub onSourceChanged()
@@ -311,10 +313,14 @@ sub handleManualSourceChange()
     m.player.unobserveFieldScoped("contentIndex")
     m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   end if
-  print "Handling manual source change"
-  m.manualSourceChangeInProgress = true
+
   startVideoStartUpTimer()
-  handleIntermediateState(m.currentState)
+  transitionToState("source_changing")
+  handlePreviousState(m.previousState)
+  transitionToState(m.previousState)
+  m.playerStateTimer.Mark()
+  m.manualSourceChangeInProgress = true
+
   m.collectorCore.callFunc("setupSample")
 end sub
 
