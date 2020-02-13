@@ -296,8 +296,6 @@ sub onSourceLoaded()
 end sub
 
 sub onSourceChanged()
-  checkForSourceSpecificMetadata(m.player.content)
-
   if m.player.state = m.playerStates.PLAYING
     startVideoStartUpTimer()
   end if
@@ -305,6 +303,8 @@ sub onSourceChanged()
   ' Do not change impression id when it is an initial source change
   if m.currentState <> m.playerStates.NONE
     handleManualSourceChange()
+  else
+    checkForSourceSpecificMetadata(m.player.content)
   end if
 end sub
 
@@ -321,6 +321,7 @@ sub handleManualSourceChange()
   m.playerStateTimer.Mark()
   m.manualSourceChangeInProgress = true
 
+  checkForSourceSpecificMetadata(m.player.content)
   m.collectorCore.callFunc("setupSample")
 end sub
 
