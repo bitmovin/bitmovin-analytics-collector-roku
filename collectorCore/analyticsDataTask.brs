@@ -5,7 +5,7 @@ sub init()
   m.licensingState = m.top.findNode("licensingState")
   m.isLicensingCallDone = false
   m.analyticsEventsQueue = []
-  m.timer = CreateObject("roTimespan")
+  m.heartbeatTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
   m.top.url = m.config.serviceEndpoints.analyticsLicense
   m.licensingResponse = {}
@@ -19,7 +19,7 @@ sub init()
 end sub
 
 sub execute()
-  m.timer.Mark()
+  m.heartbeatTimer.Mark()
 
   while m.runExecuteLoop
     msg = wait(500, m.analyticsDataTaskPort)
@@ -39,11 +39,11 @@ sub execute()
       end if
     end if
 
-    if m.top.playerState = "playing" and m.timer.totalMilliseconds() > 59*1000
+    if m.top.playerState = "playing" and m.heartbeatTimer.totalMilliseconds() > 59*1000
       parent = m.top.getParent()
       if parent.fireHeartbeat <> invalid
         parent.fireHeartbeat = true
-        m.timer.Mark()
+        m.heartbeatTimer.Mark()
       end if
     end if
 
@@ -85,7 +85,7 @@ function checkLicenseKey(licensingData, url)
     end if
   end if
 
-  m.timer.Mark()
+  m.heartbeatTimer.Mark()
 end function
 
 sub sendAnalyticsData(eventData)
@@ -114,11 +114,13 @@ sub sendAnalyticsData(eventData)
     end if
   end if
 
-  m.timer.mark()
+  m.heartbeatTimer.mark()
 end sub
 
 sub sendAnalyticsEventsFromQueue()
   if m.analyticsEventsQueue.Count() = 0 then return
+
+  m.heartbeatTimer.Mark()
   for each event in m.analyticsEventsQueue
     sendAnalyticsData(event)
   end for
