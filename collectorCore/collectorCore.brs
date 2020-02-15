@@ -18,7 +18,9 @@ sub checkAnalyticsLicenseKey(licensingData)
 end sub
 
 sub setupSample()
-  m.sample = getAnalyticsSample()
+  if m.sample = invalid
+    m.sample = getAnalyticsSample()
+  end if
   m.sample.analyticsVersion = getVersion()
   m.sample.key = m.licensingData.key
   m.sample.domain = m.appInfo.GetID()
@@ -26,6 +28,9 @@ sub setupSample()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
   m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
   m.sample.userId = getPersistedUserId(m.sectionRegistryName)
+
+  m.sample.sequenceNumber = 0
+  m.sample.impressionId = createImpressionId()
 end sub
 
 sub clearSampleValues()
@@ -96,7 +101,8 @@ end sub
 
 sub sendAnalyticsRequestAndClearValues()
   m.analyticsDataTask.eventData = m.sample
-  ' TODO: check if eventData gets a reference to m.sample or is actually copying it
+  m.sample.sequenceNumber++
+
   sendAnalyticsRequest()
   clearSampleValues()
 end sub
@@ -117,6 +123,14 @@ function updateSample(newSampleData)
 
   return true
 end function
+
+sub setVideoTimeStart(time)
+  m.sample.videoTimeStart = time
+end sub
+
+sub setVideoTimeEnd(time)
+  m.sample.videoTimeEnd = time
+end sub
 
 function createSendOnceSample(metadata)
   if metadata = invalid then return invalid
