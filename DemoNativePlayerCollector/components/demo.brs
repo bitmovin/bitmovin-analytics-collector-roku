@@ -2,10 +2,15 @@ function init()
   m.tag = "[demo] "
   m.nativePlayer = m.top.findNode("nativePlayer")
 
+  m.PlayerSourceType = {
+    AOM = "AOM",
+    SINTEL = "SINTEL"
+  }
+
   m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
   m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 
-  source = getPlayerSource1()
+  source = getPlayerSource(m.PlayerSourceType.AOM)
   changeSource(source)
 
   m.nativePlayer.control = "play"
@@ -16,25 +21,23 @@ sub changeSource(content)
   m.nativePlayer.content = content
 end sub
 
-function getPlayerSource1()
+function getPlayerSource(sourceType)
   videoContent = createObject("RoSGNode", "ContentNode")
-  videoContent.url = "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
-  videoContent.title = "Art of motion"
-  videoContent.streamformat = "hls"
-  return videoContent
-end function
-
-function getPlayerSource2()
-  videoContent = createObject("RoSGNode", "ContentNode")
-  videoContent.url = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
-  videoContent.streamFormat = "hls"
-  videoContent.title = "Sintel"
+  if sourceType = m.PlayerSourceType.AOM
+    videoContent.url = "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
+    videoContent.title = "Art of motion"
+    videoContent.streamformat = "hls"
+  else if sourceType = m.PlayerSourceType.SINTEL
+    videoContent.url = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
+    videoContent.streamFormat = "hls"
+    videoContent.title = "Sintel"
+  end if
   return videoContent
 end function
 
 function onKeyEvent(key as String, press as Boolean) as Boolean
   if key = "up" and press
-    source = getPlayerSource2()
+    source = getPlayerSource(m.PlayerSourceType.SINTEL)
     changeSource(source)
     m.nativePlayer.control = "play"
     m.nativePlayer.setFocus(true)
