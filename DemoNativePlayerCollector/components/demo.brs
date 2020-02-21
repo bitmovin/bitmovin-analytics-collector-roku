@@ -4,7 +4,8 @@ function init()
 
   m.PlayerSourceType = {
     AOM = "AOM",
-    SINTEL = "SINTEL"
+    SINTEL = "SINTEL",
+    SINGLE_SPEED = "SINGLE_SPEED"
   }
 
   m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
@@ -31,6 +32,10 @@ function getPlayerSource(sourceType)
     videoContent.url = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
     videoContent.streamFormat = "hls"
     videoContent.title = "Sintel"
+  else if sourceType = m.PlayerSourceType.SINGLE_SPEED
+    videoContent.url = "https://bitmovin-a.akamaihd.net/content/analytics-teststreams/battlefield-60fps/mpds/battlefield-singlespeed.mpd"
+    videoContent.streamFormat = "dash"
+    videoContent.title = "Battlefield SingleSpeed"
   end if
   return videoContent
 end function
