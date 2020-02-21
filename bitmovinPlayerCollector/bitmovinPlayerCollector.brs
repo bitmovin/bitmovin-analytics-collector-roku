@@ -417,5 +417,5 @@ sub setVideoTimeEnd()
 end sub
 
 function getPlayerVersion()
-  return "unknown"
+  return "bitmovin-" + m.player.callFunc(m.player.BitmovinFunctions.GET_VERSION)
 end function
