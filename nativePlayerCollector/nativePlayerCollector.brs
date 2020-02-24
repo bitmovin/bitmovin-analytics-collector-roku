@@ -136,7 +136,7 @@ end sub
 
 sub onPaused(state)
   ' If we did not change from the pause state to playing that means a seek is happening
-  if m.currentState <> m.playerStates.PLAYING then return
+  if m.currentState <> m.playerStates.PLAYING and m.currentState <> m.playerStates.SOURCE_CHANGING then return
 
   paused = m.playerStateTimer.TotalMilliseconds()
   eventData = {
