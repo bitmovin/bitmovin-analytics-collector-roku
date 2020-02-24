@@ -3,9 +3,9 @@ function init()
   m.nativePlayer = m.top.findNode("nativePlayer")
 
   m.PlayerSourceType = {
-    AOM = "AOM",
-    SINTEL = "SINTEL",
-    SINGLE_SPEED = "SINGLE_SPEED"
+    AOM: "AOM",
+    SINTEL: "SINTEL",
+    SINGLE_SPEED: "SINGLE_SPEED"
   }
 
   m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
