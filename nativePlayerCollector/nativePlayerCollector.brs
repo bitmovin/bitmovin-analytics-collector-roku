@@ -316,7 +316,7 @@ sub handleManualSourceChange()
   end if
 
   startVideoStartUpTimer()
-  transitionToState("source_changing")
+  transitionToState(m.playerStates.SOURCE_CHANGING)
   handlePreviousState(m.previousState)
   transitionToState(m.previousState)
   m.playerStateTimer.Mark()
