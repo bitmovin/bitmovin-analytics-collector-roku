@@ -171,6 +171,7 @@ sub onBufferingEnd(state)
     buffered: buffered
   }
 
+  setVideoTimeStart() ' Buffering blocks the video
   sendAnalyticsRequestAndClearValues(eventData, buffered, state)
   resetBufferingTimer()
 end sub
