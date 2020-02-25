@@ -209,6 +209,10 @@ function updateSample(sampleData)
   return m.collectorCore.callFunc("updateSample", sampleData)
 end function
 
+sub updateAnalyticsConfig(config)
+  m.collectorcore.callFunc("updateAnalyticsConfig", config)
+end sub
+
 sub onSeek()
   if m.alreadySeeking = true then return
 
@@ -310,10 +314,10 @@ sub onPlay()
 end sub
 
 sub onSourceLoaded()
-  config = m.player.callFunc("getConfig", invalid)
+  playerConfig = m.player.callFunc("getConfig", invalid)
 
-  checkForSourceSpecificMetadata(config)
-  if config.autoplay = true
+  checkForSourceSpecificMetadata(playerConfig.source)
+  if playerConfig.autoplay = true
     startVideoStartUpTimer()
   end if
 
@@ -370,12 +374,12 @@ function mapStream(source)
   end if
 end function
 
-sub checkForSourceSpecificMetadata(config)
-  updatedVideoMetadata = mapStream(config.source)
+sub checkForSourceSpecificMetadata(sourceConfig)
+  updatedVideoMetadata = mapStream(sourceConfig)
   updateSample(updatedVideoMetadata)
 
-  if config.analytics = invalid then return
-  updateSample(config.analytics)
+  analyticsConfig = m.collectorCore.callFunc("getMetadataFromAnalyticsConfig", sourceConfig.analytics)
+  updateAnalyticsConfig(analyticsConfig)
 end sub
 
 sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
