@@ -1,6 +1,7 @@
 function init()
   m.tag = "[demo] "
   m.PlayerSourceType = getPlayerSourceType()
+  m.PlayerContentNodeSourceType = getPlayerContentNodeSourceType()
 
   m.playerConfig = getPlayerConfig(m.PlayerSourceType.AOM)
   m.playerConfig.Append({
@@ -39,7 +40,7 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
   if m.isPlayerLoaded = false then return false
 
   if key = "up" and press
-    sourceConfig = getPlayerConfig(m.PlayerSourceType.CONTENT_NODE)
+    sourceConfig = getPlayerContentNodeConfig(m.PlayerContentNodeSourceType.SINTEL)
     m.bitmovinPlayer.callFunc(m.bitmovinFunctions.LOAD, sourceConfig)
     return true
   end if

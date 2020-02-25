@@ -1,10 +1,16 @@
 function getPlayerSourceType()
   return {
-      AOM: "AOM",
-      TOS: "TOS",
-      SINTEL: "SINTEL",
-      CONTENT_NODE: "CONTENT_NODE",
-      SINGLE_SPEED: "SINGLE_SPEED"
+    AOM: "AOM",
+    TOS: "TOS",
+    SINTEL: "SINTEL",
+    SINGLE_SPEED: "SINGLE_SPEED"
+  }
+end function
+
+function getPlayerContentNodeSourceType()
+  return {
+    SINTEL: "SINTEL",
+    PLAYLIST: "PLAYLIST"
   }
 end function
 
@@ -56,10 +62,26 @@ function getPlayerConfig(sourceType)
 end function
 
 
-function getPlayerContentNodeConfig()
+function getPlayerContentNodeConfig(sourceType)
   config = CreateObject("roSGNode", "ContentNode")
-  config.url = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
-  config.streamFormat = "hls"
-  config.title = "Sintel"
+
+  PlayerSourceType = getPlayerContentNodeSourceType()
+  if sourceType = PlayerSourceType.SINTEL
+    config.url = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
+    config.streamFormat = "hls"
+    config.title = "Sintel"
+  else if sourceType = PlayerSourceType.PLAYLIST
+    firstVideo = CreateObject("roSGNode", "ContentNode")
+    firstVideo.url = "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
+    firstVideo.streamFormat = "hls"
+    firstVideo.title = "Art Of Motion"
+    config.Append(firstVideo)
+
+    secondVideo = CreateObject("roSGNode", "ContentNode")
+    secondVideo.url = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
+    secondVideo.streamFormat = "hls"
+    secondVideo.title = "Sintel"
+    config.Append(secondVideo)
+  end if
   return config
 end function
