@@ -1,7 +1,6 @@
 function init()
   m.tag = "[demo] "
   m.PlayerSourceType = getPlayerSourceType()
-  m.PlayerContentNodeSourceType = getPlayerContentNodeSourceType()
 
   m.playerConfig = {
     playback: {
