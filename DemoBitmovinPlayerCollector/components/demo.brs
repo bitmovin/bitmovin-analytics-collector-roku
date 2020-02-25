@@ -1,7 +1,8 @@
 function init()
   m.tag = "[demo] "
-  m.playerConfig = getPlayerConfig()
+  m.PlayerSourceType = getPlayerSourceType()
 
+  m.playerConfig = getPlayerConfig(m.PlayerSourceType.AOM)
   m.bitmovinPlayerCollector = CreateObject("roSgNode", "bitmovinPlayerCollector")
 
   m.bitmovinPlayerSDK = CreateObject("roSgNode", "componentLibrary")
@@ -30,7 +31,8 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
   if m.isPlayerLoaded = false then return false
 
   if key = "up" and press
-    m.bitmovinPlayer.callFunc(m.bitmovinFunctions.LOAD, getExamplePlayerConfigWithContentNodeAndPlaylist())
+    sourceConfig = getPlayerConfig(m.PlayerSourceType.CONTENT_NODE)
+    m.bitmovinPlayer.callFunc(m.bitmovinFunctions.LOAD, sourceConfig)
     return true
   end if
   return false
