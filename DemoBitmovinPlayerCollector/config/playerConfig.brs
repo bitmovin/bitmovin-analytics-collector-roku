@@ -9,7 +9,7 @@ function getPlayerSourceType()
 end function
 
 function getPlayerConfig(sourceType)
-  config = {
+  playerConfig = {
     playback: {
       autoplay: true,
       muted: true
@@ -18,9 +18,10 @@ function getPlayerConfig(sourceType)
       preload: false
     }
   }
-  sourceConfig = {}
 
   PlayerSourceType = getPlayerSourceType()
+  sourceConfig = CreateObject("roAssociativeArray")
+
   if sourceType = PlayerSourceType.AOM
     sourceConfig = {
       hls: "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
@@ -48,10 +49,10 @@ function getPlayerConfig(sourceType)
     }
   end if
 
-  config.Append({
+  playerConfig.Append({
     source: sourceConfig
   })
-  return config
+  return playerConfig
 end function
 
 
