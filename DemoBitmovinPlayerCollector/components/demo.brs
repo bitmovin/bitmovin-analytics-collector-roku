@@ -3,6 +3,14 @@ function init()
   m.PlayerSourceType = getPlayerSourceType()
 
   m.playerConfig = getPlayerConfig(m.PlayerSourceType.AOM)
+  m.playerConfig.Append({
+    analytics: {
+      title: "Art of Motion",
+      videoId: "ArtOfMotion",
+      experimentName: "feature/AN-1163",
+      isLive: false
+    }
+  })
   m.bitmovinPlayerCollector = CreateObject("roSgNode", "bitmovinPlayerCollector")
 
   m.bitmovinPlayerSDK = CreateObject("roSgNode", "componentLibrary")

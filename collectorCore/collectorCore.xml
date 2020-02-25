@@ -14,6 +14,7 @@
     <function name="updateSample"/>
     <function name="setVideoTimeStart"/>
     <function name="setVideoTimeEnd"/>
+    <function name="getMetadataFromAnalyticsConfig"/>
     <field id="playerState" alias="analyticsDataTask.playerState" type="string"/>
     <field id="fireHeartbeat" type="boolean" alwaysnotify="true"/>
   </interface>
