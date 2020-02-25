@@ -3,15 +3,22 @@ function init()
   m.PlayerSourceType = getPlayerSourceType()
   m.PlayerContentNodeSourceType = getPlayerContentNodeSourceType()
 
-  m.playerConfig = getPlayerConfig(m.PlayerSourceType.AOM)
-  m.playerConfig.Append({
-    analytics: {
-      title: "Art of Motion",
-      videoId: "ArtOfMotion",
-      experimentName: "feature/AN-1163",
-      isLive: false
-    }
-  })
+  m.playerConfig = {
+    playback: {
+      autoplay: true,
+      muted: true
+    },
+    adaptation: {
+      preload: false
+    },
+    source: getSourceConfig(m.PlayerSourceType.Sintel)
+  }
+  m.playerConfig.source.analytics = {
+    title: "Art of Motion",
+    videoId: "ArtOfMotion",
+    experimentName: "feature/AN-1163",
+    isLive: false
+  }
   m.bitmovinPlayerCollector = CreateObject("roSgNode", "bitmovinPlayerCollector")
 
   m.bitmovinPlayerSDK = CreateObject("roSgNode", "componentLibrary")
@@ -40,7 +47,12 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
   if m.isPlayerLoaded = false then return false
 
   if key = "up" and press
-    sourceConfig = getPlayerContentNodeConfig(m.PlayerContentNodeSourceType.SINTEL)
+    sourceConfig = getSourceConfig(m.PlayerSourceType.AOM)
+    sourceConfig.analytics = {
+      title: "Sintel",
+      videoId: "Sintel",
+      isLive: true
+    }
     m.bitmovinPlayer.callFunc(m.bitmovinFunctions.LOAD, sourceConfig)
     return true
   end if

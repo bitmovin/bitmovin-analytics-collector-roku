@@ -14,27 +14,17 @@ function getPlayerContentNodeSourceType()
   }
 end function
 
-function getPlayerConfig(sourceType)
-  playerConfig = {
-    playback: {
-      autoplay: true,
-      muted: true
-    },
-    adaptation: {
-      preload: false
-    }
-  }
-
+function getSourceConfig(sourceType)
   PlayerSourceType = getPlayerSourceType()
-  sourceConfig = CreateObject("roAssociativeArray")
+  content = CreateObject("roAssociativeArray")
 
   if sourceType = PlayerSourceType.AOM
-    sourceConfig = {
+    content = {
       hls: "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
       title: "Art of Motion"
     }
   else if sourceType = PlayerSourceType.TOS
-    sourceConfig = {
+    content = {
       dash: "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears.mpd",
       title: "Tears of Steel",
       drm: {
@@ -44,44 +34,52 @@ function getPlayerConfig(sourceType)
       }
     }
   else if sourceType = PlayerSourceType.SINTEL
-    sourceConfig = {
+    content = {
       hls: "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
       title: "Sintel"
     }
   else if sourceType = PlayerSourceType.SINGLE_SPEED
-    sourceConfig = {
+    content = {
       dash: "https://bitmovin-a.akamaihd.net/content/analytics-teststreams/battlefield-60fps/mpds/battlefield-singlespeed.mpd",
       title: "Battlefield SingleSpeed"
     }
   end if
 
-  playerConfig.Append({
-    source: sourceConfig
-  })
-  return playerConfig
+  return content
 end function
 
 
 function getPlayerContentNodeConfig(sourceType)
-  config = CreateObject("roSGNode", "ContentNode")
-
   PlayerSourceType = getPlayerContentNodeSourceType()
+  content = CreateObject("roSGNode", "ContentNode")
+
   if sourceType = PlayerSourceType.SINTEL
-    config.url = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
-    config.streamFormat = "hls"
-    config.title = "Sintel"
+    content.url = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
+    content.streamFormat = "hls"
+    content.title = "Sintel"
   else if sourceType = PlayerSourceType.PLAYLIST
     firstVideo = CreateObject("roSGNode", "ContentNode")
     firstVideo.url = "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
     firstVideo.streamFormat = "hls"
-    firstVideo.title = "Art Of Motion"
-    config.Append(firstVideo)
+    firstVideo.title = "Art of Motion"
 
     secondVideo = CreateObject("roSGNode", "ContentNode")
     secondVideo.url = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
     secondVideo.streamFormat = "hls"
     secondVideo.title = "Sintel"
-    config.Append(secondVideo)
+
+    content.AppendChild(firstVideo)
+    content.AppendChild(secondVideo)
   end if
-  return config
+
+  return {
+    playback: {
+      autoplay: true,
+      muted: true
+    },
+    adaptation: {
+      preload: false
+    },
+    source: content
+  }
 end function
