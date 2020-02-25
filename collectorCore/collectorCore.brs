@@ -6,6 +6,7 @@ sub init()
   m.sectionRegistryName = "BitmovinAnalytics"
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
   m.licensingData = getLicensingData()
+  m.analyticsConfig = CreateObject("roAssociativeArray")
 
   setupSample()
   checkAnalyticsLicenseKey(m.licensingData)
@@ -155,7 +156,9 @@ End Function
 function getMetadataFromAnalyticsConfig(config)
   if config = invalid then return {}
 
-  metadata = CreateObject("roAssociativeArray")
+  metadata = {
+    isLive: false
+  }
 
   if config.DoesExist("cdnProvider")
     metadata.cdnProvider = config.cdnProvider
@@ -198,3 +201,25 @@ function getMetadataFromAnalyticsConfig(config)
   end if
   return metadata
 end function
+
+sub guardAgainstMissingVideoTitle(config)
+  if config <> invalid and config.DoesExist("title") = true then return
+  print "The new analytics configuration does not contain the field `title`"
+end sub
+
+sub guardAgainstMissingIsLive(config)
+  if config <> invalid and config.DoesExist("isLive") = true then return
+  print "The new analytics configuration does not contain the field `isLive`. It will default to `false` which might be unintended? Once stream playback information is available the type will be populated."
+end sub
+
+sub updateAnalyticsConfig(config)
+  guardAgainstMissingVideoTitle(config)
+  guardAgainstMissingIsLive(config)
+
+  mergedConfig = {}
+  mergedConfig.Append(m.analyticsConfig)
+  mergedConfig.Append(config)
+  m.analyticsConfig = mergedConfig
+
+  updateSample(m.analyticsConfig)
+end sub
