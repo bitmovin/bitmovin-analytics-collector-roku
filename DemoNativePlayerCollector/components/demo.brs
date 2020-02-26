@@ -8,20 +8,30 @@ function init()
   m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 
   source = getPlayerSource(m.PlayerSourceType.AOM)
-  changeSource(source)
+  analyticsConfig = {
+    title: "Art of Motion",
+    videoId: "ArtOfMotion",
+    customUserId: "John Smith"
+  }
+  changeSource(source, analyticsConfig)
 
   m.nativePlayer.control = "play"
   m.nativePlayer.setFocus(true)
 end function
 
-sub changeSource(content)
-  m.nativePlayer.content = content
+sub changeSource(sourceConfig, analyticsConfig)
+  m.nativePlayer.content = sourceConfig
+  m.nativePlayerCollector.callFunc("sourceChanged", analyticsConfig)
 end sub
 
 function onKeyEvent(key as String, press as Boolean) as Boolean
   if key = "up" and press
     source = getPlayerSource(m.PlayerSourceType.SINTEL)
-    changeSource(source)
+    analyticsConfig = {
+      title: "Sintel",
+      videoId: "Sintel"
+    }
+    changeSource(source, analyticsConfig)
     m.nativePlayer.control = "play"
     m.nativePlayer.setFocus(true)
     return true
