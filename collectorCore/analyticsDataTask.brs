@@ -49,7 +49,7 @@ sub execute()
   end while
 end sub
 
-function checkLicenseKey(licensingData, url)
+sub checkLicenseKey(licensingData, url)
   http = CreateObject("roUrlTransfer")
   http.setCertificatesFile("common:/certs/ca-bundle.crt")
   port = CreateObject("roMessagePort")
@@ -85,7 +85,7 @@ function checkLicenseKey(licensingData, url)
   end if
 
   m.heartbeatTimer.Mark()
-end function
+end sub
 
 sub sendAnalyticsData(eventData)
   url = m.config.serviceEndpoints.analyticsData
@@ -133,12 +133,12 @@ function clearAnalyticsEventsQueue()
   return true
 end function
 
-function pushToAnalyticsEventsQueue(event)
-  if event = invalid then return false
+sub pushToAnalyticsEventsQueue(event)
+  if event = invalid then return
+
   m.analyticsEventsQueue.Push(event)
 
-  return true
-end function
+end sub
 
 sub clearLicensingResponseAndAnalyticsEventsQueue()
   m.licensingResponse = {}
