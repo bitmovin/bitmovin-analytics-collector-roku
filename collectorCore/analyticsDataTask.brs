@@ -1,7 +1,6 @@
 sub init()
   m.tag = "[analyticsDataTask] "
   m.config = getCollectorCoreConfig()
-  m.deviceinfo = CreateObject("roDeviceInfo")
   m.licensingState = m.top.findNode("licensingState")
   m.isLicensingCallDone = false
   m.analyticsEventsQueue = []
@@ -50,7 +49,7 @@ sub execute()
   end while
 end sub
 
-function checkLicenseKey(licensingData, url)
+sub checkLicenseKey(licensingData, url)
   http = CreateObject("roUrlTransfer")
   http.setCertificatesFile("common:/certs/ca-bundle.crt")
   port = CreateObject("roMessagePort")
@@ -86,7 +85,7 @@ function checkLicenseKey(licensingData, url)
   end if
 
   m.heartbeatTimer.Mark()
-end function
+end sub
 
 sub sendAnalyticsData(eventData)
   url = m.config.serviceEndpoints.analyticsData
@@ -113,8 +112,6 @@ sub sendAnalyticsData(eventData)
       http.asyncCancel()
     end if
   end if
-
-  m.heartbeatTimer.mark()
 end sub
 
 sub sendAnalyticsEventsFromQueue()
@@ -134,12 +131,12 @@ function clearAnalyticsEventsQueue()
   return true
 end function
 
-function pushToAnalyticsEventsQueue(event)
-  if event = invalid then return false
-  m.analyticsEventsQueue.Push(event)
+sub pushToAnalyticsEventsQueue(event)
+  if event = invalid then return
 
-  return true
-end function
+  m.analyticsEventsQueue.Push(event)
+  m.heartbeatTimer.Mark()
+end sub
 
 sub clearLicensingResponseAndAnalyticsEventsQueue()
   m.licensingResponse = {}
