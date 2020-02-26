@@ -1,7 +1,6 @@
 sub init()
   m.tag = "[analyticsDataTask] "
   m.config = getCollectorCoreConfig()
-  m.deviceinfo = CreateObject("roDeviceInfo")
   m.licensingState = m.top.findNode("licensingState")
   m.isLicensingCallDone = false
   m.analyticsEventsQueue = []
