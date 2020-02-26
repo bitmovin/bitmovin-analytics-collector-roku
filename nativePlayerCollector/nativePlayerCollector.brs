@@ -285,12 +285,6 @@ sub onSourceChanged()
   end if
 end sub
 
-' Manually called after changing the player source
-sub sourceChanged(config)
-  if config = invalid then return
-  setAnalyticsConfig(config)
-end sub
-
 sub handleManualSourceChange()
   if m.player.content.getChildCount() > 0
     m.player.unobserveFieldScoped("contentIndex")

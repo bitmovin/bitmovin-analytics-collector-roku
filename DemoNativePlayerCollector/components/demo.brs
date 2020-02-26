@@ -3,25 +3,26 @@ function init()
   m.PlayerSourceType = getPlayerSourceType()
 
   m.nativePlayer = m.top.findNode("nativePlayer")
-
   m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
-  m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 
-  source = getPlayerSource(m.PlayerSourceType.AOM)
   analyticsConfig = {
     title: "Art of Motion",
     videoId: "ArtOfMotion",
     customUserId: "John Smith"
   }
-  changeSource(source, analyticsConfig)
+  m.nativePlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
+  m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
+
+  source = getPlayerSource(m.PlayerSourceType.AOM)
+  changeSource(source)
 
   m.nativePlayer.control = "play"
   m.nativePlayer.setFocus(true)
 end function
 
-sub changeSource(sourceConfig, analyticsConfig)
+sub changeSource(sourceConfig, analyticsConfig = invalid)
   m.nativePlayer.content = sourceConfig
-  m.nativePlayerCollector.callFunc("sourceChanged", analyticsConfig)
+  m.nativePlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
 end sub
 
 function onKeyEvent(key as String, press as Boolean) as Boolean
