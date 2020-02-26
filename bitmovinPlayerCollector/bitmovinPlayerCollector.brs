@@ -289,7 +289,6 @@ sub setCustomDataOnce(customData)
   createTempMetadataSampleAndSendAnalyticsRequest(customData, duration)
 end sub
 
-
 sub setAnalyticsConfig(rawConfig)
   if rawConfig = invalid then return
 
@@ -375,8 +374,6 @@ end function
 sub checkForSourceSpecificMetadata(sourceConfig)
   updatedVideoMetadata = mapStream(sourceConfig)
   updateSample(updatedVideoMetadata)
-
-  setAnalyticsConfig(sourceConfig.analytics)
 end sub
 
 sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
