@@ -291,7 +291,7 @@ end sub
 
 
 sub setAnalyticsConfig(rawConfig)
-  if config = invalid then return
+  if rawConfig = invalid then return
 
   config = m.collectorCore.callFunc("getMetadataFromAnalyticsConfig", rawConfig)
   m.collectorcore.callFunc("updateAnalyticsConfig", config)
