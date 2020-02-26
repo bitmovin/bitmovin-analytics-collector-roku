@@ -208,11 +208,6 @@ function updateSample(sampleData)
   return m.collectorCore.callFunc("updateSample", sampleData)
 end function
 
-sub updateAnalyticsConfig(rawConfig)
-  config = m.collectorCore.callFunc("getMetadataFromAnalyticsConfig", rawConfig)
-  m.collectorcore.callFunc("updateAnalyticsConfig", config)
-end sub
-
 sub onSeek()
   if m.alreadySeeking = true then return
 
@@ -293,7 +288,7 @@ end sub
 ' Manually called after changing the player source
 sub sourceChanged(config)
   if config = invalid then return
-  updateAnalyticsConfig(config)
+  setAnalyticsConfig(config)
 end sub
 
 sub handleManualSourceChange()
@@ -358,11 +353,12 @@ sub setCustomDataOnce(customData)
   createTempMetadataSampleAndSendAnalyticsRequest(sendOnceCustomData)
 end sub
 
-function setAnalyticsConfig(configData)
-  if configData = invalid return invalid
+sub setAnalyticsConfig(rawConfig)
+  if rawConfig = invalid then return
 
-  return updateSample(configData)
-end function
+  config = m.collectorCore.callFunc("getMetadataFromAnalyticsConfig", rawConfig)
+  m.collectorcore.callFunc("updateAnalyticsConfig", config)
+end sub
 
 sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
   sampleData = eventData

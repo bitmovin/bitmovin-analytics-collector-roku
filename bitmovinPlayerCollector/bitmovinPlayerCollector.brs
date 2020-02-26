@@ -209,10 +209,6 @@ function updateSample(sampleData)
   return m.collectorCore.callFunc("updateSample", sampleData)
 end function
 
-sub updateAnalyticsConfig(config)
-  m.collectorcore.callFunc("updateAnalyticsConfig", config)
-end sub
-
 sub onSeek()
   if m.alreadySeeking = true then return
 
@@ -293,11 +289,13 @@ sub setCustomDataOnce(customData)
   createTempMetadataSampleAndSendAnalyticsRequest(customData, duration)
 end sub
 
-function setAnalyticsConfig(configData)
-  if configData = invalid return invalid
 
-  return updateSample(configData)
-end function
+sub setAnalyticsConfig(rawConfig)
+  if config = invalid then return
+
+  config = m.collectorCore.callFunc("getMetadataFromAnalyticsConfig", rawConfig)
+  m.collectorcore.callFunc("updateAnalyticsConfig", config)
+end sub
 
 function getImpressionIdForSample()
   return m.collectorCore.callFunc("createImpressionId")
@@ -378,8 +376,7 @@ sub checkForSourceSpecificMetadata(sourceConfig)
   updatedVideoMetadata = mapStream(sourceConfig)
   updateSample(updatedVideoMetadata)
 
-  analyticsConfig = m.collectorCore.callFunc("getMetadataFromAnalyticsConfig", sourceConfig.analytics)
-  updateAnalyticsConfig(analyticsConfig)
+  setAnalyticsConfig(sourceConfig.analytics)
 end sub
 
 sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
