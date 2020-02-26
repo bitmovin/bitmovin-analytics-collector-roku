@@ -112,8 +112,6 @@ sub sendAnalyticsData(eventData)
       http.asyncCancel()
     end if
   end if
-
-  m.heartbeatTimer.mark()
 end sub
 
 sub sendAnalyticsEventsFromQueue()
@@ -137,7 +135,7 @@ sub pushToAnalyticsEventsQueue(event)
   if event = invalid then return
 
   m.analyticsEventsQueue.Push(event)
-
+  m.heartbeatTimer.Mark()
 end sub
 
 sub clearLicensingResponseAndAnalyticsEventsQueue()
