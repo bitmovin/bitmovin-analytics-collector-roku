@@ -7,7 +7,8 @@ function getPlayerStates()
     FINISHED: "finished",
     ERROR: "error",
     NONE: "none",
-    SEEKING: "seeking"
+    SEEKING: "seeking",
+    SOURCE_CHANGING: "sourceChanging"
   }
   return playerStates
 end function

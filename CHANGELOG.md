@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `played` not set in heartbeat samples
 - sample data from previous session being sent out with `impressionId` from new session when a sourceChange happened (AN-1162)
 - buffering samples not having same videoTimeStart/End and bitmovin adapter not listening to correct stalling events (AN-1149)
+- sourceChange event not handled correctly for native player (AN-1169)
 - heartbeatTimer not correctly reset which led to heartbeatSamples added to queue after pauseEvent > 1min
 
 ### Changed

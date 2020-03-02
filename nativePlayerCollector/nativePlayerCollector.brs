@@ -58,9 +58,13 @@ sub setUpHelperVariables()
   m.playerControls = getPlayerControls()
 
   m.videoStartupTime = -1
+  m.manualSourceChangeInProgress = false
 end sub
 
 sub onPlayerStateChanged()
+  if m.manualSourceChangeInProgress = true and m.player.state <> m.playerStates.PLAYING
+    return
+  end if
   transitionToState(m.player.state)
   m.collectorCore.playerState = m.currentState
 
@@ -73,7 +77,9 @@ sub onPlayerStateChanged()
 end sub
 
 sub handlePreviousState(previousState)
-  if previousState = m.playerStates.PLAYING and m.currentState <> m.playerStates.READY
+  if m.manualSourceChangeInProgress = true and m.currentState = m.playerStates.PLAYING
+    onSourceLoaded()
+  else if previousState = m.playerStates.PLAYING and m.currentState <> m.playerStates.READY
     onPlayed(previousState)
   else if previousState = m.playerStates.PAUSED and m.currentState <> m.playerStates.READY
     onPaused(previousState)
@@ -101,6 +107,17 @@ sub handleCurrentState()
   end if
 end sub
 
+sub handleIntermediateState(intermediateState)
+  transitionToState(intermediateState)
+  setVideoTimeEnd()
+
+  handlePreviousState(intermediateState)
+
+  m.playerStateTimer.Mark()
+  setVideoTimeStart()
+  transitionToState(m.previousState)
+end sub
+
 sub onPlayed(state)
   played = m.playerStateTimer.TotalMilliseconds()
   eventData = {
@@ -119,7 +136,7 @@ end sub
 
 sub onPaused(state)
   ' If we did not change from the pause state to playing that means a seek is happening
-  if m.currentState <> m.playerStates.PLAYING then return
+  if m.currentState <> m.playerStates.PLAYING and m.currentState <> m.playerStates.SOURCE_CHANGING then return
 
   paused = m.playerStateTimer.TotalMilliseconds()
   eventData = {
@@ -242,11 +259,14 @@ sub stopVideoStartUpTimer()
   m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
   eventData = {
     videoStartupTime: m.videoStartupTime,
-    startupTime: m.videoStartUpTime
+    startupTime: m.videoStartUpTime,
+    videoTimeStart: 0,
+    videoTimeEnd: 0
   }
 
   sendAnalyticsRequestAndClearValues(eventData, m.videoStartUpTime, "startup")
   m.videoStartupTimer = invalid
+  m.videoStartUpTime = -1
 end sub
 
 sub onVideoStart()
@@ -272,9 +292,11 @@ sub checkForSourceSpecificMetadata(sourceConfig)
   updateSample(newVideoMetadata)
 end sub
 
-sub onSourceChanged()
-  checkForSourceSpecificMetadata(m.player.content)
+sub onSourceLoaded()
+  m.manualSourceChangeInProgress = false
+end sub
 
+sub onSourceChanged()
   if m.player.state = m.playerStates.PLAYING
     startVideoStartUpTimer()
   end if
@@ -282,6 +304,8 @@ sub onSourceChanged()
   ' Do not change impression id when it is an initial source change
   if m.currentState <> m.playerStates.NONE
     handleManualSourceChange()
+  else
+    checkForSourceSpecificMetadata(m.player.content)
   end if
 end sub
 
@@ -291,6 +315,14 @@ sub handleManualSourceChange()
     m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   end if
 
+  startVideoStartUpTimer()
+  transitionToState(m.playerStates.SOURCE_CHANGING)
+  handlePreviousState(m.previousState)
+  transitionToState(m.previousState)
+  m.playerStateTimer.Mark()
+  m.manualSourceChangeInProgress = true
+
+  checkForSourceSpecificMetadata(m.player.content)
   m.collectorCore.callFunc("setupSample")
 end sub
 
