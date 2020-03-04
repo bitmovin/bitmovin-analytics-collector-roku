@@ -289,11 +289,12 @@ sub setCustomDataOnce(customData)
   createTempMetadataSampleAndSendAnalyticsRequest(customData, duration)
 end sub
 
-function setAnalyticsConfig(configData)
-  if configData = invalid return invalid
+sub setAnalyticsConfig(rawConfig)
+  if rawConfig = invalid then return
 
-  return updateSample(configData)
-end function
+  config = m.collectorCore.callFunc("getMetadataFromAnalyticsConfig", rawConfig)
+  m.collectorcore.callFunc("updateAnalyticsConfig", config)
+end sub
 
 function getImpressionIdForSample()
   return m.collectorCore.callFunc("createImpressionId")
@@ -310,10 +311,10 @@ sub onPlay()
 end sub
 
 sub onSourceLoaded()
-  config = m.player.callFunc("getConfig", invalid)
+  playerConfig = m.player.callFunc("getConfig", invalid)
 
-  checkForSourceSpecificMetadata(config)
-  if config.autoplay = true
+  checkForSourceSpecificMetadata(playerConfig.source)
+  if playerConfig.autoplay = true
     startVideoStartUpTimer()
   end if
 
@@ -370,12 +371,9 @@ function mapStream(source)
   end if
 end function
 
-sub checkForSourceSpecificMetadata(config)
-  updatedVideoMetadata = mapStream(config.source)
+sub checkForSourceSpecificMetadata(sourceConfig)
+  updatedVideoMetadata = mapStream(sourceConfig)
   updateSample(updatedVideoMetadata)
-
-  if config.analytics = invalid then return
-  updateSample(config.analytics)
 end sub
 
 sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)

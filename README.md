@@ -1,14 +1,17 @@
 # [![bitmovin](http://bitmovin-a.akamaihd.net/webpages/bitmovin-logo-github.png)](http://www.bitmovin.com)
+
 Roku client that allows you to monitor your Native ROKU or Bitmovin Player playback with [Bitmovin Analytics](https://bitmovin.com/video-analytics/)
 
-# Getting started
-## Manifest
+## Getting started
+
+### Manifest
 
 In the `root` folder of your project find `manifest` file
- and add licence key for the Anlaytics:
-```
+and add licence key for the Analytics:
+
+```bash
 # License key
-bitmovin_analytics_license_key=INSERT-LICENSE-KEY-HERE
+bitmovin_analytics_license_key=INSERT_LICENSE_KEY_HERE
 ```
 
 In order to obtain licence key please log into Bitmovin [dashboard](https://bitmovin.com/dashboard) with your Bitmovin account.
@@ -26,13 +29,13 @@ Please copy `collectorCore` and `nativePlayerCollector` folders into Your projec
 
 In order to use the collector, first create a native player collector object:
 
-```
+```javascript
 m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
 ```
 
 To start monitoring the player, `initializePlayer` function must be called with native player object send as an argument before content is set to ROKU native player:
 
-```
+```javascript
 m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 ```
 
@@ -46,36 +49,36 @@ Please copy `collectorCore` and `bitmovinPlayerCollector` folders into Your proj
 
 In order to use the collector, first create a Bitmovin player collector object:
 
-```
+```javascript
 m.bitmovinPlayerCollector = CreateObject("roSgNode", "bitmovinPlayerCollector")
 ```
 
 To start monitoring the player, `initializePlayer` function must be called with Bitmovin player object send as an argument before `setup` function is called on Bitmovin player.
 
-```
+```javascript
 m.bitmovinPlayerCollector.callFunc("initializePlayer", m.bitmovinPlayer)
 ```
 
-# Optional
+## Optional
 
-Optionally you can call `setAnalyticsConfig` after creation of native or Bitmovin player collector object but prior to callng `initializePlayer` in order to
+Optionally you can call `setAnalyticsConfig` after creation of native or Bitmovin player collector object but prior to calling `initializePlayer` in order to
 set custom initial data for the collector:
 
-#### Native player collector
+### Native player collector
 
-```
+```javascript
 m.nativePlayerCollector.callFunc("setAnalyticsConfig", {customData1: "overlay-off"})
 ```
 
-#### Bitmovin player collector
+### Bitmovin player collector
 
-```
+```javascript
 m.bitmovinPlayerCollector.callFunc("setAnalyticsConfig", {customData1: "overlay-off"})
 ```
 
 ## Optional Configuration Parameters
 
-```
+```json
 analyticsConfig = {
   videoId: "videoId1234",
   customUserId: "customUserId1",
@@ -89,8 +92,11 @@ analyticsConfig = {
   heartbeatInterval: 59700 // value is in ms
 }
 ```
-# Testing
-## How to run the tests
+
+## Testing
+
+### How to run the tests
+
 If you have not done so, do an `npm install` at this point. This will also install the `Rooibos-cli` preprocessor.
 Rooibos-cli is a preprocessor tool that rooibos unit testing framework use in order to preprocess the files needed to run the tests.
 

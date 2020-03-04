@@ -379,11 +379,12 @@ sub setCustomDataOnce(customData)
   createTempMetadataSampleAndSendAnalyticsRequest(sendOnceCustomData)
 end sub
 
-function setAnalyticsConfig(configData)
-  if configData = invalid return invalid
+sub setAnalyticsConfig(rawConfig)
+  if rawConfig = invalid then return
 
-  return updateSample(configData)
-end function
+  config = m.collectorCore.callFunc("getMetadataFromAnalyticsConfig", rawConfig)
+  m.collectorcore.callFunc("updateAnalyticsConfig", config)
+end sub
 
 sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
   sampleData = eventData

@@ -6,6 +6,7 @@ sub init()
   m.sectionRegistryName = "BitmovinAnalytics"
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
   m.licensingData = getLicensingData()
+  m.analyticsConfig = CreateObject("roAssociativeArray")
 
   setupSample()
   checkAnalyticsLicenseKey(m.licensingData)
@@ -151,3 +152,74 @@ Function writeToRegistry(registrySectionName, dataToWrite)
     registrySection.Write(key, value)
     registrySection.Flush()
 End Function
+
+function getMetadataFromAnalyticsConfig(config)
+  if config = invalid then return {}
+
+  metadata = {
+    isLive: false
+  }
+
+  if config.DoesExist("cdnProvider")
+    metadata.cdnProvider = config.cdnProvider
+  end if
+  if config.DoesExist("videoId")
+    metadata.videoId = config.videoId
+  end if
+  if config.DoesExist("title")
+    metadata.title = config.title
+  end if
+  if config.DoesExist("customUserId")
+    metadata.customUserId = config.customUserId
+  end if
+  if config.DoesExist("customData1")
+    metadata.customData1 = config.customData1
+  end if
+  if config.DoesExist("customData2")
+    metadata.customData2 = config.customData2
+  end if
+  if config.DoesExist("customData3")
+    metadata.customData3 = config.customData3
+  end if
+  if config.DoesExist("customData4")
+    metadata.customData4 = config.customData4
+  end if
+  if config.DoesExist("customData5")
+    metadata.customData5 = config.customData5
+  end if
+  if config.DoesExist("customData6")
+    metadata.customData6 = config.customData6
+  end if
+  if config.DoesExist("customData7")
+    metadata.customData7 = config.customData7
+  end if
+  if config.DoesExist("experimentName")
+    metadata.experimentName = config.experimentName
+  end if
+  if config.DoesExist("isLive")
+    metadata.isLive = config.isLive
+  end if
+  return metadata
+end function
+
+sub guardAgainstMissingVideoTitle(config)
+  if config <> invalid and config.DoesExist("title") = true then return
+  print "The new analytics configuration does not contain the field `title`"
+end sub
+
+sub guardAgainstMissingIsLive(config)
+  if config <> invalid and config.DoesExist("isLive") = true then return
+  print "The new analytics configuration does not contain the field `isLive`. It will default to `false` which might be unintended? Once stream playback information is available the type will be populated."
+end sub
+
+sub updateAnalyticsConfig(config)
+  guardAgainstMissingVideoTitle(config)
+  guardAgainstMissingIsLive(config)
+
+  mergedConfig = {}
+  mergedConfig.Append(m.analyticsConfig)
+  mergedConfig.Append(config)
+  m.analyticsConfig = mergedConfig
+
+  updateSample(m.analyticsConfig)
+end sub
