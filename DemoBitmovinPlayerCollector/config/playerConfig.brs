@@ -41,8 +41,8 @@ function getSourceConfig(sourceType)
     }
   else if sourceType = PlayerSourceType.SINGLE_SPEED
     content = {
-      dash: "https://bitmovin-a.akamaihd.net/content/analytics-teststreams/battlefield-60fps/mpds/battlefield-singlespeed.mpd",
-      title: "Battlefield SingleSpeed"
+       dash: "https://bitmovin-a.akamaihd.net/content/analytics-teststreams/redbull-parkour/singlespeed.mpd",
+      title: "Art of Motion - SingleSpeed"
     }
   end if
 
