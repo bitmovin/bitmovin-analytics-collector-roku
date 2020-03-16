@@ -13,7 +13,7 @@ function init()
   m.nativePlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
   m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 
-  source = getPlayerSource(m.PlayerSourceType.AOM)
+  source = getPlayerSource(m.PlayerSourceType.SINTEL)
   changeSource(source)
 
   m.nativePlayer.control = "play"
