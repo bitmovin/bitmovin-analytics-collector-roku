@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - sourceChange event not handled correctly for native player (AN-1169)
 - heartbeatTimer not correctly reset which led to heartbeatSamples added to queue after pauseEvent > 1min
 - analytics configuration fields (videoId, title, ...) missing in sample (AN-1163)
+- default values of `errorCode`, `errorMessage` and `errorSegments` by setting them to `invalid` (AN-1147)
 
 ### Changed
 - native collector to be up-to-date with bitmovin collector (AN-1164)
