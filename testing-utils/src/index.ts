@@ -6,8 +6,7 @@ const PROXY_PORT = 8081;
 const EXPRESS_PORT = 3000;
 
 interface PoisonConfig {
-  chunk: number;
-  delay: number;
+  bandwidth: number;
 }
 
 const { poisons } = toxy;
@@ -15,21 +14,10 @@ const { poisons } = toxy;
 // Create a new toxy proxy
 const proxy = toxy();
 
-const createPoison = (config: PoisonConfig) => {
-  return poisons.throttle({ chunk: config.chunk, delay: config.delay })
-};
 
 proxy
   .get('/content/*')
-  .forward('https://bitmovin-a.akamaihd.net')
-  .outgoingPoison(createPoison({ chunk: 1024, delay: 1000 }));
-
-const updatePoisions = (config: { chunk: number, delay: number }) => {
-  logInfo('Updating poison config');
-  logInfo(config)
-  proxy.flushPoisons();
-  proxy.outgoingPoison(createPoison(config))
-};
+  .forward('https://bitmovin-a.akamaihd.net');
 
 proxy.listen(PROXY_PORT);
 logInfo(`Server listening on port: ${PROXY_PORT}`);
@@ -43,7 +31,20 @@ app.use(bodyParser.json());
 app.post('/throttle', (req, res) => {
   try {
     const config: PoisonConfig = req.body;
-    updatePoisions(config);
+    proxy.flushPoisons();
+    proxy.poison(poisons.bandwidth(config.bandwidth));
+
+    res.sendStatus(200);
+  } catch (error) {
+    logError(error);
+    res.sendStatus(400);
+  }
+});
+
+app.get('/unthrottle', (req, res) => {
+  try {
+    proxy.flushPoisons();
+
     res.sendStatus(200);
   } catch (error) {
     logError(error);
