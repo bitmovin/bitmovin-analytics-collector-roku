@@ -1,13 +1,16 @@
+import toxy = require('toxy');
 import express = require('express');
 import bodyParser = require('body-parser');
+
+const PROXY_PORT = 8081;
+const EXPRESS_PORT = 3000;
 
 interface PoisonConfig {
   chunk: number;
   delay: number;
 }
 
-const toxy = require('toxy');
-const { poisons, rules } = toxy;
+const { poisons } = toxy;
 
 // Create a new toxy proxy
 const proxy = toxy();
@@ -22,15 +25,14 @@ proxy
   .outgoingPoison(createPoison({ chunk: 1024, delay: 1000 }));
 
 const updatePoisions = (config: { chunk: number, delay: number }) => {
-  console.log('Updating poison config');
-  console.log(config)
+  logInfo('Updating poison config');
+  logInfo(config)
   proxy.flushPoisons();
   proxy.outgoingPoison(createPoison(config))
 };
 
-proxy.listen(8080);
-// tslint:disable-next-line: no-console
-console.log('Server listening on port:', 8080);
+proxy.listen(PROXY_PORT);
+logInfo(`Server listening on port: ${PROXY_PORT}`);
 
 
 const app = express();
@@ -44,11 +46,22 @@ app.post('/throttle', (req, res) => {
     updatePoisions(config);
     res.sendStatus(200);
   } catch (error) {
-    console.log(error)
+    logError(error);
     res.sendStatus(400);
   }
 });
 
-app.listen(3000, () => {
-  console.log('Example app listening on port 3000');
+app.listen(EXPRESS_PORT, () => {
+  logInfo(`Example app listening on port ${EXPRESS_PORT}`);
 });
+
+
+function logError(msg: any) {
+  // tslint:disable-next-line: no-console
+  console.error(msg);
+}
+
+function logInfo(msg: any) {
+  // tslint:disable-next-line: no-console
+  console.info(msg);
+}
