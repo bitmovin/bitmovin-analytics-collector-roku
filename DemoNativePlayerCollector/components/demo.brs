@@ -6,8 +6,8 @@ function init()
   m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
 
   analyticsConfig = {
-    title: "Art of Motion",
-    videoId: "ArtOfMotion",
+    title: "Sintel",
+    videoId: "Sintel",
     customUserId: "John Smith"
   }
   m.nativePlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
