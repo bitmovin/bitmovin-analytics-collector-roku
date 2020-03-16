@@ -2,7 +2,7 @@ import toxy = require('toxy');
 import express = require('express');
 import bodyParser = require('body-parser');
 
-const PROXY_PORT = 8081;
+const PROXY_PORT = 8080;
 const EXPRESS_PORT = 3000;
 
 interface PoisonConfig {
@@ -34,6 +34,8 @@ app.post('/throttle', (req, res) => {
     proxy.flushPoisons();
     proxy.poison(poisons.bandwidth(config.bandwidth));
 
+    logInfo(`Adapted speed to: ${config.bandwidth}`);
+
     res.sendStatus(200);
   } catch (error) {
     logError(error);
@@ -44,6 +46,7 @@ app.post('/throttle', (req, res) => {
 app.get('/unthrottle', (req, res) => {
   try {
     proxy.flushPoisons();
+    logInfo('Removed throttle');
 
     res.sendStatus(200);
   } catch (error) {
