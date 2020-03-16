@@ -36,6 +36,7 @@ curl \
 ```
 
 Good values for the parameter to see the player buffering are:
+
 - 65536
 - 16384
 
