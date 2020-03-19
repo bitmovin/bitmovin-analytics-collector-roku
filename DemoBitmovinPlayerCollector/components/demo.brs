@@ -24,7 +24,7 @@ sub onLoadStatusChanged()
     adaptation: {
       preload: false
     },
-    source: getSourceConfig(m.PlayerSourceType.Sintel)
+    source: getSourceConfig(m.PlayerSourceType.SINTEL)
   }
   analyticsConfig = {
     isLive: false,

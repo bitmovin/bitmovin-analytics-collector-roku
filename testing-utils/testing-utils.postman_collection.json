@@ -1,0 +1,83 @@
+{
+	"info": {
+		"_postman_id": "aef07de0-1f59-4c26-af43-8576689b5de4",
+		"name": "Roku Testing Utils",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Throttle",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bandwidth\": 65536\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ProxyService}}/throttle",
+					"host": [
+						"{{ProxyService}}"
+					],
+					"path": [
+						"throttle"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UnThrottle",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ProxyService}}/unthrottle",
+					"host": [
+						"{{ProxyService}}"
+					],
+					"path": [
+						"unthrottle"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "e8460909-4af9-4c11-b928-5842ebff8c31",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "73c225a5-49a3-4e6f-ade7-15b9bf7b75d9",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "143ac031-6ae5-48c3-959c-d870ec6014d6",
+			"key": "ProxyService",
+			"value": "http://192.168.0.150:3000",
+			"type": "string"
+		}
+	],
+	"protocolProfileBehavior": {}
+}

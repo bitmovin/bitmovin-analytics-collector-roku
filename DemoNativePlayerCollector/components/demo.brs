@@ -6,14 +6,14 @@ function init()
   m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
 
   analyticsConfig = {
-    title: "Art of Motion",
-    videoId: "ArtOfMotion",
+    title: "Sintel",
+    videoId: "Sintel",
     customUserId: "John Smith"
   }
   m.nativePlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
   m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 
-  source = getPlayerSource(m.PlayerSourceType.AOM)
+  source = getPlayerSource(m.PlayerSourceType.SINTEL)
   changeSource(source)
 
   m.nativePlayer.control = "play"
