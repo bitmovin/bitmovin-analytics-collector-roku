@@ -1,0 +1,5 @@
+{
+  "rules": {
+      "camel-case-func": ["warn"]
+  }
+}
