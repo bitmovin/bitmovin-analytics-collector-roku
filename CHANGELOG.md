@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
+- support for `wist` linter (PR-185)
+
+## v1.0.0
 ### Added
 - `streamFormat` and corresponding `url` to samples (AN-1135)
 - `videoWindowHeight` and `videoWindowWidth` to samples (AN-1139)

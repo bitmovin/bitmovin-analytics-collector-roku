@@ -106,3 +106,14 @@ After appropriate folders are copied to `testing` folder but before we can run t
 
 The last step is running the tests. We should position ourselves to root of the repository and run the following command:
 `npm run run-tests`.
+
+## VSCode IDE Brightscript Setup
+Please install `vscode-ide-brightscript` package using `VSCode` package manager in order to have out of the box support for:
+- On the fly linting and error checking
+- Code snippets for common statements (`if`, `for`, `while`, `function`)
+- Code region folding
+
+### Wist Linter
+Wist linter is included in the `vscode-ide-brightscript` package.
+Wist linter rules can be edited by updating rules from `.wistrc.json` file which is added to the root folder of the repository.
+Full list of supported rules can be found [here](https://willowtreeapps.github.io/wist/user-guide/rules/).
