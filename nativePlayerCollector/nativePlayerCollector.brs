@@ -1,6 +1,8 @@
 sub init()
   m.tag = "[nativePlayerCollector] "
-  m.collectorCore = m.top.findNode("collectorCore")
+  m.collectorCore = m.top.FindNode("collectorCore")
+  m.videoStartTimeoutTimer = m.top.FindNode("videoStartTimeoutTimer")
+  m.videoStartFailedEvents = getVideoStartFailedEvents()
   m.playerStateTimer = CreateObject("roTimespan")
   m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
@@ -59,6 +61,9 @@ sub setUpHelperVariables()
 
   m.videoStartupTime = -1
   m.manualSourceChangeInProgress = false
+
+  m.didAttemptPlay = false
+  m.didVideoPlay = false
 end sub
 
 sub onPlayerStateChanged()
@@ -120,6 +125,10 @@ end sub
 
 sub onPlay()
   startVideoStartUpTimer()
+
+  if m.didAttemptPlay = false and m.didVideoPlay = false then startVideoStartTimeoutTimer()
+
+  m.didAttemptPlay = true
 end sub
 
 sub onPlayed(state)
@@ -275,6 +284,11 @@ end sub
 
 sub onVideoStart()
   stopVideoStartUpTimer()
+
+  if m.didVideoPlay = false
+    m.didVideoPlay = true
+    clearVideoStartTimeoutTimer()
+  end if
 end sub
 
 function mapContent(content)
@@ -346,19 +360,50 @@ end sub
 sub onError()
   setVideoTimeEnd()
 
-  eventData = {
+  errorSample = {
     errorCode: m.player.errorCode,
     errorMessage: m.player.errorMsg,
     errorSegments: []
   }
 
-  if m.player.streamingSegment <> invalid then eventData.errorSegments.push(m.player.streamingSegment)
-  if m.player.downloadedSegment <> invalid then eventData.errorSegments.push(m.player.downloadedSegment)
+  if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
+  if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
 
   duration = getDuration(m.playerStateTimer)
-  sendAnalyticsRequestAndClearValues(eventData, duration, m.player.state)
   resetSeekHelperVariables()
   resetBufferingTimer()
+
+  if m.didAttemptPlay = true and m.didVideoPlay = false
+    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.state)
+  else
+    sendAnalyticsRequestAndClearValues(errorSample, duration, m.player.state)
+  end if
+end sub
+
+sub startVideoStartTimeoutTimer()
+  m.videoStartTimeoutTimer.observeFieldScoped("fire", "onVideoStartTimeout")
+  m.videoStartTimeoutTimer.control = "start"
+end sub
+
+sub clearVideoStartTimeoutTimer()
+  m.videoStartTimeoutTimer.unobserveFieldScoped("fire")
+  m.videoStartTimeoutTimer.control = "stop"
+end sub
+
+sub onVideoStartTimeout()
+  videoStartFailed(m.videoStartFailedEvents.Timeout, m.videoStartTimeoutTimer.duration, m.player.state)
+end sub
+
+sub videoStartFailed(reason, duration, state)
+  if reason = invalid return
+
+  clearVideoStartTimeoutTimer()
+
+  eventData = {
+    videoStartFailed: true,
+    videoStartFailedReason: reason
+  }
+  sendAnalyticsRequestAndClearValues(eventData, duration, state)
 end sub
 
 function setCustomData(customData)
