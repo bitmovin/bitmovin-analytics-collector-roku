@@ -115,6 +115,10 @@ sub handleIntermediateState(intermediateState)
   transitionToState(m.previousState)
 end sub
 
+sub onPlay()
+  startVideoStartUpTimer()
+end sub
+
 sub onPlayed(state)
   played = m.playerStateTimer.TotalMilliseconds()
   eventData = {
@@ -305,10 +309,6 @@ function getPlayerKeyFromManifest(appInfo)
 
   return appInfo.getValue("bitmovin_player_license_key")
 end function
-
-sub onPlay()
-  startVideoStartUpTimer()
-end sub
 
 sub onSourceLoaded()
   playerConfig = m.player.callFunc("getConfig", invalid)
