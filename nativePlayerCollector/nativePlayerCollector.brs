@@ -118,6 +118,10 @@ sub handleIntermediateState(intermediateState)
   transitionToState(m.previousState)
 end sub
 
+sub onPlay()
+  startVideoStartUpTimer()
+end sub
+
 sub onPlayed(state)
   played = m.playerStateTimer.TotalMilliseconds()
   eventData = {
@@ -246,7 +250,7 @@ sub onSeeked()
 end sub
 
 sub onControlChanged()
-  if m.player.control = m.playerControls.PLAY then startVideoStartUpTimer()
+  if m.player.control = m.playerControls.PLAY then onPlay()
 end sub
 
 sub startVideoStartUpTimer()
