@@ -1,48 +1,53 @@
 {
 	"info": {
 		"_postman_id": "aef07de0-1f59-4c26-af43-8576689b5de4",
-		"name": "Roku Testing Utils",
+		"name": "testing-utils",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Throttle",
+			"name": "Limit Bandwidth",
 			"request": {
-				"method": "POST",
+				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"bandwidth\": 65536\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{ProxyService}}/throttle",
+					"raw": "{{ProxyService}}/throttle?bandwidth=65536",
 					"host": [
 						"{{ProxyService}}"
 					],
 					"path": [
 						"throttle"
+					],
+					"query": [
+						{
+							"key": "bandwidth",
+							"value": "65536",
+							"description": "Set this to a negative value or leave empty to remove the limiter"
+						}
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "UnThrottle",
+			"name": "Abort Connections",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{ProxyService}}/unthrottle",
+					"raw": "{{ProxyService}}/connections?abort=true",
 					"host": [
 						"{{ProxyService}}"
 					],
 					"path": [
-						"unthrottle"
+						"connections"
+					],
+					"query": [
+						{
+							"key": "abort",
+							"value": "true",
+							"description": "Set to true to abort connections"
+						}
 					]
 				}
 			},
@@ -73,9 +78,9 @@
 	],
 	"variable": [
 		{
-			"id": "143ac031-6ae5-48c3-959c-d870ec6014d6",
+			"id": "d00cd3a5-7dcd-4227-bd99-279042de352c",
 			"key": "ProxyService",
-			"value": "http://192.168.0.150:3000",
+			"value": "http://192.168.0.152:3000",
 			"type": "string"
 		}
 	],
