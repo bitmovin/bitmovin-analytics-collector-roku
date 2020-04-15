@@ -5,6 +5,9 @@ function getCurrentTimeInMilliseconds()
   return miliseconds#
 end function
 
+'Returns duration of the timer in milliseconds
+'@param {Object} timer - The timer object
+'@return {number} - Duration the timer was active in milliseconds
 function getDuration(timer)
   if timer = invalid then return 0
 
