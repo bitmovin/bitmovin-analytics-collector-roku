@@ -7,15 +7,15 @@
     {
       "type": "brightscript",
       "request": "launch",
-      "name": "Demo App",
+      "name": "Demo: Bitmovin",
       "stopOnEntry": false,
       "host": "${promptForHost}",
       "password": "${promptForPassword}",
-      "rootDir": "${workspaceFolder}/${input:demoTarget}/",
+      "rootDir": "${workspaceFolder}/DemoBitmovinPlayerCollector/",
       "sourceDirs": [
-        "${workspaceFolder}/${input:demoTarget}"
+        "${workspaceFolder}/DemoBitmovinPlayerCollector"
       ],
-      "preLaunchTask": "copy-components-to-demo",
+      "preLaunchTask": "copy-components-to-demo-bitmovin",
       // "preLaunchTask": "debug-roku",
       // "postDebugTask": "clean-roku",
       "enableDebuggerAutoRecovery": true,
@@ -27,14 +27,31 @@
         "components/**/*.*",
         "config/**/*.*"
       ]
-    }
-  ],
-  "inputs": [
+    },
+
     {
-      "id": "demoTarget",
-      "type": "pickString",
-      "description": "Pick a demo target",
-      "options": ["DemoBitmovinPlayerCollector", "DemoNativePlayerCollector"]
+      "type": "brightscript",
+      "request": "launch",
+      "name": "Demo: Native",
+      "stopOnEntry": false,
+      "host": "${promptForHost}",
+      "password": "${promptForPassword}",
+      "rootDir": "${workspaceFolder}/DemoNativePlayerCollector/",
+      "sourceDirs": [
+        "${workspaceFolder}/DemoNativePlayerCollector"
+      ],
+      "preLaunchTask": "copy-components-to-demo-native",
+      // "preLaunchTask": "debug-roku",
+      // "postDebugTask": "clean-roku",
+      "enableDebuggerAutoRecovery": true,
+      "stopDebuggerOnAppExit": true,
+      "outDir": "${workspaceFolder}/out",
+      "files": [
+        "manifest",
+        "source/**/*.*",
+        "components/**/*.*",
+        "config/**/*.*"
+      ]
     }
   ]
 }
