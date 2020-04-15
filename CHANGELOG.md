@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - support for `wist` linter (PR-185)
-- playAttempt tracking (AN-1290)
+- playAttempt tracking for PlayerError and Timeout (AN-1290)
 
 ## v1.0.0
 
