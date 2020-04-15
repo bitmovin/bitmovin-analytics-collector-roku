@@ -3,7 +3,8 @@ function getPlayerSourceType()
     AOM: "AOM",
     TOS: "TOS",
     SINTEL: "SINTEL",
-    SINGLE_SPEED: "SINGLE_SPEED"
+    SINGLE_SPEED: "SINGLE_SPEED",
+    CORRUPT_BEGINNING: "CORRUPT_BEGINNING"
   }
 end function
 
@@ -48,6 +49,11 @@ function getSourceConfig(sourceType)
     content = {
        dash: getBaseUrl() + "/analytics-teststreams/redbull-parkour/singlespeed.mpd",
       title: "Art of Motion - SingleSpeed"
+    }
+  else if sourceType = PlayerSourceType.CORRUPT_BEGINNING
+    content = {
+      dash: getBaseUrl() + "/analytics-teststreams/redbull-parkour/corrupted_first_segment.mpd",
+      title: "redbull-parkour"
     }
   end if
 

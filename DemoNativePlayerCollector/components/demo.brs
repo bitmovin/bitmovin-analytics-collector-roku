@@ -8,7 +8,8 @@ function init()
   analyticsConfig = {
     title: "Sintel",
     videoId: "Sintel",
-    customUserId: "John Smith"
+    customUserId: "John Smith",
+    experimentName: "local-development"
   }
   m.nativePlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
   m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)

@@ -2,7 +2,8 @@ function getPlayerSourceType()
   return {
     AOM: "AOM",
     SINTEL: "SINTEL",
-    SINGLE_SPEED: "SINGLE_SPEED"
+    SINGLE_SPEED: "SINGLE_SPEED",
+    CORRUPT_BEGINNING: "CORRUPT_BEGINNING"
   }
 end function
 
@@ -36,6 +37,10 @@ function getPlayerSource(sourceType)
 
     content.AppendChild(firstVideo)
     content.AppendChild(secondVideo)
+  else if sourceType = PlayerSourceType.CORRUPT_BEGINNING
+    content.url = getBaseUrl() + "/analytics-teststreams/redbull-parkour/corrupted_first_segment.mpd"
+    content.streamFormat = "dash"
+    content.title = "redbull-parkour"
   end if
 
   return content
