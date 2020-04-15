@@ -3,7 +3,7 @@
   <script type="text/brightscript" uri="./bitmovinPlayerCollector.brs"/>
   <script type="text/brightscript" uri="./bitmovinPlayerEnums.brs"/>
   <children>
-    <Timer id="videoStartTimeoutTimer" repeat="false" duration="1" />
+    <Timer id="videoStartTimeoutTimer" repeat="false" duration="60" />
     <collectorCore id="collectorCore"/>
   </children>
 </component>
