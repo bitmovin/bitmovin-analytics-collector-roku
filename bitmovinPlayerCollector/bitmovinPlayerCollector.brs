@@ -382,10 +382,15 @@ sub clearVideoStartTimeoutTimer()
 end sub
 
 sub onVideoStartTimeout()
-  videoStartFailed(m.videoStartFailedEvents.Timeout, m.videoStartTimeoutTimer.duration, m.player.playerState)
+  durationMilliseconds = m.videoStartTimeoutTimer.duration * 1000
+  videoStartFailed(m.videoStartFailedEvents.Timeout, durationMilliseconds, m.player.playerState)
 end sub
 
-sub videoStartFailed(reason, duration)
+'Trigger videoStartFailed sample
+'@param {String} reason - Reason why videostart failed
+'@param {number} duration - Duration of the state in milliseconds
+'@param {String} state - State of the player in which the failure happened
+sub videoStartFailed(reason, duration, state)
   if reason = invalid return
 
   clearVideoStartTimeoutTimer()
@@ -394,7 +399,7 @@ sub videoStartFailed(reason, duration)
     videoStartFailed: true,
     videoStartFailedReason: reason
   }
-  sendAnalyticsRequestAndClearValues(eventData, duration)
+  sendAnalyticsRequestAndClearValues(eventData, duration, state)
 end sub
 
 'Function to map source to object valid for video node to accept. Sets stream format based upon which stream type entered and value as url.

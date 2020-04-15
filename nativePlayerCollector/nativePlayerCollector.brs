@@ -391,9 +391,14 @@ sub clearVideoStartTimeoutTimer()
 end sub
 
 sub onVideoStartTimeout()
-  videoStartFailed(m.videoStartFailedEvents.Timeout, m.videoStartTimeoutTimer.duration, m.player.state)
+  durationMilliseconds = m.videoStartTimeoutTimer.duration * 1000
+  videoStartFailed(m.videoStartFailedEvents.Timeout, durationMilliseconds, m.player.state)
 end sub
 
+'Trigger videoStartFailed sample
+'@param {String} reason - Reason why videostart failed
+'@param {number} duration - Duration of the state in milliseconds
+'@param {String} state - State of the player in which the failure happened
 sub videoStartFailed(reason, duration, state)
   if reason = invalid return
 
