@@ -284,7 +284,7 @@ sub onError()
   resetBufferingTimer()
 
   if m.didAttemptPlay = true and m.didVideoPlay = false
-    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState)
+    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, errorSample)
   else
     sendAnalyticsRequestAndClearValues(errorSample, duration, m.player.playerState)
   end if
@@ -390,15 +390,19 @@ end sub
 '@param {String} reason - Reason why videostart failed
 '@param {number} duration - Duration of the state in milliseconds
 '@param {String} state - State of the player in which the failure happened
-sub videoStartFailed(reason, duration, state)
+'@param {Object} additionalEventData - Additional event data that is added to the sample
+sub videoStartFailed(reason, duration, state, additionalEventData = invalid)
   if reason = invalid return
 
   clearVideoStartTimeoutTimer()
 
-  eventData = {
+  eventData = {}
+  if additionalEventData <> invalid then eventData.Append(additionalEventData)
+
+  eventData.Append({
     videoStartFailed: true,
     videoStartFailedReason: reason
-  }
+  })
   sendAnalyticsRequestAndClearValues(eventData, duration, state)
 end sub
 
