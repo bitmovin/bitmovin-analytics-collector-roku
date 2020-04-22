@@ -3,6 +3,7 @@
   <script type="text/brightscript" uri="./nativePlayerCollector.brs"/>
   <script type="text/brightscript" uri="./nativePlayerEnums.brs"/>
   <children>
+    <Timer id="videoStartTimeoutTimer" repeat="false" duration="60" />
     <collectorCore id="collectorCore"/>
   </children>
 </component>

@@ -1,6 +1,8 @@
 sub init()
   m.tag = "[nativePlayerCollector] "
-  m.collectorCore = m.top.findNode("collectorCore")
+  m.collectorCore = m.top.FindNode("collectorCore")
+  m.videoStartTimeoutTimer = m.top.FindNode("videoStartTimeoutTimer")
+  m.videoStartFailedEvents = getVideoStartFailedEvents()
   m.playerStateTimer = CreateObject("roTimespan")
   m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
@@ -59,6 +61,9 @@ sub setUpHelperVariables()
 
   m.videoStartupTime = -1
   m.manualSourceChangeInProgress = false
+
+  m.didAttemptPlay = false
+  m.didVideoPlay = false
 end sub
 
 sub onPlayerStateChanged()
@@ -116,6 +121,14 @@ sub handleIntermediateState(intermediateState)
   m.playerStateTimer.Mark()
   setVideoTimeStart()
   transitionToState(m.previousState)
+end sub
+
+sub onPlay()
+  startVideoStartUpTimer()
+
+  if m.didAttemptPlay = false and m.didVideoPlay = false then startVideoStartTimeoutTimer()
+
+  m.didAttemptPlay = true
 end sub
 
 sub onPlayed(state)
@@ -246,7 +259,7 @@ sub onSeeked()
 end sub
 
 sub onControlChanged()
-  if m.player.control = m.playerControls.PLAY then startVideoStartUpTimer()
+  if m.player.control = m.playerControls.PLAY then onPlay()
 end sub
 
 sub startVideoStartUpTimer()
@@ -271,6 +284,11 @@ end sub
 
 sub onVideoStart()
   stopVideoStartUpTimer()
+
+  if m.didVideoPlay = false
+    m.didVideoPlay = true
+    clearVideoStartTimeoutTimer()
+  end if
 end sub
 
 function mapContent(content)
@@ -342,19 +360,59 @@ end sub
 sub onError()
   setVideoTimeEnd()
 
-  eventData = {
+  errorSample = {
     errorCode: m.player.errorCode,
     errorMessage: m.player.errorMsg,
     errorSegments: []
   }
 
-  if m.player.streamingSegment <> invalid then eventData.errorSegments.push(m.player.streamingSegment)
-  if m.player.downloadedSegment <> invalid then eventData.errorSegments.push(m.player.downloadedSegment)
+  if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
+  if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
 
   duration = getDuration(m.playerStateTimer)
-  sendAnalyticsRequestAndClearValues(eventData, duration, m.player.state)
   resetSeekHelperVariables()
   resetBufferingTimer()
+
+  if m.didAttemptPlay = true and m.didVideoPlay = false
+    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.state, errorSample)
+  else
+    sendAnalyticsRequestAndClearValues(errorSample, duration, m.player.state)
+  end if
+end sub
+
+sub startVideoStartTimeoutTimer()
+  m.videoStartTimeoutTimer.observeFieldScoped("fire", "onVideoStartTimeout")
+  m.videoStartTimeoutTimer.control = "start"
+end sub
+
+sub clearVideoStartTimeoutTimer()
+  m.videoStartTimeoutTimer.unobserveFieldScoped("fire")
+  m.videoStartTimeoutTimer.control = "stop"
+end sub
+
+sub onVideoStartTimeout()
+  durationMilliseconds = m.videoStartTimeoutTimer.duration * 1000
+  videoStartFailed(m.videoStartFailedEvents.Timeout, durationMilliseconds, m.player.state)
+end sub
+
+'Trigger videoStartFailed sample
+'@param {String} reason - Reason why videostart failed
+'@param {number} duration - Duration of the state in milliseconds
+'@param {String} state - State of the player in which the failure happened
+'@param {Object} additionalEventData - Additional event data that is added to the sample
+sub videoStartFailed(reason, duration, state, additionalEventData = invalid)
+  if reason = invalid return
+
+  clearVideoStartTimeoutTimer()
+
+  eventData = {}
+  if additionalEventData <> invalid then eventData.Append(additionalEventData)
+
+  eventData.Append({
+    videoStartFailed: true,
+    videoStartFailedReason: reason
+  })
+  sendAnalyticsRequestAndClearValues(eventData, duration, state)
 end sub
 
 function setCustomData(customData)

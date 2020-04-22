@@ -1,6 +1,8 @@
 sub init()
   m.tag = "[bitmovinPlayerCollector] "
-  m.collectorCore = m.top.findNode("collectorCore")
+  m.collectorCore = m.top.FindNode("collectorCore")
+  m.videoStartTimeoutTimer = m.top.FindNode("videoStartTimeoutTimer")
+  m.videoStartFailedEvents = getVideoStartFailedEvents()
   m.playerStateTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
@@ -68,6 +70,9 @@ sub setUpHelperVariables()
   m.playerControls = getPlayerControls()
 
   m.videoStartUpTime = -1
+
+  m.didAttemptPlay = false
+  m.didVideoPlay = false
 end sub
 
 sub onPlayerStateChanged()
@@ -113,6 +118,14 @@ sub handleIntermediateState(intermediateState)
   m.playerStateTimer.Mark()
   setVideoTimeStart()
   transitionToState(m.previousState)
+end sub
+
+sub onPlay()
+  startVideoStartUpTimer()
+
+  if m.didAttemptPlay = false and m.didVideoPlay = false then startVideoStartTimeoutTimer()
+
+  m.didAttemptPlay = true
 end sub
 
 sub onPlayed(state)
@@ -231,6 +244,11 @@ end sub
 
 sub onVideoStart()
   stopVideoStartUpTimer()
+
+  if m.didVideoPlay = false
+    m.didVideoPlay = true
+    clearVideoStartTimeoutTimer()
+  end if
 end sub
 
 sub handleManualSourceChange()
@@ -262,9 +280,14 @@ sub onError()
   if m.player.downloadFinished <> invalid then errorSample.errorSegments.push(m.player.downloadFinished)
 
   duration = getDuration(m.playerStateTimer)
-  sendAnalyticsRequestAndClearValues(errorSample, duration, m.player.playerState)
   resetSeekHelperVariables()
   resetBufferingTimer()
+
+  if m.didAttemptPlay = true and m.didVideoPlay = false
+    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, errorSample)
+  else
+    sendAnalyticsRequestAndClearValues(errorSample, duration, m.player.playerState)
+  end if
 end sub
 
 function setCustomData(customData)
@@ -306,10 +329,6 @@ function getPlayerKeyFromManifest(appInfo)
   return appInfo.getValue("bitmovin_player_license_key")
 end function
 
-sub onPlay()
-  startVideoStartUpTimer()
-end sub
-
 sub onSourceLoaded()
   playerConfig = m.player.callFunc("getConfig", invalid)
 
@@ -350,6 +369,41 @@ sub onFinished()
   m.videoStartUpTime = -1
   resetBufferingTimer()
   resetSeekHelperVariables()
+end sub
+
+sub startVideoStartTimeoutTimer()
+  m.videoStartTimeoutTimer.observeFieldScoped("fire", "onVideoStartTimeout")
+  m.videoStartTimeoutTimer.control = "start"
+end sub
+
+sub clearVideoStartTimeoutTimer()
+  m.videoStartTimeoutTimer.unobserveFieldScoped("fire")
+  m.videoStartTimeoutTimer.control = "stop"
+end sub
+
+sub onVideoStartTimeout()
+  durationMilliseconds = m.videoStartTimeoutTimer.duration * 1000
+  videoStartFailed(m.videoStartFailedEvents.Timeout, durationMilliseconds, m.player.playerState)
+end sub
+
+'Trigger videoStartFailed sample
+'@param {String} reason - Reason why videostart failed
+'@param {number} duration - Duration of the state in milliseconds
+'@param {String} state - State of the player in which the failure happened
+'@param {Object} additionalEventData - Additional event data that is added to the sample
+sub videoStartFailed(reason, duration, state, additionalEventData = invalid)
+  if reason = invalid return
+
+  clearVideoStartTimeoutTimer()
+
+  eventData = {}
+  if additionalEventData <> invalid then eventData.Append(additionalEventData)
+
+  eventData.Append({
+    videoStartFailed: true,
+    videoStartFailedReason: reason
+  })
+  sendAnalyticsRequestAndClearValues(eventData, duration, state)
 end sub
 
 'Function to map source to object valid for video node to accept. Sets stream format based upon which stream type entered and value as url.

@@ -6,10 +6,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
+
+### Added
+
 - support for `wist` linter (PR-185)
+- playAttempt tracking for PlayerError and Timeout (AN-1290)
 
 ## v1.0.0
+
 ### Added
+
 - `streamFormat` and corresponding `url` to samples (AN-1135)
 - `videoWindowHeight` and `videoWindowWidth` to samples (AN-1139)
 - `size` (fullscreen or window) to samples (AN-1136)
@@ -17,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `sequenceNumber` to samples (AN-1138)
 
 ### Fixed
+
 - `pageLoadType` was not set to `FOREGROUND` (AN-1145)
 - `platform` field not set to `roku` (AN-1134)
 - missing player `version` in samples for native/bitmovin player (AN-1137)
@@ -32,4 +39,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - default values of `errorCode`, `errorMessage` and `errorSegments` by setting them to `invalid` (AN-1147)
 
 ### Changed
+
 - native collector to be up-to-date with bitmovin collector (AN-1164)

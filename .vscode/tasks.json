@@ -24,23 +24,14 @@
       "command": "npm run clean"
     },
     {
-      "label": "copy-components-to-demo",
+      "label": "copy-components-to-demo-bitmovin",
       "type": "shell",
-      "command": "rm -rf ${workspaceFolder}/${input:demoTarget}/components/{collectorCore,${input:collectorAdapterTarget}} && cp -r ${workspaceFolder}/{collectorCore,${input:collectorAdapterTarget}} ${workspaceFolder}/${input:demoTarget}/components/"
-    }
-  ],
-  "inputs": [
-    {
-      "id": "demoTarget",
-      "type": "pickString",
-      "description": "Select a demo target",
-      "options": ["DemoBitmovinPlayerCollector", "DemoNativePlayerCollector"]
+      "command": "rm -rf ${workspaceFolder}/DemoBitmovinPlayerCollector/components/{collectorCore,bitmovinPlayerCollector} && cp -r ${workspaceFolder}/{collectorCore,bitmovinPlayerCollector} ${workspaceFolder}/DemoBitmovinPlayerCollector/components/"
     },
     {
-      "id": "collectorAdapterTarget",
-      "description": "Select target adapter",
-      "type": "pickString",
-      "options": ["bitmovinPlayerCollector", "nativePlayerCollector"]
-    }
+      "label": "copy-components-to-demo-native",
+      "type": "shell",
+      "command": "rm -rf ${workspaceFolder}/DemoNativePlayerCollector/components/{collectorCore,nativePlayerCollector} && cp -r ${workspaceFolder}/{collectorCore,nativePlayerCollector} ${workspaceFolder}/DemoNativePlayerCollector/components/"
+    },
   ]
 }

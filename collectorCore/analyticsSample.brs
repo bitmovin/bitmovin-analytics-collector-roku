@@ -47,6 +47,8 @@ function getAnalyticsSample()
     videoId: "",
     videoPlaybackHeight: 0,
     videoPlaybackWidth: 0,
+    videoStartFailed: false,
+    videoStartFailedReason: invalid,
     videoStartupTime: 0,
     videoTimeEnd: 0,
     videoTimeStart: 0,

@@ -28,13 +28,13 @@ app.use(proxy.middleware());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.post('/throttle', (req, res) => {
+app.get('/throttle', (req, res) => {
   try {
-    const config: PoisonConfig = req.body;
+    const speed: number = Number(req.query.bandwidth);
     proxy.flushPoisons();
-    proxy.poison(poisons.bandwidth(config.bandwidth));
+    proxy.poison(poisons.bandwidth(speed));
 
-    logInfo(`Adapted speed to: ${config.bandwidth}`);
+    logInfo(`Adapted speed to: ${speed}`);
 
     res.sendStatus(200);
   } catch (error) {
