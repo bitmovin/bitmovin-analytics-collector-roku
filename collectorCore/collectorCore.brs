@@ -5,16 +5,18 @@ sub init()
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
-  m.licensingData = getLicensingData()
   m.analyticsConfig = CreateObject("roAssociativeArray")
+  m.sample = invalid
+  m.licensingData = getLicensingData()
 
   setupSample()
-  checkAnalyticsLicenseKey(m.licensingData)
 end sub
 
-sub checkAnalyticsLicenseKey(licensingData)
-  if m.analyticsDataTask = invalid or licensingData = invalid then return
-  m.analyticsDataTask.licensingData = licensingData
+sub checkAnalyticsLicenseKey()
+  m.licensingData = getLicensingData()
+  if m.analyticsDataTask = invalid or m.licensingData = invalid then return
+
+  m.analyticsDataTask.licensingData = m.licensingData
   m.analyticsDataTask.checkLicenseKey = true
 end sub
 
@@ -24,7 +26,7 @@ sub setupSample()
   end if
   m.sample.analyticsVersion = getVersion()
   m.sample.key = m.licensingData.key
-  m.sample.domain = m.appInfo.GetID()
+  m.sample.domain = getDomainFromConfig()
   m.sample.userAgent = "roku-" + m.deviceInfo.GetModel() + "-" + m.deviceInfo.GetVersion()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
   m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
@@ -83,7 +85,7 @@ function getLicensingData()
 
   licensingData = {
     key : licenceKey,
-    domain : m.appInfo.getID(),
+    domain : getDomainFromConfig(),
     analyticsVersion : getVersion()
   }
 
@@ -153,6 +155,15 @@ Function writeToRegistry(registrySectionName, dataToWrite)
     registrySection.Flush()
 End Function
 
+function getDomainFromConfig()
+  ' It is called "origin" in the analytics config but is changed to "domain" after the sanity check in getMetadataFromAnalyticsConfig
+  if m.analyticsConfig <> invalid and m.analyticsConfig.DoesExist("domain") = true then return m.analyticsConfig.domain
+
+  return m.appInfo.getID()
+end function
+
+' Extract valid analytics configuration fields from the config object
+' @return A valid analytics configuration which can be appended to analytics samples
 function getMetadataFromAnalyticsConfig(config)
   if config = invalid then return {}
 
@@ -199,6 +210,9 @@ function getMetadataFromAnalyticsConfig(config)
   if config.DoesExist("isLive")
     metadata.isLive = config.isLive
   end if
+  if config.DoesExist("origin")
+    metadata.domain = config.origin
+  end if
   return metadata
 end function
 
@@ -221,5 +235,16 @@ sub updateAnalyticsConfig(config)
   mergedConfig.Append(config)
   m.analyticsConfig = mergedConfig
 
+  ' Perform license check after the config updated (origin may be passed there initialy) and setup sample
+  if m.analyticsDataTask.licensingData = invalid
+    checkAnalyticsLicenseKey()
+  end if
+
   updateSample(m.analyticsConfig)
+end sub
+
+sub playerInitialized()
+  if m.analyticsDataTask.licensingData = invalid
+    checkAnalyticsLicenseKey()
+  end if
 end sub
