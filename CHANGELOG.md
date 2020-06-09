@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - support for `wist` linter (PR-185)
 - playAttempt tracking for PlayerError and Timeout (AN-1290)
+- `origin` to analytics collector configuration to override `origin` header in requests (AN-1504)
 
 ## v1.0.0
 
