@@ -49,8 +49,8 @@ sub execute()
   end while
 end sub
 
-sub handleFailedLicensingRequest(responseMsg)
-  m.licensingResponse.status = "denied"
+sub handleFailedLicensingRequest(responseMsg, status)
+  m.licensingState = status
 
   if responseMsg <> invalid then
     print m.tag; "License Check for Bitmovin Analytics failed because of: "; responseMsg.getFailureReason()
@@ -81,15 +81,15 @@ sub checkLicenseKey(licensingData, url)
         if m.licensingResponse.status = "granted"
           m.licensingState = m.licensingResponse.status
         else
-          handleFailedLicensingRequest(msg)
+          handleFailedLicensingRequest(msg, m.licensingResponse.status)
         end if
       else
-        handleFailedLicensingRequest(msg)
+        handleFailedLicensingRequest(msg, "denied")
       end if
       m.isLicensingCallDone = true
       http.asyncCancel()
     else if msg = invalid
-      handleFailedLicensingRequest(invalid)
+      handleFailedLicensingRequest(invalid, "denied")
       http.asyncCancel()
     end if
   end if
