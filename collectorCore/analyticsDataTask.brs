@@ -49,13 +49,26 @@ sub execute()
   end while
 end sub
 
+sub handleFailedLicensingRequest(responseMsg)
+  m.licensingResponse.status = "denied"
+
+  if responseMsg <> invalid then
+    print m.tag; "License Check for Bitmovin Analytics failed because of: "; responseMsg.getFailureReason()
+  else
+    print m.tag; "License Check for Bitmovin Analytics failed."
+  end if
+
+  clearLicensingResponseAndAnalyticsEventsQueue()
+  stopExecuteLoop()
+end sub
+
 sub checkLicenseKey(licensingData, url)
   http = CreateObject("roUrlTransfer")
   http.setCertificatesFile("common:/certs/ca-bundle.crt")
   port = CreateObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
-  http.addHeader("Origin", m.appInfo.getID())
+  http.addHeader("Origin", licensingData.domain)
 
   data = formatJson(licensingData)
 
@@ -68,18 +81,15 @@ sub checkLicenseKey(licensingData, url)
         if m.licensingResponse.status = "granted"
           m.licensingState = m.licensingResponse.status
         else
-          clearLicensingResponseAndAnalyticsEventsQueue()
-          stopExecuteLoop()
+          handleFailedLicensingRequest(msg)
         end if
       else
-        clearLicensingResponseAndAnalyticsEventsQueue()
-        stopExecuteLoop()
+        handleFailedLicensingRequest(msg)
       end if
       m.isLicensingCallDone = true
       http.asyncCancel()
     else if msg = invalid
-      clearLicensingResponseAndAnalyticsEventsQueue()
-      stopExecuteLoop()
+      handleFailedLicensingRequest(invalid)
       http.asyncCancel()
     end if
   end if
@@ -94,7 +104,7 @@ sub sendAnalyticsData(eventData)
   port = CreateObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
-  http.AddHeader("Origin", m.appInfo.getID())
+  http.AddHeader("Origin", eventData.domain)
 
   data = FormatJson(eventData)
 
