@@ -9,7 +9,8 @@ function init()
     title: "Sintel",
     videoId: "Sintel",
     customUserId: "John Smith",
-    experimentName: "local-development"
+    experimentName: "local-development",
+    origin: "dev.roku"
   }
   m.nativePlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
   m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)

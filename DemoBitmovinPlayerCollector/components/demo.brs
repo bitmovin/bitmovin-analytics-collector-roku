@@ -31,7 +31,8 @@ sub onLoadStatusChanged()
     title: "Art of Motion",
     videoId: "ArtOfMotion",
     customUserId: "John Smith",
-    experimentName: "local-development"
+    experimentName: "local-development",
+    origin: "dev.roku"
   }
   m.bitmovinPlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
   m.bitmovinPlayerCollector.callFunc("initializePlayer", m.bitmovinPlayer)
