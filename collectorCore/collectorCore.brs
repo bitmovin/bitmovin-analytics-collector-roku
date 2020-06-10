@@ -26,7 +26,7 @@ sub setupSample()
   end if
   m.sample.analyticsVersion = getVersion()
   m.sample.key = m.licensingData.key
-  m.sample.domain = m.appInfo.getID()
+  m.sample.domain = m.appInfo.GetID()
   m.sample.userAgent = "roku-" + m.deviceInfo.GetModel() + "-" + m.deviceInfo.GetVersion()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
   m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
@@ -85,7 +85,7 @@ function getLicensingData()
 
   licensingData = {
     key : licenceKey,
-    domain : m.appInfo.getID(),
+    domain : m.appInfo.GetID(),
     analyticsVersion : getVersion()
   }
 

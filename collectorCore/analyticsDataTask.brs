@@ -68,7 +68,7 @@ sub checkLicenseKey(licensingData, url)
   port = CreateObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
-  http.addHeader("Origin", licensingData.domain)
+  http.addHeader("Origin", m.appInfo.GetID())
 
   data = formatJson(licensingData)
 
@@ -104,7 +104,7 @@ sub sendAnalyticsData(eventData)
   port = CreateObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
-  http.AddHeader("Origin", eventData.domain)
+  http.AddHeader("Origin", m.appInfo.GetID())
 
   data = FormatJson(eventData)
 
