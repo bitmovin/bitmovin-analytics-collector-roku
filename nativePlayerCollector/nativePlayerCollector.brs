@@ -17,8 +17,6 @@ sub initializePlayer(player)
   m.previousState = ""
   m.currentState = player.state
 
-  m.collectorCore.callFunc("playerInitialized")
-
   eventData = {
     player: "Roku",
     playerTech: "native",

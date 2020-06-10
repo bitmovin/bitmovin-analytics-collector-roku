@@ -18,8 +18,6 @@ sub initializePlayer(player)
   m.previousState = ""
   m.currentState = player.playerState
 
-  m.collectorCore.callFunc("playerInitialized")
-
   eventData = {
     playerTech: "bitmovin",
     version: getPlayerVersion(),
