@@ -20,7 +20,7 @@ Choose the one you want from the list and copy/paste the `licenseKey` to the `ma
 
 ### Analytics License setup
 
-After choosing the license, make sure that your domain is whitelisted and that the `origin` attribute in the Analytics Configuration is set to this one. See more below in the corresponding player setup section. This step is essential for enabling analytics data collection.
+After choosing the license, make sure that your domain -- the value of `appInfo.getID()` -- is whitelisted. During local development the domain will be `dev`. A random channel id will be assigned once your channel is released. Update the whitelist accordingly. This step is essential to enable analytics data collection.
 
 ## Bitmovin player collector
 
@@ -65,7 +65,7 @@ m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 ## Optional
 
 To improve analytics data collection, call `setAnalyticsConfig` before the `initializePlayer` of the adapters. Here you can set additional information like, video title, custom data and so on.
-See the example below for a full set up:
+See the example below for a full setup:
 
 ### Bitmovin player collector
 
@@ -76,8 +76,7 @@ analyticsConfig = {
   videoId: "ArtOfMotion",
   customUserId: "John Doe",
   customData1: "overlay-off",
-  experimentName: "myTestExperiment",
-  origin: "myDomain.com" // Must match one of the whitelisted domains in the dashboard
+  experimentName: "myTestExperiment"
 }
 m.bitmovinPlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
 m.bitmovinPlayerCollector.callFunc("initializePlayer", m.bitmovinPlayer)
@@ -92,8 +91,7 @@ analyticsConfig = {
   videoId: "ArtOfMotion",
   customUserId: "John Doe",
   customData1: "overlay-off",
-  experimentName: "myTestExperiment",
-  origin: "myDomain.com" // Must match one of the whitelisted domains in the dashboard
+  experimentName: "myTestExperiment"
 }
 m.nativePlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
 m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
@@ -113,7 +111,6 @@ analyticsConfig = {
   customData4: "customData4",
   customData5: "customData5",
   heartbeatInterval: 59700, // value is in ms
-  domain: "myDomain" // Must match one of the whitelisted domains in the dashboard
 }
 ```
 
