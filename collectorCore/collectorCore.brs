@@ -81,7 +81,7 @@ end function
 
 function getLicensingData()
   licenceKey = m.appInfo.getValue("bitmovin_analytics_license_key")
-  if Len(licenceKey) = 0 then print m.tag ; "Warning: license key is not present in the manifest or is set as an empty string"
+  if Len(licenceKey) = 0 then print m.tag; "Warning: license key is not present in the manifest or is set as an empty string"
 
   licensingData = {
     key : licenceKey,
@@ -208,12 +208,12 @@ end function
 
 sub guardAgainstMissingVideoTitle(config)
   if config <> invalid and config.DoesExist("title") = true then return
-  print "The new analytics configuration does not contain the field `title`"
+  print m.tag; "The new analytics configuration does not contain the field `title`"
 end sub
 
 sub guardAgainstMissingIsLive(config)
   if config <> invalid and config.DoesExist("isLive") = true then return
-  print "The new analytics configuration does not contain the field `isLive`. It will default to `false` which might be unintended? Once stream playback information is available the type will be populated."
+  print m.tag; "The new analytics configuration does not contain the field `isLive`. It will default to `false` which might be unintended? Once stream playback information is available the type will be populated."
 end sub
 
 sub updateAnalyticsConfig(config)

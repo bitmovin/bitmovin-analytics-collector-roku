@@ -1,5 +1,5 @@
 sub init()
-  m.tag = "[analyticsDataTask] "
+  m.tag = "Bitmovin Analytics Collector [analyticsDataTask] "
   m.config = getCollectorCoreConfig()
   m.licensingState = m.top.findNode("licensingState")
   m.isLicensingCallDone = false
