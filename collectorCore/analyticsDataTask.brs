@@ -6,6 +6,7 @@ sub init()
   m.analyticsEventsQueue = []
   m.heartbeatTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
+  m.domain = m.appInfo.getID() + ".roku"
   m.top.url = m.config.serviceEndpoints.analyticsLicense
   m.licensingResponse = {}
   m.analyticsDataTaskPort = CreateObject("roMessagePort")
@@ -68,7 +69,7 @@ sub checkLicenseKey(licensingData, url)
   port = CreateObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
-  http.addHeader("Origin", m.appInfo.GetID())
+  http.addHeader("Origin", m.domain)
 
   data = formatJson(licensingData)
 
@@ -104,7 +105,7 @@ sub sendAnalyticsData(eventData)
   port = CreateObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
-  http.AddHeader("Origin", m.appInfo.GetID())
+  http.AddHeader("Origin", m.domain)
 
   data = FormatJson(eventData)
 

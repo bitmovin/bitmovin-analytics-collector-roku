@@ -2,6 +2,7 @@ sub init()
   m.version = "1.0.0"
   m.tag = "Bitmovin Analytics Collector "
   m.appInfo = CreateObject("roAppInfo")
+  m.domain = m.appInfo.GetID() + ".roku"
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
@@ -26,7 +27,7 @@ sub setupSample()
   end if
   m.sample.analyticsVersion = getVersion()
   m.sample.key = m.licensingData.key
-  m.sample.domain = m.appInfo.GetID()
+  m.sample.domain = m.domain
   m.sample.userAgent = "roku-" + m.deviceInfo.GetModel() + "-" + m.deviceInfo.GetVersion()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
   m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
@@ -85,7 +86,7 @@ function getLicensingData()
 
   licensingData = {
     key : licenceKey,
-    domain : m.appInfo.GetID(),
+    domain : m.domain,
     analyticsVersion : getVersion()
   }
 
@@ -227,4 +228,3 @@ sub updateAnalyticsConfig(config)
 
   updateSample(m.analyticsConfig)
 end sub
-
