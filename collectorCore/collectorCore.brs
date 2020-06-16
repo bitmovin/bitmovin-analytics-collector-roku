@@ -2,11 +2,13 @@ sub init()
   m.version = "1.0.0"
   m.tag = "Bitmovin Analytics Collector "
   m.appInfo = CreateObject("roAppInfo")
+  m.domain = m.appInfo.GetID() + ".roku"
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
   m.licensingData = getLicensingData()
   m.analyticsConfig = CreateObject("roAssociativeArray")
+  m.sample = invalid
 
   setupSample()
   checkAnalyticsLicenseKey(m.licensingData)
@@ -14,6 +16,7 @@ end sub
 
 sub checkAnalyticsLicenseKey(licensingData)
   if m.analyticsDataTask = invalid or licensingData = invalid then return
+
   m.analyticsDataTask.licensingData = licensingData
   m.analyticsDataTask.checkLicenseKey = true
 end sub
@@ -24,7 +27,7 @@ sub setupSample()
   end if
   m.sample.analyticsVersion = getVersion()
   m.sample.key = m.licensingData.key
-  m.sample.domain = m.appInfo.GetID()
+  m.sample.domain = m.domain
   m.sample.userAgent = "roku-" + m.deviceInfo.GetModel() + "-" + m.deviceInfo.GetVersion()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
   m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
@@ -79,11 +82,11 @@ end function
 
 function getLicensingData()
   licenceKey = m.appInfo.getValue("bitmovin_analytics_license_key")
-  if Len(licenceKey) = 0 then print m.tag ; "Warning: license key is not present in the manifest or is set as an empty string"
+  if Len(licenceKey) = 0 then print m.tag; "Warning: license key is not present in the manifest or is set as an empty string"
 
   licensingData = {
     key : licenceKey,
-    domain : m.appInfo.getID(),
+    domain : m.domain,
     analyticsVersion : getVersion()
   }
 
@@ -153,6 +156,8 @@ Function writeToRegistry(registrySectionName, dataToWrite)
     registrySection.Flush()
 End Function
 
+' Extract valid analytics configuration fields from the config object
+' @return A valid analytics configuration which can be appended to analytics samples
 function getMetadataFromAnalyticsConfig(config)
   if config = invalid then return {}
 
@@ -204,12 +209,12 @@ end function
 
 sub guardAgainstMissingVideoTitle(config)
   if config <> invalid and config.DoesExist("title") = true then return
-  print "The new analytics configuration does not contain the field `title`"
+  print m.tag; "The new analytics configuration does not contain the field `title`"
 end sub
 
 sub guardAgainstMissingIsLive(config)
   if config <> invalid and config.DoesExist("isLive") = true then return
-  print "The new analytics configuration does not contain the field `isLive`. It will default to `false` which might be unintended? Once stream playback information is available the type will be populated."
+  print m.tag; "The new analytics configuration does not contain the field `isLive`. It will default to `false` which might be unintended? Once stream playback information is available the type will be populated."
 end sub
 
 sub updateAnalyticsConfig(config)

@@ -1,11 +1,12 @@
 sub init()
-  m.tag = "[analyticsDataTask] "
+  m.tag = "Bitmovin Analytics Collector [analyticsDataTask] "
   m.config = getCollectorCoreConfig()
   m.licensingState = m.top.findNode("licensingState")
   m.isLicensingCallDone = false
   m.analyticsEventsQueue = []
   m.heartbeatTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
+  m.domain = m.appInfo.getID() + ".roku"
   m.top.url = m.config.serviceEndpoints.analyticsLicense
   m.licensingResponse = {}
   m.analyticsDataTaskPort = CreateObject("roMessagePort")
@@ -49,13 +50,26 @@ sub execute()
   end while
 end sub
 
+sub handleFailedLicensingRequest(responseMsg, status)
+  m.licensingState = status
+
+  if responseMsg <> invalid then
+    print m.tag; "License Check for Bitmovin Analytics failed because of: "; responseMsg.getFailureReason()
+  else
+    print m.tag; "License Check for Bitmovin Analytics failed."
+  end if
+
+  clearLicensingResponseAndAnalyticsEventsQueue()
+  stopExecuteLoop()
+end sub
+
 sub checkLicenseKey(licensingData, url)
   http = CreateObject("roUrlTransfer")
   http.setCertificatesFile("common:/certs/ca-bundle.crt")
   port = CreateObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
-  http.addHeader("Origin", m.appInfo.getID())
+  http.addHeader("Origin", m.domain)
 
   data = formatJson(licensingData)
 
@@ -68,18 +82,15 @@ sub checkLicenseKey(licensingData, url)
         if m.licensingResponse.status = "granted"
           m.licensingState = m.licensingResponse.status
         else
-          clearLicensingResponseAndAnalyticsEventsQueue()
-          stopExecuteLoop()
+          handleFailedLicensingRequest(msg, m.licensingResponse.status)
         end if
       else
-        clearLicensingResponseAndAnalyticsEventsQueue()
-        stopExecuteLoop()
+        handleFailedLicensingRequest(msg, "denied")
       end if
       m.isLicensingCallDone = true
       http.asyncCancel()
     else if msg = invalid
-      clearLicensingResponseAndAnalyticsEventsQueue()
-      stopExecuteLoop()
+      handleFailedLicensingRequest(invalid, "denied")
       http.asyncCancel()
     end if
   end if
@@ -94,7 +105,7 @@ sub sendAnalyticsData(eventData)
   port = CreateObject("roMessagePort")
   http.setPort(port)
   http.setUrl(url)
-  http.AddHeader("Origin", m.appInfo.getID())
+  http.AddHeader("Origin", m.domain)
 
   data = FormatJson(eventData)
 
