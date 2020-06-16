@@ -20,7 +20,10 @@ Choose the one you want from the list and copy/paste the `licenseKey` to the `ma
 
 ### Analytics License setup
 
-After choosing the license, make sure that your domain (channel id) is whitelisted and postfixed with a `.dev`. During local development the domain will be `dev.roku`. A random channel id will be assigned once your channel is released. Update the whitelist accordingly. This step is essential to enable analytics data collection.
+After choosing the license, make sure that your domain (channel id) is whitelisted and postfixed with `.roku`.
+During local development the domain will be `dev.roku`.
+A random channel id will be assigned once your channel is released. Update the whitelist accordingly.
+This step is essential to enable analytics data collection.
 
 ## Bitmovin player collector
 
