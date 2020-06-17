@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v1.1.0
+
 ### Added
 
 - support for `wist` linter (PR-185)
