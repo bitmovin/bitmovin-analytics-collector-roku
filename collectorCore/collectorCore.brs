@@ -172,7 +172,7 @@ function getMetadataFromAnalyticsConfig(config)
     metadata.videoId = config.videoId
   end if
   if config.DoesExist("title")
-    metadata.title = config.title
+    metadata.videoTitle = config.title
   end if
   if config.DoesExist("customUserId")
     metadata.customUserId = config.customUserId
