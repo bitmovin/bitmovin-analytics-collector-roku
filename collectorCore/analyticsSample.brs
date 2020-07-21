@@ -52,6 +52,7 @@ function getAnalyticsSample()
     videoStartupTime: 0,
     videoTimeEnd: 0,
     videoTimeStart: 0,
+    videoTitle: invalid,
     videoWindowHeight: 0,
     videoWindowWidth: 0
   }

@@ -156,7 +156,8 @@ Function writeToRegistry(registrySectionName, dataToWrite)
     registrySection.Flush()
 End Function
 
-' Extract valid analytics configuration fields from the config object
+' Extract valid analytics configuration fields from the config object.
+' This metadata object will be merged with the sample! Make sure that fields are valid sample attributes.
 ' @return A valid analytics configuration which can be appended to analytics samples
 function getMetadataFromAnalyticsConfig(config)
   if config = invalid then return {}
@@ -172,7 +173,7 @@ function getMetadataFromAnalyticsConfig(config)
     metadata.videoId = config.videoId
   end if
   if config.DoesExist("title")
-    metadata.title = config.title
+    metadata.videoTitle = config.title
   end if
   if config.DoesExist("customUserId")
     metadata.customUserId = config.customUserId
@@ -217,9 +218,12 @@ sub guardAgainstMissingIsLive(config)
   print m.tag; "The new analytics configuration does not contain the field `isLive`. It will default to `false` which might be unintended? Once stream playback information is available the type will be populated."
 end sub
 
-sub updateAnalyticsConfig(config)
-  guardAgainstMissingVideoTitle(config)
-  guardAgainstMissingIsLive(config)
+sub updateAnalyticsConfig(unsanitizedConfig)
+  ' First check for missing fields and then extract metadata (renaming of fields happens here)
+  guardAgainstMissingVideoTitle(unsanitizedConfig)
+  guardAgainstMissingIsLive(unsanitizedConfig)
+
+  config = getMetadataFromAnalyticsConfig(unsanitizedConfig)
 
   mergedConfig = {}
   mergedConfig.Append(m.analyticsConfig)
