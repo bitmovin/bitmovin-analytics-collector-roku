@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v1.1.1
+
 ### Fixed
 
 - `videoTitle` in sample always `null` which can be configured with the `analyticsConfig.title` attribute (AN-1616)
