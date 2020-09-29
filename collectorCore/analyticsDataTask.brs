@@ -6,8 +6,8 @@ sub init()
   m.analyticsEventsQueue = []
   m.heartbeatTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
-  m.domain = m.appInfo.getID() + ".roku"
-  m.top.url = m.config.serviceEndpoints.analyticsLicense
+  m.licensingUrl = m.config.serviceEndpoints.analyticsLicense
+  m.dataUrl = m.config.serviceEndpoints.analyticsData
   m.licensingResponse = {}
   m.analyticsDataTaskPort = CreateObject("roMessagePort")
   m.top.observeFieldScoped("checkLicenseKey", m.analyticsDataTaskPort)
@@ -35,7 +35,8 @@ sub execute()
         event = data
         pushToAnalyticsEventsQueue(event)
       else if field = "checkLicenseKey" and data = true
-        checkLicenseKey(m.top.licensingData, m.top.url)
+        ' Get licensing data from collectorCore
+        sendAnalyticsLicensingRequest(m.top.licensingData)
       end if
     end if
 
@@ -63,13 +64,13 @@ sub handleFailedLicensingRequest(responseMsg, status)
   stopExecuteLoop()
 end sub
 
-sub checkLicenseKey(licensingData, url)
+sub sendAnalyticsLicensingRequest(licensingData)
   http = CreateObject("roUrlTransfer")
   http.setCertificatesFile("common:/certs/ca-bundle.crt")
   port = CreateObject("roMessagePort")
   http.setPort(port)
-  http.setUrl(url)
-  http.addHeader("Origin", m.domain)
+  http.setUrl(m.licensingUrl)
+  http.addHeader("Origin", licensingData.domain)
 
   data = formatJson(licensingData)
 
@@ -99,13 +100,12 @@ sub checkLicenseKey(licensingData, url)
 end sub
 
 sub sendAnalyticsData(eventData)
-  url = m.config.serviceEndpoints.analyticsData
   http = CreateObject("roUrlTransfer")
   http.SetCertificatesFile("common:/certs/ca-bundle.crt")
   port = CreateObject("roMessagePort")
   http.setPort(port)
-  http.setUrl(url)
-  http.AddHeader("Origin", m.domain)
+  http.setUrl(m.dataUrl)
+  http.AddHeader("Origin", m.top.licensingData.domain)
 
   data = FormatJson(eventData)
 

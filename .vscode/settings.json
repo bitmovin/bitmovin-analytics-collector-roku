@@ -5,8 +5,10 @@
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
   "search.exclude": {
-    "**/demo/components/playerExample/": true,
+    "**/demo/components/collectorCore/": true,
+    "**/demo/components/nativePlayerCollector/": true,
+    "**/demo/components/bitmovinPlayerCollector/": true,
    },
-  "brightscript.format.keywordCase": null,
+  "brightscript.format.keywordCase": "upper",
   "brightscript.output.hyperlinkFormat": "Filename"
 }
