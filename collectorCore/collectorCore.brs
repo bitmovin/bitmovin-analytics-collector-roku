@@ -28,13 +28,14 @@ sub setupSample()
   m.sample.analyticsVersion = getVersion()
   m.sample.key = m.licensingData.key
   m.sample.domain = m.domain
-  m.sample.userAgent = "roku-" + m.deviceInfo.GetModel() + "-" + m.deviceInfo.GetVersion()
+  m.sample.userAgent = getUserAgent()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
   m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
   m.sample.userId = getPersistedUserId(m.sectionRegistryName)
 
   m.sample.sequenceNumber = 0
   m.sample.impressionId = createImpressionId()
+  m.sample.deviceInformation = getDeviceInformation()
 end sub
 
 sub clearSampleValues()
@@ -47,6 +48,7 @@ sub clearSampleValues()
   m.sample.playerStartupTime = 0
   m.sample.videoStartupTime = 0
   m.sample.startupTime = 0
+  m.sample.deviceInformation = setupDeviceInfo()
 
   m.sample.duration = 0
   m.sample.droppedFrames = 0
@@ -54,6 +56,30 @@ end sub
 
 function getVersion(param = invalid)
   return m.version
+end function
+
+function getUserAgent(param = invalid)
+  version=m.deviceInfo.GetVersion()
+  version_major=mid(version,3,1)
+  version_minor=mid(version,5,2)
+  version_build=mid(version,8,5)
+
+  if version_minor.toint() < 10 then
+      version_minor=mid(version_minor,2)
+  end if
+  return "Roku/DVP-"+version_major+"."+version_minor+" ("+version+")"
+end function
+
+function getDeviceInformation(param = invalid)
+   deviceInfo = setupDeviceInfo()
+   deviceInfo.manufacturer = m.deviceInfo.GetModelDetails().VendorName
+   deviceInfo.model = m.deviceInfo.GetModel()
+   if m.deviceInfo.GetModelType() = "TV" then
+      deviceInfo.isTV = true
+    else
+      deviceInfo.isTV = false
+    end if
+    return deviceInfo
 end function
 
 function createImpressionId(param = invalid)
@@ -232,3 +258,11 @@ sub updateAnalyticsConfig(unsanitizedConfig)
 
   updateSample(m.analyticsConfig)
 end sub
+
+function setupDeviceInfo ()
+  return {
+    manufacturer: "",
+	  model: "",
+	  isTV: false
+  }
+end function
