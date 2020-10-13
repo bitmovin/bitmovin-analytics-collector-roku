@@ -48,7 +48,6 @@ sub clearSampleValues()
   m.sample.playerStartupTime = 0
   m.sample.videoStartupTime = 0
   m.sample.startupTime = 0
-  m.sample.deviceInformation = setupDeviceInfo()
 
   m.sample.duration = 0
   m.sample.droppedFrames = 0
@@ -60,26 +59,22 @@ end function
 
 function getUserAgent(param = invalid)
   version=m.deviceInfo.GetVersion()
-  version_major=mid(version,3,1)
-  version_minor=mid(version,5,2)
-  version_build=mid(version,8,5)
+  versionMajor=mid(version,3,1)
+  versionMinor=mid(version,5,2)
+  versionBuild=mid(version,8,5)
 
-  if version_minor.toint() < 10 then
-      version_minor=mid(version_minor,2)
+  if versionMinor.toint() < 10 then
+      versionMinor=mid(versionMinor,2)
   end if
-  return "Roku/DVP-"+version_major+"."+version_minor+" ("+version+")"
+  return "Roku/DVP-"+versionMajor+"."+versionMinor+" ("+version+")"
 end function
 
 function getDeviceInformation(param = invalid)
-   deviceInfo = setupDeviceInfo()
-   deviceInfo.manufacturer = m.deviceInfo.GetModelDetails().VendorName
-   deviceInfo.model = m.deviceInfo.GetModel()
-   if m.deviceInfo.GetModelType() = "TV" then
-      deviceInfo.isTV = true
-    else
-      deviceInfo.isTV = false
-    end if
-    return deviceInfo
+ return {
+      manufacturer: m.deviceInfo.GetModelDetails().VendorName,
+      model: m.deviceInfo.GetModel(),
+      isTV: m.deviceInfo.GetModelType() = "TV"
+ }
 end function
 
 function createImpressionId(param = invalid)
@@ -258,11 +253,3 @@ sub updateAnalyticsConfig(unsanitizedConfig)
 
   updateSample(m.analyticsConfig)
 end sub
-
-function setupDeviceInfo ()
-  return {
-    manufacturer: "",
-	  model: "",
-	  isTV: false
-  }
-end function
