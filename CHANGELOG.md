@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Fixed
+
+- detection of operating system and device type
+
 ## v1.1.1
 
 ### Fixed
