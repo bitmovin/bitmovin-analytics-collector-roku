@@ -7,6 +7,7 @@
     <analyticsDataTask id="analyticsDataTask"/>
   </children>
   <interface>
+    <function name="initializeAnalytics" />
     <function name="setupSample"/>
     <function name="getCurrentImpressionId"/>
     <function name="getVersion"/>
