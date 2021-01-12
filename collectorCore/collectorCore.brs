@@ -71,9 +71,9 @@ end function
 
 function getDeviceInformation(param = invalid)
  return {
-      manufacturer: m.deviceInfo.GetModelDetails().VendorName,
-      model: m.deviceInfo.GetModel(),
-      isTV: m.deviceInfo.GetModelType() = "TV"
+    manufacturer: m.deviceInfo.GetModelDetails().VendorName,
+    model: m.deviceInfo.GetModel(),
+    isTV: m.deviceInfo.GetModelType() = "TV"
  }
 end function
 
