@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="collectorCore" extends="Group">
+  <script type="text/brightscript" uri="./collectorCoreUtils.brs"/>
   <script type="text/brightscript" uri="./collectorCore.brs"/>
   <script type="text/brightscript" uri="./analyticsSample.brs"/>
   <children>

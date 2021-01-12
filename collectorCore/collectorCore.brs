@@ -15,14 +15,14 @@ sub init()
 end sub
 
 sub checkAnalyticsLicenseKey(licensingData)
-  if m.analyticsDataTask = invalid or licensingData = invalid then return
+  if isInvalid(m.analyticsDataTask) or isInvalid(licensingData) then return
 
   m.analyticsDataTask.licensingData = licensingData
   m.analyticsDataTask.checkLicenseKey = true
 end sub
 
 sub setupSample()
-  if m.sample = invalid
+  if isInvalid(m.sample)
     m.sample = getAnalyticsSample()
   end if
   m.sample.analyticsVersion = getVersion()
@@ -103,7 +103,7 @@ end function
 
 function getLicensingData()
   licenceKey = m.appInfo.getValue("bitmovin_analytics_license_key")
-  if Len(licenceKey) = 0 then print m.tag; "Warning: license key is not present in the manifest or is set as an empty string"
+  if isInvalid(licenseKey) or Len(licenceKey) = 0 then print m.tag; "Warning: license key is not present in the manifest or is set as an empty string"
 
   licensingData = {
     key : licenceKey,
