@@ -27,6 +27,7 @@ sub onLoadStatusChanged()
     source: getSourceConfig(m.PlayerSourceType.SINTEL)
   }
   analyticsConfig = {
+    key: "YOUR_ANALYTICS_KEY",
     isLive: false,
     title: "Art of Motion",
     videoId: "ArtOfMotion",

@@ -6,6 +6,7 @@ function init()
   m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
 
   analyticsConfig = {
+    key: "YOUR_ANALYTICS_KEY",
     title: "Sintel",
     videoId: "Sintel",
     customUserId: "John Smith",
