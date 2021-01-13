@@ -1,6 +1,6 @@
 sub init()
   m.version = "1.1.0"
-  m.tag = "Bitmovin Analytics Collector "
+  m.tag = "Bitmovin Analytics Collector [collectorCore] "
   m.appInfo = CreateObject("roAppInfo")
   m.domain = m.appInfo.GetID() + ".roku"
   m.deviceInfo = CreateObject("roDeviceInfo")
@@ -35,7 +35,7 @@ function getLicensingData()
   licenseKey = getLicenseKey()
 
   if isInvalid(licenseKey) or Len(licenseKey) = 0
-    print m.tag; "Warning: license key is not present in the manifest/analyticsConfig or is set as an empty string."
+    print m.tag; "Warning: license key is not present in the analyticsConfig or manifest, or is set as an empty string."
   end if
 
   return {
