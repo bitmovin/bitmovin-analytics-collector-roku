@@ -12,7 +12,7 @@ function init()
     customUserId: "John Smith",
     experimentName: "local-development"
   }
-  m.nativePlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
+  m.nativePlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
   m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 
   source = getPlayerSource(m.PlayerSourceType.SINTEL)

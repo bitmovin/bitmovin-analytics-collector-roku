@@ -34,7 +34,7 @@ sub onLoadStatusChanged()
     customUserId: "John Smith",
     experimentName: "local-development"
   }
-  m.bitmovinPlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
+  m.bitmovinPlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
   m.bitmovinPlayerCollector.callFunc("initializePlayer", m.bitmovinPlayer)
 
   m.bitmovinFunctions = m.bitmovinPlayer.bitmovinFunctions

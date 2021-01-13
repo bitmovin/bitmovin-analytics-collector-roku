@@ -10,9 +10,16 @@ sub init()
   m.sample = invalid
 end sub
 
-sub initializeAnalytics()
+sub initializeAnalytics(config = invalid)
+  ' Set licenseKey if present in analytics configuration
+  if config <> invalid and config.DoesExist("key")
+    setLicenseKey(config.key)
+  end if
+
   checkAnalyticsLicenseKey()
   setupSample()
+
+  updateAnalyticsConfig(config)
 end sub
 
 ' #region Licensing
@@ -49,6 +56,10 @@ function getLicenseKey()
 
   return licenseKey
 end function
+
+sub setLicenseKey(licenseKey)
+  m.analyticsConfig.key = licenseKey
+end sub
 
 ' #endregion
 
@@ -207,9 +218,6 @@ function getMetadataFromAnalyticsConfig(config)
     isLive: false
   }
 
-  if config.doesExist("key")
-    metadata.key = config.key
-  end if
   if config.DoesExist("cdnProvider")
     metadata.cdnProvider = config.cdnProvider
   end if
@@ -272,7 +280,6 @@ sub updateAnalyticsConfig(unsanitizedConfig)
   mergedConfig = {}
   mergedConfig.Append(m.analyticsConfig)
   mergedConfig.Append(config)
-  ' TODO: merging will override analytics license key. Do we want this?
   m.analyticsConfig = mergedConfig
 
   updateSample(m.analyticsConfig)
