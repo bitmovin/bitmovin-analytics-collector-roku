@@ -1,32 +1,75 @@
 sub init()
   m.version = "1.1.0"
-  m.tag = "Bitmovin Analytics Collector "
+  m.tag = "Bitmovin Analytics Collector [collectorCore] "
   m.appInfo = CreateObject("roAppInfo")
   m.domain = m.appInfo.GetID() + ".roku"
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
   m.analyticsDataTask = m.top.findNode("analyticsDataTask")
-  m.licensingData = getLicensingData()
   m.analyticsConfig = CreateObject("roAssociativeArray")
   m.sample = invalid
-
-  setupSample()
-  checkAnalyticsLicenseKey(m.licensingData)
 end sub
 
-sub checkAnalyticsLicenseKey(licensingData)
-  if m.analyticsDataTask = invalid or licensingData = invalid then return
+sub initializeAnalytics(config = invalid)
+  ' Set licenseKey if present in analytics configuration
+  if config <> invalid and config.DoesExist("key")
+    setLicenseKey(config.key)
+  end if
 
-  m.analyticsDataTask.licensingData = licensingData
+  checkAnalyticsLicenseKey()
+  setupSample()
+
+  updateAnalyticsConfig(config)
+end sub
+
+' #region Licensing
+
+sub checkAnalyticsLicenseKey()
+  if isInvalid(m.analyticsDataTask) then return
+
+  m.analyticsDataTask.licensingData = getLicensingData()
   m.analyticsDataTask.checkLicenseKey = true
 end sub
 
+function getLicensingData()
+  licenseKey = getLicenseKey()
+
+  if isInvalid(licenseKey) or Len(licenseKey) = 0
+    print m.tag; "Warning: license key is not present in the analyticsConfig or manifest, or is set as an empty string."
+  end if
+
+  return {
+    key : licenseKey,
+    domain : m.domain,
+    analyticsVersion : getVersion()
+  }
+end function
+
+' Returns Bitmovin analytics license key that is set in the analytics configuration or the manifest (as fallback), or invalid.
+function getLicenseKey()
+  if isInvalid(m.analyticsConfig) or isInvalid(m.appInfo) return invalid
+
+  licenseKey = pluck(m.analyticsConfig, ["key"])
+  if isInvalid(licenseKey)
+    licenseKey = m.appInfo.getValue("bitmovin_analytics_license_key")
+  end if
+
+  return licenseKey
+end function
+
+sub setLicenseKey(licenseKey)
+  m.analyticsConfig.key = licenseKey
+end sub
+
+' #endregion
+
+' Sets up sample that is sent to Bitmovin Analytics.
 sub setupSample()
-  if m.sample = invalid
+  if isInvalid(m.sample)
     m.sample = getAnalyticsSample()
   end if
   m.sample.analyticsVersion = getVersion()
-  m.sample.key = m.licensingData.key
+  m.sample.key = getLicenseKey()
   m.sample.domain = m.domain
   m.sample.userAgent = getUserAgent()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
@@ -71,9 +114,9 @@ end function
 
 function getDeviceInformation(param = invalid)
  return {
-      manufacturer: m.deviceInfo.GetModelDetails().VendorName,
-      model: m.deviceInfo.GetModel(),
-      isTV: m.deviceInfo.GetModelType() = "TV"
+    manufacturer: m.deviceInfo.GetModelDetails().VendorName,
+    model: m.deviceInfo.GetModel(),
+    isTV: m.deviceInfo.GetModelType() = "TV"
  }
 end function
 
@@ -99,19 +142,6 @@ function getPersistedUserId(sectionRegistryName)
   end if
 
   return userId
-end function
-
-function getLicensingData()
-  licenceKey = m.appInfo.getValue("bitmovin_analytics_license_key")
-  if Len(licenceKey) = 0 then print m.tag; "Warning: license key is not present in the manifest or is set as an empty string"
-
-  licensingData = {
-    key : licenceKey,
-    domain : m.domain,
-    analyticsVersion : getVersion()
-  }
-
-  return licensingData
 end function
 
 ' TODO: Error handling if the keys are invalid

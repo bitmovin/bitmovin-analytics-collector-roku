@@ -27,13 +27,14 @@ sub onLoadStatusChanged()
     source: getSourceConfig(m.PlayerSourceType.SINTEL)
   }
   analyticsConfig = {
+    key: "YOUR_ANALYTICS_KEY",
     isLive: false,
     title: "Art of Motion",
     videoId: "ArtOfMotion",
     customUserId: "John Smith",
     experimentName: "local-development"
   }
-  m.bitmovinPlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
+  m.bitmovinPlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
   m.bitmovinPlayerCollector.callFunc("initializePlayer", m.bitmovinPlayer)
 
   m.bitmovinFunctions = m.bitmovinPlayer.bitmovinFunctions
@@ -53,11 +54,11 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
   if m.isPlayerReady = false then return false
 
   if key = "up" and press
-    sourceConfig = getSourceConfig(m.PlayerSourceType.AOM)
+    sourceConfig = getSourceConfig(m.PlayerSourceType.TOS)
     analyticsConfig = {
       isLive: false,
-      title: "Sintel",
-      videoId: "Sintel",
+      title: "Tears of Steel",
+      videoId: "tears-of-steel",
     }
     changeSource(sourceConfig, analyticsConfig)
     return true

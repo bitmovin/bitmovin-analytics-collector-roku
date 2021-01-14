@@ -8,6 +8,10 @@ sub init()
   m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
 
+sub initializeAnalytics(config = invalid)
+  m.collectorCore.callFunc("initializeAnalytics", config)
+end sub
+
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
