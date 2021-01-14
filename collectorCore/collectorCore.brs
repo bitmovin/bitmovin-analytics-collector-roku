@@ -64,7 +64,6 @@ end sub
 ' #endregion
 
 ' Sets up sample that is sent to Bitmovin Analytics.
-' LicenseKey must be present before calling this method.
 sub setupSample()
   if isInvalid(m.sample)
     m.sample = getAnalyticsSample()

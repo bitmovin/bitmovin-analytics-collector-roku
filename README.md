@@ -7,9 +7,9 @@ Roku client that allows you to monitor your Native ROKU or Bitmovin Player playb
 ### Analytics license setup
 
 Choose a Bitmovin Analytics license from the [Bitmovin dashboard](https://bitmovin.com/dashboard/analytics/licenses).
-Make sure that Your domain (channel id) is whitelisted and postfixed with `.roku`.
+Make sure that Your domain (channel id) is in the allow-list and postfixed with `.roku`.
 During local development the domain will be `dev.roku`.
-A random channel id will be assigned once your channel is released. Update the whitelist in the dashboard accordingly.
+A random channel id will be assigned once your channel is released. Update the allow-list in the dashboard accordingly.
 This step is essential to enable analytics data collection.
 
 Configure the license key in the `manifest` file located in the root folder of the project:
