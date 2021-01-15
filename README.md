@@ -4,26 +4,30 @@ Roku client that allows you to monitor your Native ROKU or Bitmovin Player playb
 
 ## Getting started
 
-### Manifest
+### Analytics license setup
 
-In the `root` folder of your project find the `manifest` file
-and add licence key for the Analytics:
+Choose a Bitmovin Analytics license from the [Bitmovin dashboard](https://bitmovin.com/dashboard/analytics/licenses).
+Make sure that Your domain (channel id) is in the allow-list and postfixed with `.roku`.
+During local development the domain will be `dev.roku`.
+A random channel id will be assigned once your channel is released. Update the allow-list in the dashboard accordingly.
+This step is essential to enable analytics data collection.
+
+Configure the license key in the `manifest` file located in the root folder of the project:
 
 ```bash
 # Analytics license key
 bitmovin_analytics_license_key=INSERT_LICENSE_KEY_HERE
 ```
 
-In order to obtain a license key please log into [Bitmovin dashboard](https://bitmovin.com/dashboard) with your account.
-Once there, navigate from the dashboard side bar to `Analytics` and select `Licenses`.
-Choose the one you want from the list and copy/paste the `licenseKey` to the `manifest` file as mentioned above.
+Or set it in the Bitmovin Analytics configuration object:
 
-### Analytics License setup
-
-After choosing the license, make sure that your domain (channel id) is whitelisted and postfixed with `.roku`.
-During local development the domain will be `dev.roku`.
-A random channel id will be assigned once your channel is released. Update the whitelist accordingly.
-This step is essential to enable analytics data collection.
+```javascript
+analyticsConfig = {
+  key: "INSERT_LICENSE_KEY_HERE",
+  title: "Your Video Title",
+  videoId: "your-video-id",
+}
+```
 
 ## Bitmovin player collector
 
@@ -39,9 +43,11 @@ In order to use the collector, first create a Bitmovin player collector object:
 m.bitmovinPlayerCollector = CreateObject("roSgNode", "bitmovinPlayerCollector")
 ```
 
-To start monitoring the player, `initializePlayer` function must be called with Bitmovin player object as an argument before `setup` function is called on the Bitmovin player.
+To set up Bitmovin Analytics and start monitoring the player, call `initializeAnalytics` with the analytics configuration, and then the `initializePlayer` with the Bitmovin player object as an argument.
+This must happen before the `setup` function is called on the Bitmovin player.
 
 ```javascript
+m.bitmovinPlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
 m.bitmovinPlayerCollector.callFunc("initializePlayer", m.bitmovinPlayer)
 ```
 
@@ -59,48 +65,17 @@ In order to use the collector, first create a native player collector object:
 m.nativePlayerCollector = CreateObject("roSgNode", "nativePlayerCollector")
 ```
 
-To start monitoring the player, `initializePlayer` function must be called with native player object send as an argument before content is set to ROKU native player:
+To set up Bitmovin Analytics and start monitoring the player, call `initializeAnalytics` with the analytics configuration, and then the `initializePlayer` with the native player object as an argument.
+This must happen before any content is set on the ROKU native player:
 
 ```javascript
+m.nativePlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
 m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 ```
 
-## Optional
+## Optional configuration parameters for Bitmovin Analytics
 
-To improve analytics data collection, call `setAnalyticsConfig` before the `initializePlayer` of the adapters. Here you can set additional information like, video title, custom data and so on.
-See the example below for a full setup:
-
-### Bitmovin player collector
-
-```javascript
-analyticsConfig = {
-  isLive: false,
-  title: "Art of Motion",
-  videoId: "ArtOfMotion",
-  customUserId: "John Doe",
-  customData1: "overlay-off",
-  experimentName: "myTestExperiment"
-}
-m.bitmovinPlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
-m.bitmovinPlayerCollector.callFunc("initializePlayer", m.bitmovinPlayer)
-```
-
-### Native player collector
-
-```javascript
-analyticsConfig = {
-  isLive: false,
-  title: "Art of Motion",
-  videoId: "ArtOfMotion",
-  customUserId: "John Doe",
-  customData1: "overlay-off",
-  experimentName: "myTestExperiment"
-}
-m.nativePlayerCollector.callFunc("setAnalyticsConfig", analyticsConfig)
-m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
-```
-
-## Optional Configuration Parameters
+Several other fields can be added to the Bitmovin Analytics configuration in order to improve data collection:
 
 ```javascript
 analyticsConfig = {

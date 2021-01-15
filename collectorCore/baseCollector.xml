@@ -3,6 +3,7 @@
   <script type="text/brightscript" uri="./collectorConstants.brs"/>
   <script type="text/brightscript" uri="./collectorUtils.brs"/>
   <interface>
+    <function name="initializeAnalytics" />
     <function name="setAnalyticsConfig"/>
     <function name="initializePlayer"/>
     <function name="setNewMetadata" />

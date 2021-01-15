@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.0.0
+
+### Changed
+
+- setup of Bitmovin Analytics: use `callFunc("initializeAnalytics", config)` before the `initializePlayer` call to set the licenseKey during runtime (AN-1959)
+
+### Fixed
+
+- detection of operating system and device type
+
 ## v1.1.1
 
 ### Fixed
