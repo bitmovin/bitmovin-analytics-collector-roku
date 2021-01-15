@@ -21,7 +21,7 @@ bitmovin_analytics_license_key=INSERT_LICENSE_KEY_HERE
 
 Or set it in the Bitmovin Analytics configuration object:
 
-```json
+```javascript
 analyticsConfig = {
   key: "INSERT_LICENSE_KEY_HERE",
   title: "Your Video Title",
