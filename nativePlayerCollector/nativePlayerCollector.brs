@@ -246,7 +246,7 @@ sub onSeek()
   if m.alreadySeeking = true then return
 
   m.alreadySeeking = true
-  m.seekStartPosition = m.player.position
+  m.seekStartPosition = getCurrentPlayerTimeInMs()
   m.seekTimer = createObject("roTimeSpan")
 end sub
 
@@ -470,7 +470,7 @@ end sub
 
 function getCurrentPlayerTimeInMs()
   time% = m.player.position * 1000
-  return time%
+  return Cint(time%)
 end function
 
 function getPlayerVersion()
