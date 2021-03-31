@@ -287,7 +287,8 @@ sub onError()
   if m.didAttemptPlay = true and m.didVideoPlay = false
     videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, errorSample)
   else
-    sendAnalyticsRequestAndClearValues(errorSample, duration, m.player.playerState)
+    ' Previous sample is already sent, no duration needed
+    sendAnalyticsRequestAndClearValues(errorSample, 0, m.player.playerState)
   end if
 end sub
 
