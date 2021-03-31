@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Changed
+
+- collector behaviour to stop collecting data after an error (AN-2237)
+
+### Removed
+
+- collection of error segments (AN-2237)
+
 ## v2.0.0
 
 ### Changed
