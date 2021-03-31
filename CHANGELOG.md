@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Fixed
+
+- native collector reporting `seekTime` in seconds (AN-2200)
+
 ### Changed
 
 - collector behaviour to stop collecting data after an error (AN-2237)
