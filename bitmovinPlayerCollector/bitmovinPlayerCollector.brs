@@ -290,6 +290,9 @@ sub onError()
     ' Previous sample is already sent, no duration needed
     sendAnalyticsRequestAndClearValues(errorSample, 0, m.player.playerState)
   end if
+
+  ' Stop collecting data
+  unobserveFields()
 end sub
 
 function setCustomData(customData)

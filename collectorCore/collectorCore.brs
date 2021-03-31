@@ -94,6 +94,9 @@ sub clearSampleValues()
 
   m.sample.duration = 0
   m.sample.droppedFrames = 0
+
+  m.sample.errorCode = invalid
+  m.sample.errorMessage = invalid
 end sub
 
 function getVersion(param = invalid)

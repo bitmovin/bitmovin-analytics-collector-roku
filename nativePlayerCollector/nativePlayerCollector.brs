@@ -379,6 +379,9 @@ sub onError()
     ' Previous sample is already sent, no duration needed
     sendAnalyticsRequestAndClearValues(errorSample, 0, m.player.state)
   end if
+
+  ' Stop collecting data
+  unobserveFields()
 end sub
 
 sub startVideoStartTimeoutTimer()
