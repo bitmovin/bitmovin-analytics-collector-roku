@@ -2,7 +2,7 @@ function getPlayerSourceType()
   return {
     AOM: "AOM",
     SINTEL: "SINTEL",
-    SINGLE_SPEED: "SINGLE_SPEED",
+    PLAYLIST: "PLAYLIST",
     CORRUPT_BEGINNING: "CORRUPT_BEGINNING"
   }
 end function

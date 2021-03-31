@@ -1,5 +1,5 @@
 sub init()
-  m.version = "2.0.0"
+  m.version = "2.1.0"
   m.tag = "Bitmovin Analytics Collector [collectorCore] "
   m.appInfo = CreateObject("roAppInfo")
   m.domain = m.appInfo.GetID() + ".roku"
@@ -94,6 +94,9 @@ sub clearSampleValues()
 
   m.sample.duration = 0
   m.sample.droppedFrames = 0
+
+  m.sample.errorCode = invalid
+  m.sample.errorMessage = invalid
 end sub
 
 function getVersion(param = invalid)
