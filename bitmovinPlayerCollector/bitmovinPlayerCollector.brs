@@ -461,7 +461,7 @@ end sub
 
 function getCurrentPlayerTimeInMs()
   time% = m.player.currentTime * 1000
-  return time%
+  return Cint(time%)
 end function
 
 sub setVideoTimeStart()
