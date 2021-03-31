@@ -366,12 +366,8 @@ sub onError()
 
   errorSample = {
     errorCode: m.player.errorCode,
-    errorMessage: m.player.errorMsg,
-    errorSegments: []
+    errorMessage: m.player.errorMsg
   }
-
-  if m.player.streamingSegment <> invalid then errorSample.errorSegments.push(m.player.streamingSegment)
-  if m.player.downloadedSegment <> invalid then errorSample.errorSegments.push(m.player.downloadedSegment)
 
   duration = getDuration(m.playerStateTimer)
   resetSeekHelperVariables()

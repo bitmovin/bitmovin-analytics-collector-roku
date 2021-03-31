@@ -277,11 +277,8 @@ sub onError()
 
   errorSample = {
     errorCode: m.player.error.code,
-    errorMessage: m.player.error.message,
-    errorSegments: []
+    errorMessage: m.player.error.message
   }
-
-  if m.player.downloadFinished <> invalid then errorSample.errorSegments.push(m.player.downloadFinished)
 
   duration = getDuration(m.playerStateTimer)
   resetSeekHelperVariables()
