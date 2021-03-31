@@ -277,11 +277,8 @@ sub onError()
 
   errorSample = {
     errorCode: m.player.error.code,
-    errorMessage: m.player.error.message,
-    errorSegments: []
+    errorMessage: m.player.error.message
   }
-
-  if m.player.downloadFinished <> invalid then errorSample.errorSegments.push(m.player.downloadFinished)
 
   duration = getDuration(m.playerStateTimer)
   resetSeekHelperVariables()
@@ -290,8 +287,12 @@ sub onError()
   if m.didAttemptPlay = true and m.didVideoPlay = false
     videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, errorSample)
   else
-    sendAnalyticsRequestAndClearValues(errorSample, duration, m.player.playerState)
+    ' Previous sample is already sent, no duration needed
+    sendAnalyticsRequestAndClearValues(errorSample, 0, m.player.playerState)
   end if
+
+  ' Stop collecting data
+  unobserveFields()
 end sub
 
 function setCustomData(customData)
