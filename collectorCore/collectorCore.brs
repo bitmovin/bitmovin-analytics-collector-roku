@@ -104,15 +104,10 @@ function getVersion(param = invalid)
 end function
 
 function getUserAgent(param = invalid)
-  version=m.deviceInfo.GetVersion()
-  versionMajor=mid(version,3,1)
-  versionMinor=mid(version,5,2)
-  versionBuild=mid(version,8,5)
+  osVersion=m.deviceInfo.GetOsVersion()
+  versionBuild=substitute("{0}{1}",osVersion.revision, osVersion.build)
 
-  if versionMinor.toint() < 10 then
-      versionMinor=mid(versionMinor,2)
-  end if
-  return "Roku/DVP-"+versionMajor+"."+versionMinor+" ("+version+")"
+  return substitute("Roku/DVP-{0}.{1} ({2})", osVersion.major, osVersion.minor, versionBuild)
 end function
 
 function getDeviceInformation(param = invalid)
