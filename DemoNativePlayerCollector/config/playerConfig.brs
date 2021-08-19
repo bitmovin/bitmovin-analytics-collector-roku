@@ -1,6 +1,7 @@
 function getPlayerSourceType()
   return {
     AOM: "AOM",
+    LIVE_SAMPLE: "LIVE_SAMPLE",
     SINTEL: "SINTEL",
     PLAYLIST: "PLAYLIST",
     CORRUPT_BEGINNING: "CORRUPT_BEGINNING"
@@ -20,6 +21,11 @@ function getPlayerSource(sourceType)
     content.url = getBaseUrl() + "/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
     content.title = "Art of motion"
     content.streamformat = "hls"
+  else if sourceType = PlayerSourceType.LIVE_SAMPLE
+    content.url = "https://livesim.dashif.org/livesim/testpic_2s/Manifest.mpd"
+    content.streamFormat = "dash"
+    content.live = True
+    content.title = "Live Sample"
   else if sourceType = PlayerSourceType.SINTEL
     content.url = getBaseUrl() + "/sintel/hls/playlist.m3u8"
     content.streamFormat = "hls"
