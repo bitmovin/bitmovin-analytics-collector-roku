@@ -1,6 +1,7 @@
 function getPlayerSourceType()
   return {
     AOM: "AOM",
+    LIVE_SAMPLE: "LIVE_SAMPLE",
     TOS: "TOS",
     SINTEL: "SINTEL",
     SINGLE_SPEED: "SINGLE_SPEED",
@@ -29,6 +30,11 @@ function getSourceConfig(sourceType)
     content = {
       hls: getBaseUrl() + "/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
       title: "Art of Motion"
+    }
+  else if sourceType = PlayerSourceType.LIVE_SAMPLE
+    content = {
+      dash: "https://livesim.dashif.org/livesim/testpic_2s/Manifest.mpd",
+      title: "Live Sample"
     }
   else if sourceType = PlayerSourceType.TOS
     content = {
