@@ -234,27 +234,15 @@ function getMetadataFromAnalyticsConfig(config)
   if config.DoesExist("customUserId")
     metadata.customUserId = config.customUserId
   end if
-  if config.DoesExist("customData1")
-    metadata.customData1 = config.customData1
-  end if
-  if config.DoesExist("customData2")
-    metadata.customData2 = config.customData2
-  end if
-  if config.DoesExist("customData3")
-    metadata.customData3 = config.customData3
-  end if
-  if config.DoesExist("customData4")
-    metadata.customData4 = config.customData4
-  end if
-  if config.DoesExist("customData5")
-    metadata.customData5 = config.customData5
-  end if
-  if config.DoesExist("customData6")
-    metadata.customData6 = config.customData6
-  end if
-  if config.DoesExist("customData7")
-    metadata.customData7 = config.customData7
-  end if
+
+  ' Check `customDataX` fields
+  for i = 1 to 25
+    customDataField = "customData" + i.ToStr()
+    if config.DoesExist(customDataField)
+      metadata[customDataField] = config[customDataField]
+    end if
+  end for
+
   if config.DoesExist("experimentName")
     metadata.experimentName = config.experimentName
   end if
