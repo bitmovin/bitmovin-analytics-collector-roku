@@ -104,6 +104,8 @@ function getVersion(param = invalid)
 end function
 
 function getUserAgent(param = invalid)
+  ' TODO: Replaced deprecated method with `m.deviceInfo.GetOSVersion()`.
+  ' See https://developer.roku.com/en-gb/docs/references/brightscript/interfaces/ifdeviceinfo.md#getosversion-as-object
   version=m.deviceInfo.GetVersion()
   versionMajor=mid(version,3,1)
   versionMinor=mid(version,5,2)
