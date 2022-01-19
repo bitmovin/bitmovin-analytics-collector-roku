@@ -1,5 +1,5 @@
 sub init()
-  m.version = "2.2.0"
+  m.version = "2.3.0"
   m.tag = "Bitmovin Analytics Collector [collectorCore] "
   m.appInfo = CreateObject("roAppInfo")
   m.domain = m.appInfo.GetID() + ".roku"
@@ -236,7 +236,7 @@ function getMetadataFromAnalyticsConfig(config)
   end if
 
   ' Check `customDataX` fields
-  for i = 1 to 25
+  for i = 1 to 30
     customDataField = "customData" + i.ToStr()
     if config.DoesExist(customDataField)
       metadata[customDataField] = config[customDataField]
