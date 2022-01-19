@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Added
+
+- additional `customData` fields 26 to 30 (AN-2640)
+
 ## v2.2.0
 
 ### Added
