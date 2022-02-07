@@ -42,7 +42,7 @@ sub execute()
 
     if m.top.playerState = "playing" and m.heartbeatTimer.totalMilliseconds() > 59*1000
       parent = m.top.getParent()
-      if parent.fireHeartbeat <> invalid
+      if parent <> invalid and parent.fireHeartbeat <> invalid
         parent.fireHeartbeat = true
         m.heartbeatTimer.Mark()
       end if
