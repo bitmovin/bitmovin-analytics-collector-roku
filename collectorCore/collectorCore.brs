@@ -75,6 +75,7 @@ sub setupSample()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
   m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
   m.sample.userId = getPersistedUserId(m.sectionRegistryName)
+  m.sample.language = m.deviceInfo.GetCurrentLocale()
 
   m.sample.sequenceNumber = 0
   m.sample.impressionId = createImpressionId()
