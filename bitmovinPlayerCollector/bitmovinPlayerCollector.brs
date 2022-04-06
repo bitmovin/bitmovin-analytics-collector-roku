@@ -218,6 +218,25 @@ sub decorateSampleWithPlaybackData(sampleData)
 
   sampleData.Append(getVideoWindowSize(m.player.FindNode("MainVideo")))
   sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
+
+  ' Set audio language
+  currentAudioTrack = m.player.callFunc("getAudio", invalid)
+  if getInterface(currentAudioTrack, "ifArray") <> invalid then
+    sampleData.Append({audioLanguage: currentAudioTrack.language})
+  end if
+
+  ' Set subtitle language
+  currentSubtitleTrack = m.player.callFunc("getSubtitle", invalid)
+  if getInterface(currentSubtitleTrack, "ifArray") <> invalid then
+    sampleData.Append({subtitleLanguage: currentSubtitleTrack.language})
+  end if
+
+  ' Set subtitle enabled
+  subtitleEnabled = false
+  if m.deviceInfo.callFunc("GetCaptionsMode") = "On" then
+    subtitleEnabled = True
+  end if
+  sampleData.Append({subtitleEnabled: subtitleEnabled})
 end sub
 
 function updateSample(sampleData)
