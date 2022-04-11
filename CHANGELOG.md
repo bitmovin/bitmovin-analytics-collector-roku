@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+- added tracking of audio- and subtitle language for Bitmovin and Native player (AN-2829)
+
 ## v2.3.0
 
 ### Added
