@@ -230,7 +230,7 @@ sub decorateSampleWithPlaybackData(sampleData)
     end if
   end for
 
-  ' Set subtitle track
+  ' Set subtitle language
   for each subtitleTrack in m.player.availableSubtitleTracks
     if subtitleTrack.TrackName = m.player.currentSubtitleTrack
       sampleData.Append({subtitleLanguage: subtitleTrack.Language})
