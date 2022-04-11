@@ -233,7 +233,7 @@ sub decorateSampleWithPlaybackData(sampleData)
 
   ' Set subtitle enabled
   subtitleEnabled = false
-  if m.deviceInfo.callFunc("GetCaptionsMode") = "On" then
+  if m.deviceInfo.GetCaptionsMode() = "On" then
     subtitleEnabled = True
   end if
   sampleData.Append({subtitleEnabled: subtitleEnabled})
