@@ -1,5 +1,5 @@
 sub init()
-  m.version = "2.2.0"
+  m.version = "2.4.0"
   m.tag = "Bitmovin Analytics Collector [collectorCore] "
   m.appInfo = CreateObject("roAppInfo")
   m.domain = m.appInfo.GetID() + ".roku"
@@ -75,6 +75,7 @@ sub setupSample()
   m.sample.screenHeight = m.deviceInfo.GetDisplaySize().h
   m.sample.screenWidth = m.deviceInfo.GetDisplaySize().w
   m.sample.userId = getPersistedUserId(m.sectionRegistryName)
+  m.sample.language = m.deviceInfo.GetCurrentLocale()
 
   m.sample.sequenceNumber = 0
   m.sample.impressionId = createImpressionId()
@@ -104,17 +105,9 @@ function getVersion(param = invalid)
 end function
 
 function getUserAgent(param = invalid)
-  ' TODO: Replace deprecated method with `m.deviceInfo.GetOSVersion()`.
-  ' See https://developer.roku.com/en-gb/docs/references/brightscript/interfaces/ifdeviceinfo.md#getosversion-as-object
-  version=m.deviceInfo.GetVersion()
-  versionMajor=mid(version,3,1)
-  versionMinor=mid(version,5,2)
-  versionBuild=mid(version,8,5)
-
-  if versionMinor.toint() < 10 then
-      versionMinor=mid(versionMinor,2)
-  end if
-  return "Roku/DVP-"+versionMajor+"."+versionMinor+" ("+version+")"
+  osVersion = m.deviceInfo.GetOSVersion()
+  versionBuild = substitute("{0}{1}", osVersion.revision, osVersion.build)
+  return substitute("Roku/DVP-{0}.{1} ({2})", osVersion.major, osVersion.minor, versionBuild)
 end function
 
 function getDeviceInformation(param = invalid)
@@ -236,7 +229,7 @@ function getMetadataFromAnalyticsConfig(config)
   end if
 
   ' Check `customDataX` fields
-  for i = 1 to 25
+  for i = 1 to 30
     customDataField = "customData" + i.ToStr()
     if config.DoesExist(customDataField)
       metadata[customDataField] = config[customDataField]

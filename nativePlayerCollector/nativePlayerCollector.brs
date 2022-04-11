@@ -222,6 +222,27 @@ sub decorateSampleWithPlaybackData(sampleData)
 
   sampleData.Append(getVideoWindowSize(m.player))
   sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
+
+  ' Set audio language
+  for each audioTrack in m.player.availableAudioTracks
+    if audioTrack.Track = m.player.currentAudioTrack
+      sampleData.Append({audioLanguage: audioTrack.Language})
+    end if
+  end for
+
+  ' Set subtitle language
+  for each subtitleTrack in m.player.availableSubtitleTracks
+    if subtitleTrack.TrackName = m.player.currentSubtitleTrack
+      sampleData.Append({subtitleLanguage: subtitleTrack.Language})
+    end if
+  end for
+
+  ' Set subtitle enabled
+  subtitleEnabled = false
+  if m.deviceInfo.GetCaptionsMode() = "On" then
+    subtitleEnabled = True
+  end if
+  sampleData.Append({subtitleEnabled: subtitleEnabled})
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
