@@ -221,13 +221,13 @@ sub decorateSampleWithPlaybackData(sampleData)
 
   ' Set audio language
   currentAudioTrack = m.player.callFunc("getAudio", invalid)
-  if getInterface(currentAudioTrack, "ifArray") <> invalid then
+  if getInterface(currentAudioTrack, "ifAssociativeArray") <> invalid then
     sampleData.Append({audioLanguage: currentAudioTrack.language})
   end if
 
   ' Set subtitle language
   currentSubtitleTrack = m.player.callFunc("getSubtitle", invalid)
-  if getInterface(currentSubtitleTrack, "ifArray") <> invalid then
+  if getInterface(currentSubtitleTrack, "ifAssociativeArray") <> invalid then
     sampleData.Append({subtitleLanguage: currentSubtitleTrack.language})
   end if
 
