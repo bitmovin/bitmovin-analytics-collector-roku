@@ -5,12 +5,14 @@ sub init()
   m.domain = m.appInfo.GetID() + ".roku"
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
-  m.analyticsDataTask = m.top.findNode("analyticsDataTask")
+  m.AnalyticsDataTask = m.top.findNode("analyticsDataTask")
   m.analyticsConfig = CreateObject("roAssociativeArray")
   m.sample = invalid
 end sub
 
 sub initializeAnalytics(config = invalid)
+  m.AnalyticsDataTask.callFunc("runTask", invalid)
+
   ' Set licenseKey if present in analytics configuration
   if config <> invalid and config.DoesExist("key")
     setLicenseKey(config.key)
@@ -24,16 +26,16 @@ end sub
 
 ' Clean up AnalyticsDataTask
 sub internalDestroy()
-  ' TODO: Notify analyticsDataTask to cease processing
+  m.AnalyticsDataTask.callFunc("stopTask", invalid)
 end sub
 
 ' #region Licensing
 
 sub checkAnalyticsLicenseKey()
-  if isInvalid(m.analyticsDataTask) then return
+  if isInvalid(m.AnalyticsDataTask) then return
 
-  m.analyticsDataTask.licensingData = getLicensingData()
-  m.analyticsDataTask.checkLicenseKey = true
+  m.AnalyticsDataTask.licensingData = getLicensingData()
+  m.AnalyticsDataTask.checkLicenseKey = true
 end sub
 
 function getLicensingData()
@@ -149,7 +151,7 @@ end function
 
 ' TODO: Error handling if the keys are invalid
 sub sendAnalyticsRequestAndClearValues()
-  m.analyticsDataTask.eventData = m.sample
+  m.AnalyticsDataTask.eventData = m.sample
   m.sample.sequenceNumber++
 
   sendAnalyticsRequest()
@@ -160,7 +162,7 @@ sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData)
   if updatedSampleData = invalid return
 
   sendOnceSample = createSendOnceSample(updatedSampleData)
-  m.analyticsDataTask.eventData = sendOnceSample
+  m.AnalyticsDataTask.eventData = sendOnceSample
 
   sendAnalyticsRequest()
 end sub
@@ -191,7 +193,7 @@ function createSendOnceSample(metadata)
 end function
 
 sub sendAnalyticsRequest()
-  m.analyticsDataTask.sendData = true
+  m.AnalyticsDataTask.sendData = true
 end sub
 
 Function readFromRegistry(registrySectionName, readKey)

@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="analyticsDataTask" extends="Task">
   <script type="text/brightscript" uri="./analyticsDataTask.brs"/>
+  <script type="text/brightscript" uri="./analyticsDataTaskControlValues.brs"/>
+  <script type="text/brightscript" uri="./analyticsDataTaskFieldNames.brs"/>
   <script type="text/brightscript" uri="./collectorCoreConfig.brs"/>
   <interface>
+    <function name="runTask" />
+    <function name="stopTask" />
+    <function name="isTaskRunning" />
+
     <field id="url" type="string"/>
     <field id="licensingData" type="assocarray"/>
     <field id="eventData" type="assocarray" alwaysNotify="true"/>

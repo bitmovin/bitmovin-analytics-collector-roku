@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Internal
+
+- Added `runTask`, `stopTask` and `isTaskRunning` to `AnalyticsDataTask` to prevent orphaned tasks running in the background.
+
 ## v2.4.0
 
 ### Added
