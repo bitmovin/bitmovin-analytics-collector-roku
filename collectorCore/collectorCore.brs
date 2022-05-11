@@ -22,6 +22,11 @@ sub initializeAnalytics(config = invalid)
   updateAnalyticsConfig(config)
 end sub
 
+' Clean up AnalyticsDataTask
+sub internalDestroy()
+  ' TODO: Notify analyticsDataTask to cease processing
+end sub
+
 ' #region Licensing
 
 sub checkAnalyticsLicenseKey()

@@ -32,6 +32,14 @@ sub initializePlayer(player)
   sendAnalyticsRequestAndClearValues(eventData, 0, m.currentState)
 end sub
 
+sub destroy()
+  unobserveFields()
+
+  if m.collectorCore <> invalid
+    m.collectorCore.callFunc("internalDestroy")
+  end if
+end sub
+
 sub setUpObservers()
   m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
