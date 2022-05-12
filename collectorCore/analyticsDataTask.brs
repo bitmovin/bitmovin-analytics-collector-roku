@@ -79,7 +79,7 @@ end sub
 sub destroy()
   clearAnalyticsEventsQueue()
   stopTask()
-end sub()
+end sub
 
 sub handleFailedLicensingRequest(responseMsg, status)
   m.licensingState = status
