@@ -65,16 +65,13 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
     changeSource(sourceConfig, analyticsConfig)
     handled = true
   else if key = "down" and press
+    ' Demo for deinitializing the analytics collector.
+    ' Destroy the collector before the player
     m.bitmovinPlayerCollector.callFunc("destroy", invalid)
     m.bitmovinPlayer.callFunc("destroy", invalid)
-    sleep(1000) ' Wait for garbage collector
-    onLoadStatusChanged()
+    sleep(1000) ' Wait for some time
+    onLoadStatusChanged() ' Load some other asset
     handled = true
-  else if key = "left" and press
-    print "Here we go"
-    STOP ' Manual break point to force crash the app
-    blah = blah / 0 ' Crash the app with invalid statement
-    return handled
   end if
 
   return handled
