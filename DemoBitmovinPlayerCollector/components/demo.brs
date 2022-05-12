@@ -65,15 +65,16 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
     changeSource(sourceConfig, analyticsConfig)
     handled = true
   else if key = "down" and press
-    sourceConfig = getSourceConfig(m.PlayerSourceType.TOS)
-    analyticsConfig = {
-      isLive: false,
-      title: "Tears of Steel",
-      videoId: "tears-of-steel",
-    }
     m.bitmovinPlayerCollector.callFunc("destroy")
     m.bitmovinPlayer.callFunc("destroy")
+    sleep(500) ' Wait for garbage collector
+    onLoadStatusChanged()
     handled = true
+  else if key = "left" and press
+    print "Here we go"
+    STOP ' Manual break point to force crash the app
+    blah = blah / 0 ' Crash the app with invalid statement
+    return handled
   end if
 
   return handled

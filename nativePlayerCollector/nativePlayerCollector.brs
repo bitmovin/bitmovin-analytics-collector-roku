@@ -35,7 +35,7 @@ sub destroy(param = invalid)
   unobserveFields()
 
   if m.collectorCore <> invalid
-    m.collectorCore.callFunc("internalDestroy")
+    m.collectorCore.callFunc("internalDestroy", invalid)
   end if
 end sub
 
