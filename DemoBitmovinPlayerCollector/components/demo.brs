@@ -70,7 +70,7 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
     m.bitmovinPlayerCollector.callFunc("destroy", invalid)
     m.bitmovinPlayer.callFunc("destroy", invalid)
     sleep(1000) ' Wait for some time
-    onLoadStatusChanged() ' Load some other asset
+    onLoadStatusChanged() ' Setup a new video
     handled = true
   end if
 
