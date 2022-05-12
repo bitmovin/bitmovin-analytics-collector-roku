@@ -8,6 +8,7 @@
   </children>
   <interface>
     <function name="initializeAnalytics" />
+    <function name="internalDestroy"/>
     <function name="setupSample"/>
     <function name="getCurrentImpressionId"/>
     <function name="getVersion"/>

@@ -4,6 +4,7 @@
   <script type="text/brightscript" uri="./analyticsDataTaskControlValues.brs"/>
   <script type="text/brightscript" uri="./analyticsDataTaskFieldNames.brs"/>
   <script type="text/brightscript" uri="./collectorCoreConfig.brs"/>
+  <script type="text/brightscript" uri="./collectorCoreUtils.brs"/>
   <interface>
     <function name="runTask" />
     <function name="stopTask" />
