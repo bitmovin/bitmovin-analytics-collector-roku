@@ -65,9 +65,9 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
     changeSource(sourceConfig, analyticsConfig)
     handled = true
   else if key = "down" and press
-    m.bitmovinPlayerCollector.callFunc("destroy")
-    m.bitmovinPlayer.callFunc("destroy")
-    sleep(500) ' Wait for garbage collector
+    m.bitmovinPlayerCollector.callFunc("destroy", invalid)
+    m.bitmovinPlayer.callFunc("destroy", invalid)
+    sleep(1000) ' Wait for garbage collector
     onLoadStatusChanged()
     handled = true
   else if key = "left" and press

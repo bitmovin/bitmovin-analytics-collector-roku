@@ -25,7 +25,7 @@ sub initializeAnalytics(config = invalid)
 end sub
 
 ' Clean up AnalyticsDataTask
-sub internalDestroy()
+sub internalDestroy(param = invalid)
   m.AnalyticsDataTask.callFunc("stopTask", invalid)
 end sub
 
