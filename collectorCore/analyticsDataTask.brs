@@ -20,9 +20,9 @@ sub runTask(param = invalid)
   if isTaskRunning() then return
 
   m.port = CreateObject("roMessagePort")
-  m.top.observeFieldScoped(AnalyticsDataTaskFieldNames.CHECK_LICENSE, m.port)
-  m.top.observeFieldScoped(AnalyticsDataTaskFieldNames.SEND_DATA, m.port)
-  m.top.observeFieldScoped(AnalyticsDataTaskFieldNames.EVENT_DATA, m.port)
+  m.top.observeFieldScoped(m.AnalyticsDataTaskFieldNames.CHECK_LICENSE, m.port)
+  m.top.observeFieldScoped(m.AnalyticsDataTaskFieldNames.SEND_DATA, m.port)
+  m.top.observeFieldScoped(m.AnalyticsDataTaskFieldNames.EVENT_DATA, m.port)
 
   m.top.control = m.AnalyticsDataTaskControlValues.RUN
 end sub
@@ -30,9 +30,9 @@ end sub
 sub stopTask(param = invalid)
   m.top.control = m.AnalyticsDataTaskControlValues.STOP
 
-  m.top.unobserveFieldScoped(AnalyticsDataTaskFieldNames.CHECK_LICENSE)
-  m.top.unobserveFieldScoped(AnalyticsDataTaskFieldNames.SEND_DATA)
-  m.top.unobserveFieldScoped(AnalyticsDataTaskFieldNames.EVENT_DATA)
+  m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.CHECK_LICENSE)
+  m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.SEND_DATA)
+  m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.EVENT_DATA)
 
   if not isInvalid(m.port) then m.port = invalid
 
@@ -52,14 +52,14 @@ sub monitor()
     if type(msg) = "roSGNodeEvent"
       field = msg.GetField()
       data = msg.GetData()
-      if field = AnalyticsDataTaskFieldNames.SEND_DATA and data = true
+      if field = m.AnalyticsDataTaskFieldNames.SEND_DATA and data = true
         if m.isLicensingCallDone = true and m.licensingState = "granted"
           sendAnalyticsEventsFromQueue()
         end if
-      else if field = AnalyticsDataTaskFieldNames.SEND_DATA
+      else if field = m.AnalyticsDataTaskFieldNames.SEND_DATA
         event = data
         pushToAnalyticsEventsQueue(event)
-      else if field = AnalyticsDataTaskFieldNames.CHECK_LICENSE and data = true
+      else if field = m.AnalyticsDataTaskFieldNames.CHECK_LICENSE and data = true
         ' Get licensing data from collectorCore
         sendAnalyticsLicensingRequest(m.top.licensingData)
       end if
