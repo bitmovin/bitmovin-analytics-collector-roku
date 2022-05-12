@@ -56,7 +56,7 @@ sub monitor()
         if m.isLicensingCallDone = true and m.licensingState = "granted"
           sendAnalyticsEventsFromQueue()
         end if
-      else if field = m.AnalyticsDataTaskFieldNames.SEND_DATA
+      else if field = m.AnalyticsDataTaskFieldNames.EVENT_DATA
         event = data
         pushToAnalyticsEventsQueue(event)
       else if field = m.AnalyticsDataTaskFieldNames.CHECK_LICENSE and data = true
