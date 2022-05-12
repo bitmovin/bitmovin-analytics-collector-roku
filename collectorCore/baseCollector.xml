@@ -6,6 +6,7 @@
     <function name="initializeAnalytics" />
     <function name="setAnalyticsConfig"/>
     <function name="initializePlayer"/>
+    <function name="destroy"/>
     <function name="setNewMetadata" />
     <function name="setCustomData"/>
     <function name="setCustomDataOnce"/>

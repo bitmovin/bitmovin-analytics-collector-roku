@@ -1,4 +1,6 @@
 sub init()
+  m.top.functionName = "monitor"
+
   m.tag = "Bitmovin Analytics Collector [analyticsDataTask] "
   m.config = getCollectorCoreConfig()
   m.licensingState = m.top.findNode("licensingState")
@@ -9,32 +11,55 @@ sub init()
   m.licensingUrl = m.config.serviceEndpoints.analyticsLicense
   m.dataUrl = m.config.serviceEndpoints.analyticsData
   m.licensingResponse = {}
-  m.analyticsDataTaskPort = CreateObject("roMessagePort")
-  m.top.observeFieldScoped("checkLicenseKey", m.analyticsDataTaskPort)
-  m.top.observeFieldScoped("sendData", m.analyticsDataTaskPort)
-  m.top.observeFieldScoped("eventData", m.analyticsDataTaskPort)
-  m.runExecuteLoop = true
-  m.top.functionName = "execute"
-  m.top.control = "RUN"
+
+  m.AnalyticsDataTaskControlValues = getAnalyticsDataTaskControlValues()
+  m.AnalyticsDataTaskFieldNames = getAnlyticsDataTaskFieldNames()
 end sub
 
-sub execute()
+sub runTask(param = invalid)
+  if isTaskRunning() then return
+
+  m.port = CreateObject("roMessagePort")
+  m.top.observeFieldScoped(m.AnalyticsDataTaskFieldNames.CHECK_LICENSE, m.port)
+  m.top.observeFieldScoped(m.AnalyticsDataTaskFieldNames.SEND_DATA, m.port)
+  m.top.observeFieldScoped(m.AnalyticsDataTaskFieldNames.EVENT_DATA, m.port)
+
+  m.top.control = m.AnalyticsDataTaskControlValues.RUN
+end sub
+
+sub stopTask(param = invalid)
+  m.top.control = m.AnalyticsDataTaskControlValues.STOP
+
+  m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.CHECK_LICENSE)
+  m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.SEND_DATA)
+  m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.EVENT_DATA)
+
+  if not isInvalid(m.port) then m.port = invalid
+
+end sub
+
+function isTaskRunning(param = invalid)
+  return m.top.state = m.AnalyticsDataTaskControlValues.RUN
+end function
+
+' Function called when control is set to "RUN" from the Bitmovin Analytics Collector.
+sub monitor()
   m.heartbeatTimer.Mark()
 
-  while m.runExecuteLoop
-    msg = wait(500, m.analyticsDataTaskPort)
+  while true
+    msg = wait(500, m.port)
 
     if type(msg) = "roSGNodeEvent"
       field = msg.GetField()
       data = msg.GetData()
-      if field = "sendData" and data = true
+      if field = m.AnalyticsDataTaskFieldNames.SEND_DATA and data = true
         if m.isLicensingCallDone = true and m.licensingState = "granted"
           sendAnalyticsEventsFromQueue()
         end if
-      else if field = "eventData"
+      else if field = m.AnalyticsDataTaskFieldNames.EVENT_DATA
         event = data
         pushToAnalyticsEventsQueue(event)
-      else if field = "checkLicenseKey" and data = true
+      else if field = m.AnalyticsDataTaskFieldNames.CHECK_LICENSE and data = true
         ' Get licensing data from collectorCore
         sendAnalyticsLicensingRequest(m.top.licensingData)
       end if
@@ -51,6 +76,11 @@ sub execute()
   end while
 end sub
 
+sub destroy()
+  clearAnalyticsEventsQueue()
+  stopTask()
+end sub
+
 sub handleFailedLicensingRequest(responseMsg, status)
   m.licensingState = status
 
@@ -61,7 +91,7 @@ sub handleFailedLicensingRequest(responseMsg, status)
   end if
 
   clearLicensingResponseAndAnalyticsEventsQueue()
-  stopExecuteLoop()
+  stopTask()
 end sub
 
 sub sendAnalyticsLicensingRequest(licensingData)
@@ -135,12 +165,10 @@ sub sendAnalyticsEventsFromQueue()
   clearAnalyticsEventsQueue()
 end sub
 
-function clearAnalyticsEventsQueue()
-  if m.analyticsEventsQueue.Count() = 0 then return false
+sub clearAnalyticsEventsQueue()
+  if m.analyticsEventsQueue.Count() = 0 then return
   m.analyticsEventsQueue.Clear()
-
-  return true
-end function
+end sub
 
 sub pushToAnalyticsEventsQueue(event)
   if event = invalid then return
@@ -152,8 +180,4 @@ end sub
 sub clearLicensingResponseAndAnalyticsEventsQueue()
   m.licensingResponse = {}
   clearAnalyticsEventsQueue()
-end sub
-
-sub stopExecuteLoop()
-  m.runExecuteLoop = false
 end sub
