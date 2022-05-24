@@ -100,17 +100,17 @@ sub clearSampleValues()
   m.sample.errorMessage = invalid
 end sub
 
-function getVersion(param = invalid)
+function getVersion()
   return m.version
 end function
 
-function getUserAgent(param = invalid)
+function getUserAgent()
   osVersion = m.deviceInfo.GetOSVersion()
   versionBuild = substitute("{0}{1}", osVersion.revision, osVersion.build)
   return substitute("Roku/DVP-{0}.{1} ({2})", osVersion.major, osVersion.minor, versionBuild)
 end function
 
-function getDeviceInformation(param = invalid)
+function getDeviceInformation()
  return {
     manufacturer: m.deviceInfo.GetModelDetails().VendorName,
     model: m.deviceInfo.GetModel(),
@@ -118,11 +118,11 @@ function getDeviceInformation(param = invalid)
  }
 end function
 
-function createImpressionId(param = invalid)
+function createImpressionId()
   return lcase(m.deviceInfo.GetRandomUUID())
 end function
 
-function getCurrentImpressionId(param = invalid)
+function getCurrentImpressionId()
   return m.sample.impressionId
 end function
 
