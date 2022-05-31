@@ -88,7 +88,6 @@ analyticsConfig = {
   customData3: "customData3",
   customData4: "customData4",
   customData5: "customData5",
-  heartbeatInterval: 59700, // value is in ms
 }
 ```
 
