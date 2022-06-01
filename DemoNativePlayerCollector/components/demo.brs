@@ -40,6 +40,9 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
     m.nativePlayer.control = "play"
     m.nativePlayer.setFocus(true)
     handled = true
+  else if key = "down" and press
+    m.nativePlayerCollector.callFunc("destroy", invalid)
+    m.nativePlayer.control = "stop"
   end if
   return handled
 end function
