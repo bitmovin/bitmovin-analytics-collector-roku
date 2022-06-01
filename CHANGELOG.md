@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.5.1
+
 ### Removed
 
 - deinitialization call for the analytics collector as it gets automatically destroyed alongside the Bitmovin player.
