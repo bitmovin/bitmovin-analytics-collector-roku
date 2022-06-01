@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.5.2
+
+### Internal
+
+- fixed warnings and added comments
+
+## v2.5.1
+
+### Removed
+
+- deinitialization call for the analytics collector as it gets automatically destroyed alongside the Bitmovin player.
+
+## v2.5.0
+
+### Internal
+
+- Added `runTask`, `stopTask` and `isTaskRunning` to `AnalyticsDataTask` to prevent orphaned tasks running in the background.
+
 ## v2.4.0
 
 ### Added

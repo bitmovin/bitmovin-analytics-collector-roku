@@ -51,7 +51,9 @@ sub changeSource(sourceConfig, analyticsConfig)
 end sub
 
 function onKeyEvent(key as String, press as Boolean) as Boolean
-  if m.isPlayerReady = false then return false
+  handled = false
+
+  if m.isPlayerReady = false then return handled
 
   if key = "up" and press
     sourceConfig = getSourceConfig(m.PlayerSourceType.TOS)
@@ -61,7 +63,14 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
       videoId: "tears-of-steel",
     }
     changeSource(sourceConfig, analyticsConfig)
-    return true
+    handled = true
+  else if key = "down" and press
+    ' Deinitialize analytics
+    m.bitmovinPlayer.callFunc("destroy", invalid)
+    sleep(1000) ' Wait for some time
+    onLoadStatusChanged() ' Setup a new video
+    handled = true
   end if
-  return false
+
+  return handled
 end function

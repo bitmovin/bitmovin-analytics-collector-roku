@@ -31,6 +31,14 @@ sub initializePlayer(player)
   sendAnalyticsRequestAndClearValues(eventData, 0, "setup")
 end sub
 
+sub destroy(param = invalid)
+  unobserveFields()
+
+  if m.collectorCore <> invalid
+    m.collectorCore.callFunc("internalDestroy", invalid)
+  end if
+end sub
+
 sub setUpObservers()
   m.player.observeFieldScoped("content", "onSourceChanged")
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
@@ -42,16 +50,18 @@ sub setUpObservers()
 end sub
 
 sub unobserveFields()
-  if m.player = invalid or m.collectorCore = invalid then return
+  if m.player <> invalid
+    m.player.unobserveFieldScoped("content")
+    m.player.unobserveFieldScoped("contentIndex")
+    m.player.unobserveFieldScoped("state")
+    m.player.unobserveFieldScoped("seek")
 
-  m.player.unobserveFieldScoped("content")
-  m.player.unobserveFieldScoped("contentIndex")
-  m.player.unobserveFieldScoped("state")
-  m.player.unobserveFieldScoped("seek")
+    m.player.unobserveFieldScoped("control")
+  end if
 
-  m.player.unobserveFieldScoped("control")
-
-  m.collectorCore.unobserveFieldScoped("fireHeartbeat")
+  if m.collectorCore <> invalid
+    m.collectorCore.unobserveFieldScoped("fireHeartbeat")
+  end if
 end sub
 
 sub setUpHelperVariables()

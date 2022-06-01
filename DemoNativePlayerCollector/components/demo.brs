@@ -28,6 +28,8 @@ sub changeSource(sourceConfig, analyticsConfig = invalid)
 end sub
 
 function onKeyEvent(key as String, press as Boolean) as Boolean
+  handled = false
+
   if key = "up" and press
     source = getPlayerSource(m.PlayerSourceType.SINTEL)
     analyticsConfig = {
@@ -37,7 +39,10 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
     changeSource(source, analyticsConfig)
     m.nativePlayer.control = "play"
     m.nativePlayer.setFocus(true)
-    return true
+    handled = true
+  else if key = "down" and press
+    m.nativePlayerCollector.callFunc("destroy", invalid)
+    m.nativePlayer.control = "stop"
   end if
-  return false
+  return handled
 end function

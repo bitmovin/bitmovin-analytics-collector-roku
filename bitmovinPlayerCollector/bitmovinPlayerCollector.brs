@@ -32,18 +32,27 @@ sub initializePlayer(player)
   sendAnalyticsRequestAndClearValues(eventData, 0, m.currentState)
 end sub
 
+sub destroy(param = invalid)
+  unobserveFields()
+
+  if m.collectorCore <> invalid
+    m.collectorCore.callFunc("internalDestroy", invalid)
+  end if
+end sub
+
 sub setUpObservers()
   m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
   m.player.observeFieldScoped("seeked", "onSeeked")
-
-  m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 
   m.player.observeFieldScoped("play", "onPlay")
   m.player.observeFieldScoped("sourceLoaded", "onSourceLoaded")
   m.player.observeFieldScoped("sourceUnloaded", "onSourceUnloaded")
 
   m.player.observeFieldScoped("error", "onError")
+  m.player.observeFieldScoped("destroy", "onDestroy")
+
+  m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
 
 sub unobserveFields()
@@ -57,6 +66,7 @@ sub unobserveFields()
     m.player.unobserveFieldScoped("sourceUnloaded")
 
     m.player.unobserveFieldScoped("error")
+    m.player.unobserveFieldScoped("destroy")
   end if
 
   if m.collectorCore <> invalid
@@ -312,6 +322,11 @@ sub onError()
 
   ' Stop collecting data
   unobserveFields()
+end sub
+
+' Handler for player's onDestroy callback.
+sub onDestroy()
+  destroy()
 end sub
 
 function setCustomData(customData)

@@ -1,16 +1,18 @@
 sub init()
-  m.version = "2.4.0"
+  m.version = "2.5.2"
   m.tag = "Bitmovin Analytics Collector [collectorCore] "
   m.appInfo = CreateObject("roAppInfo")
   m.domain = m.appInfo.GetID() + ".roku"
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
-  m.analyticsDataTask = m.top.findNode("analyticsDataTask")
+  m.AnalyticsDataTask = m.top.findNode("analyticsDataTask")
   m.analyticsConfig = CreateObject("roAssociativeArray")
   m.sample = invalid
 end sub
 
 sub initializeAnalytics(config = invalid)
+  m.AnalyticsDataTask.callFunc("runTask", invalid)
+
   ' Set licenseKey if present in analytics configuration
   if config <> invalid and config.DoesExist("key")
     setLicenseKey(config.key)
@@ -22,13 +24,18 @@ sub initializeAnalytics(config = invalid)
   updateAnalyticsConfig(config)
 end sub
 
+' Clean up AnalyticsDataTask
+sub internalDestroy(param = invalid)
+  m.AnalyticsDataTask.callFunc("stopTask", invalid)
+end sub
+
 ' #region Licensing
 
 sub checkAnalyticsLicenseKey()
-  if isInvalid(m.analyticsDataTask) then return
+  if isInvalid(m.AnalyticsDataTask) then return
 
-  m.analyticsDataTask.licensingData = getLicensingData()
-  m.analyticsDataTask.checkLicenseKey = true
+  m.AnalyticsDataTask.licensingData = getLicensingData()
+  m.AnalyticsDataTask.checkLicenseKey = true
 end sub
 
 function getLicensingData()
@@ -100,17 +107,20 @@ sub clearSampleValues()
   m.sample.errorMessage = invalid
 end sub
 
-function getVersion(param = invalid)
+' Return the Bitmovin Analytics collector version.
+function getVersion()
   return m.version
 end function
 
-function getUserAgent(param = invalid)
+' Return a custom UserAgent string.
+function getUserAgent()
   osVersion = m.deviceInfo.GetOSVersion()
   versionBuild = substitute("{0}{1}", osVersion.revision, osVersion.build)
   return substitute("Roku/DVP-{0}.{1} ({2})", osVersion.major, osVersion.minor, versionBuild)
 end function
 
-function getDeviceInformation(param = invalid)
+' Return the device information such as manufacturer and Roku model.
+function getDeviceInformation()
  return {
     manufacturer: m.deviceInfo.GetModelDetails().VendorName,
     model: m.deviceInfo.GetModel(),
@@ -118,11 +128,13 @@ function getDeviceInformation(param = invalid)
  }
 end function
 
-function createImpressionId(param = invalid)
+' Create a new unique impression ID.
+function createImpressionId()
   return lcase(m.deviceInfo.GetRandomUUID())
 end function
 
-function getCurrentImpressionId(param = invalid)
+' Return the impression ID of the current session.
+function getCurrentImpressionId()
   return m.sample.impressionId
 end function
 
@@ -144,7 +156,7 @@ end function
 
 ' TODO: Error handling if the keys are invalid
 sub sendAnalyticsRequestAndClearValues()
-  m.analyticsDataTask.eventData = m.sample
+  m.AnalyticsDataTask.eventData = m.sample
   m.sample.sequenceNumber++
 
   sendAnalyticsRequest()
@@ -155,7 +167,7 @@ sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData)
   if updatedSampleData = invalid return
 
   sendOnceSample = createSendOnceSample(updatedSampleData)
-  m.analyticsDataTask.eventData = sendOnceSample
+  m.AnalyticsDataTask.eventData = sendOnceSample
 
   sendAnalyticsRequest()
 end sub
@@ -186,7 +198,7 @@ function createSendOnceSample(metadata)
 end function
 
 sub sendAnalyticsRequest()
-  m.analyticsDataTask.sendData = true
+  m.AnalyticsDataTask.sendData = true
 end sub
 
 Function readFromRegistry(registrySectionName, readKey)
