@@ -65,9 +65,7 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
     changeSource(sourceConfig, analyticsConfig)
     handled = true
   else if key = "down" and press
-    ' Demo for deinitializing the analytics collector.
-    ' Destroy the collector before the player
-    m.bitmovinPlayerCollector.callFunc("destroy", invalid)
+    ' Deinitialize analytics
     m.bitmovinPlayer.callFunc("destroy", invalid)
     sleep(1000) ' Wait for some time
     onLoadStatusChanged() ' Setup a new video
