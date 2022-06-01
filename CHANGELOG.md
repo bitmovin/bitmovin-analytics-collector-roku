@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.5.2
+
 ### Internal
 
 - fixed warnings and added comments
