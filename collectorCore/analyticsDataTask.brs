@@ -28,6 +28,8 @@ sub runTask(param = invalid)
 end sub
 
 sub stopTask(param = invalid)
+  clearLicensingResponseAndAnalyticsEventsQueue()
+
   m.top.control = m.AnalyticsDataTaskControlValues.STOP
 
   m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.CHECK_LICENSE)
@@ -74,11 +76,6 @@ sub monitor()
     end if
 
   end while
-end sub
-
-sub destroy()
-  clearAnalyticsEventsQueue()
-  stopTask()
 end sub
 
 sub handleFailedLicensingRequest(responseMsg, status)
