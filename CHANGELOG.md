@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Internal
+
+- fixed warnings and added comments
+
 ## v2.5.1
 
 ### Removed

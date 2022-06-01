@@ -107,17 +107,20 @@ sub clearSampleValues()
   m.sample.errorMessage = invalid
 end sub
 
-function getVersion(param = invalid)
+' Return the Bitmovin Analytics collector version.
+function getVersion()
   return m.version
 end function
 
-function getUserAgent(param = invalid)
+' Return a custom UserAgent string.
+function getUserAgent()
   osVersion = m.deviceInfo.GetOSVersion()
   versionBuild = substitute("{0}{1}", osVersion.revision, osVersion.build)
   return substitute("Roku/DVP-{0}.{1} ({2})", osVersion.major, osVersion.minor, versionBuild)
 end function
 
-function getDeviceInformation(param = invalid)
+' Return the device information such as manufacturer and Roku model.
+function getDeviceInformation()
  return {
     manufacturer: m.deviceInfo.GetModelDetails().VendorName,
     model: m.deviceInfo.GetModel(),
@@ -125,11 +128,13 @@ function getDeviceInformation(param = invalid)
  }
 end function
 
-function createImpressionId(param = invalid)
+' Create a new unique impression ID.
+function createImpressionId()
   return lcase(m.deviceInfo.GetRandomUUID())
 end function
 
-function getCurrentImpressionId(param = invalid)
+' Return the impression ID of the current session.
+function getCurrentImpressionId()
   return m.sample.impressionId
 end function
 
