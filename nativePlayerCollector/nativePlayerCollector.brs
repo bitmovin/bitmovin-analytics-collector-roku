@@ -253,6 +253,10 @@ sub decorateSampleWithPlaybackData(sampleData)
     subtitleEnabled = True
   end if
   sampleData.Append({subtitleEnabled: subtitleEnabled})
+
+  ' Set video duration
+  videoDuration = m.player.duration
+  sampleData.Append({videoDuration: videoDuration})
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
