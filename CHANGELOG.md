@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## [Unreleased]
+
+## Added
+
+- tracking of video duration for Bitmovin and Native player (PR-660)
+
 ## v2.5.2
 
 ### Internal
