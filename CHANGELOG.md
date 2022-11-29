@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
-## [Unreleased]
+## v2.6.0
 
 ## Added
 
