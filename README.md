@@ -121,3 +121,7 @@ Please install `vscode-ide-brightscript` package using `VSCode` package manager 
 Wist linter is included in the `vscode-ide-brightscript` package.
 Wist linter rules can be edited by updating rules from `.wistrc.json` file which is added to the root folder of the repository.
 Full list of supported rules can be found [here](https://willowtreeapps.github.io/wist/user-guide/rules/).
+
+## Support
+
+If you have any questions or issues with this Analytics Collector or its examples, or you require other technical support for our services, please login to your Bitmovin Dashboard at https://bitmovin.com/dashboard and create a new support case. Our team will get back to you as soon as possible 👍
