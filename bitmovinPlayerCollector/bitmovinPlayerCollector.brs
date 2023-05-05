@@ -114,8 +114,6 @@ end sub
 sub handleCurrentState()
   if m.currentState = m.playerStates.PLAYING
     onVideoStart()
-  else if m.currentState = m.playerStates.PAUSED
-    onPause()
   else if m.currentState = m.playerStates.STALLING
     onBuffering()
   else if m.currentState = m.playerStates.FINISHED
@@ -151,13 +149,6 @@ sub onPlayed(state)
   sendAnalyticsRequestAndClearValues(eventData, played, state)
 end sub
 
-sub onPause()
-  ' The video node does not have a seeking state, because of that we have to assume that on pause is the beginning of a seek operation until proven otherwise
-  m.alreadySeeking = true
-  m.seekStartPosition = getCurrentPlayerTimeInMs()
-  m.seekTimer = createObject("roTimeSpan")
-end sub
-
 sub onPaused(state)
   ' If we did not change from the pause state to playing that means a seek is happening
   if m.currentState <> m.playerStates.PLAYING then return
@@ -168,7 +159,6 @@ sub onPaused(state)
   }
 
   sendAnalyticsRequestAndClearValues(eventData, paused, state)
-  resetSeekHelperVariables()
 end sub
 
 sub resetSeekHelperVariables()
