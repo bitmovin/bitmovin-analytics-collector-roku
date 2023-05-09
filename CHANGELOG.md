@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## Fixed
+
+- Runtime error when seeking on a live stream with Bitmovin Collector
+
 ## v2.6.0
 
 ## Added
