@@ -7,13 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
-## Fixed
+## v2.6.1
+
+### Fixed
 
 - Runtime error when seeking on a live stream with Bitmovin Collector
 
 ## v2.6.0
 
-## Added
+### Added
 
 - tracking of video duration for Bitmovin and Native player (PR-660)
 
