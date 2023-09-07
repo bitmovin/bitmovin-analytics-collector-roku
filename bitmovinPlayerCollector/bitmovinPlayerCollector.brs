@@ -25,6 +25,7 @@ sub initializePlayer(player)
   eventData = {
     playerTech: "bitmovin",
     version: getPlayerVersion(),
+    player: "Bitmovin",
     playerKey: getPlayerKeyFromManifest(m.appInfo),
 
     playerStartupTime: 1
