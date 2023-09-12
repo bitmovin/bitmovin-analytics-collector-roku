@@ -118,6 +118,11 @@ sub handleCurrentState()
     onBuffering()
   else if m.currentState = m.playerStates.FINISHED
     onFinished()
+  else if m.currentState = m.playerStates.READY
+    playerConfig = m.player.callFunc("getConfig", invalid)
+    if playerConfig.autoplay = false
+      stopVideoStartUpTimer()
+    end if
   end if
 end sub
 
