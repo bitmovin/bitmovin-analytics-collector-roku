@@ -118,6 +118,11 @@ sub handleCurrentState()
     onBuffering()
   else if m.currentState = m.playerStates.FINISHED
     onFinished()
+  else if m.currentState = m.playerStates.READY
+    playerConfig = m.player.callFunc("getConfig", invalid)
+    if playerConfig.autoplay = false
+      stopVideoStartUpTimer()
+    end if
   end if
 end sub
 
@@ -361,9 +366,8 @@ sub onSourceLoaded()
   playerConfig = m.player.callFunc("getConfig", invalid)
 
   checkForSourceSpecificMetadata(playerConfig.source)
-  if playerConfig.autoplay = true
-    startVideoStartUpTimer()
-  end if
+
+  startVideoStartUpTimer()
 
   checkForNewMetadata()
   ' Do not change impression id when it is a initial source change
