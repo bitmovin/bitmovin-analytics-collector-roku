@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Video start up time being 0 when autoplay is disabled
   https://bitmovin.atlassian.net/browse/PR-721
+- Player not correctly being recognized as Bitmovin player
 
 ## v2.6.1
 
