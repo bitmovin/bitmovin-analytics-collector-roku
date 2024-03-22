@@ -18,6 +18,8 @@ sub initializePlayer(player)
 
   setUpHelperVariables()
   setUpObservers()
+  ' Set up sourceLoaded observer seperately since we never intend to unobserve it unless the collector is destroyed
+  m.player.observeFieldScoped("sourceLoaded", "onSourceLoaded")
 
   m.previousState = ""
   m.currentState = player.playerState
@@ -47,7 +49,6 @@ sub setUpObservers()
   m.player.observeFieldScoped("seeked", "onSeeked")
 
   m.player.observeFieldScoped("play", "onPlay")
-  m.player.observeFieldScoped("sourceLoaded", "onSourceLoaded")
   m.player.observeFieldScoped("sourceUnloaded", "onSourceUnloaded")
 
   m.player.observeFieldScoped("error", "onError")
