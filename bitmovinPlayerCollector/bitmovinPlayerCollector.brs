@@ -368,6 +368,7 @@ function getPlayerKeyFromManifest(appInfo)
 end function
 
 sub onSourceLoaded()
+  setUpObservers()
   playerConfig = m.player.callFunc("getConfig", invalid)
 
   checkForSourceSpecificMetadata(playerConfig.source)
