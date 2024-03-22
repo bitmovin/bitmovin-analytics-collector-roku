@@ -385,6 +385,7 @@ end sub
 sub onSourceUnloaded()
   handleIntermediateState(m.currentState)
   m.videoStartUpTime = -1
+  unobserveFields()
 end sub
 
 sub startVideoStartUpTimer()
