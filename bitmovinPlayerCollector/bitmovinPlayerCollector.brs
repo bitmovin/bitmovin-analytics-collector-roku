@@ -34,7 +34,7 @@ sub initializePlayer(player)
 end sub
 
 sub destroy(param = invalid)
-  unobserveFields()
+  unobserveFields(true)
 
   if m.collectorCore <> invalid
     m.collectorCore.callFunc("internalDestroy", invalid)
@@ -56,14 +56,17 @@ sub setUpObservers()
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
 
-sub unobserveFields()
+sub unobserveFields(isDestroy = false)
   if m.player <> invalid
     m.player.unobserveFieldScoped("playerState")
     m.player.unobserveFieldScoped("seek")
     m.player.unobserveFieldScoped("seeked")
 
     m.player.unobserveFieldScoped("play")
-    m.player.unobserveFieldScoped("sourceLoaded")
+
+    ' Only unobserve sourceLoaded if it is a destroy event so we can collect data again when a new source is loaded
+    if isDestroy then m.player.unobserveFieldScoped("sourceLoaded")
+
     m.player.unobserveFieldScoped("sourceUnloaded")
 
     m.player.unobserveFieldScoped("error")
