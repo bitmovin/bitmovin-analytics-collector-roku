@@ -44,6 +44,8 @@ sub destroy(param = invalid)
 end sub
 
 sub setUpObservers()
+  unobserveFields()
+
   m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
   m.player.observeFieldScoped("seeked", "onSeeked")
@@ -385,7 +387,6 @@ end sub
 sub onSourceUnloaded()
   handleIntermediateState(m.currentState)
   m.videoStartUpTime = -1
-  unobserveFields()
 end sub
 
 sub startVideoStartUpTimer()
