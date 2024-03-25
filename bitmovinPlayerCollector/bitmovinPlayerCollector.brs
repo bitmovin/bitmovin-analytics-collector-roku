@@ -18,6 +18,8 @@ sub initializePlayer(player)
 
   setUpHelperVariables()
   setUpObservers()
+  ' Set up sourceLoaded observer seperately since we never intend to unobserve it unless the collector is destroyed
+  m.player.observeFieldScoped("sourceLoaded", "onSourceLoaded")
 
   m.previousState = ""
   m.currentState = player.playerState
@@ -34,7 +36,7 @@ sub initializePlayer(player)
 end sub
 
 sub destroy(param = invalid)
-  unobserveFields()
+  unobserveFields(true)
 
   if m.collectorCore <> invalid
     m.collectorCore.callFunc("internalDestroy", invalid)
@@ -42,12 +44,13 @@ sub destroy(param = invalid)
 end sub
 
 sub setUpObservers()
+  unobserveFields()
+
   m.player.observeFieldScoped("playerState", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
   m.player.observeFieldScoped("seeked", "onSeeked")
 
   m.player.observeFieldScoped("play", "onPlay")
-  m.player.observeFieldScoped("sourceLoaded", "onSourceLoaded")
   m.player.observeFieldScoped("sourceUnloaded", "onSourceUnloaded")
 
   m.player.observeFieldScoped("error", "onError")
@@ -56,14 +59,17 @@ sub setUpObservers()
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
 
-sub unobserveFields()
+sub unobserveFields(isDestroy = false)
   if m.player <> invalid
     m.player.unobserveFieldScoped("playerState")
     m.player.unobserveFieldScoped("seek")
     m.player.unobserveFieldScoped("seeked")
 
     m.player.unobserveFieldScoped("play")
-    m.player.unobserveFieldScoped("sourceLoaded")
+
+    ' Only unobserve sourceLoaded if it is a destroy event so we can collect data again when a new source is loaded
+    if isDestroy then m.player.unobserveFieldScoped("sourceLoaded")
+
     m.player.unobserveFieldScoped("sourceUnloaded")
 
     m.player.unobserveFieldScoped("error")
@@ -364,6 +370,7 @@ function getPlayerKeyFromManifest(appInfo)
 end function
 
 sub onSourceLoaded()
+  setUpObservers()
   playerConfig = m.player.callFunc("getConfig", invalid)
 
   checkForSourceSpecificMetadata(playerConfig.source)

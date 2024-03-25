@@ -17,6 +17,8 @@ sub initializePlayer(player)
 
   setUpHelperVariables()
   setUpObservers()
+  ' Set up content observer seperately since we never intend to unobserve it unless the collector is destroyed
+  m.player.observeFieldScoped("content", "onSourceChanged")
 
   m.previousState = ""
   m.currentState = player.state
@@ -32,7 +34,7 @@ sub initializePlayer(player)
 end sub
 
 sub destroy(param = invalid)
-  unobserveFields()
+  unobserveFields(true)
 
   if m.collectorCore <> invalid
     m.collectorCore.callFunc("internalDestroy", invalid)
@@ -40,7 +42,8 @@ sub destroy(param = invalid)
 end sub
 
 sub setUpObservers()
-  m.player.observeFieldScoped("content", "onSourceChanged")
+  unobserveFields()
+
   m.player.observeFieldScoped("state", "onPlayerStateChanged")
   m.player.observeFieldScoped("seek", "onSeek")
 
@@ -49,9 +52,10 @@ sub setUpObservers()
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
 
-sub unobserveFields()
+sub unobserveFields(isDestory = false)
   if m.player <> invalid
-    m.player.unobserveFieldScoped("content")
+    ' Only unobserve content if it is a destroy event so we can collect data again when a new content is set
+    if isDestroy then m.player.unobserveFieldScoped("content")
     m.player.unobserveFieldScoped("contentIndex")
     m.player.unobserveFieldScoped("state")
     m.player.unobserveFieldScoped("seek")
@@ -354,6 +358,8 @@ sub onSourceLoaded()
 end sub
 
 sub onSourceChanged()
+  setUpObservers()
+
   if m.player.state = m.playerStates.PLAYING
     startVideoStartUpTimer()
   end if
