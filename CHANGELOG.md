@@ -7,13 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.6.3
+
+### Fixed
+
+- Collector permanently stops collecting data after an error event
+  https://bitmovin.atlassian.net/browse/PR-754
+
+## v2.6.2
+
 ### Fixed
 
 - Video start up time being 0 when autoplay is disabled
   https://bitmovin.atlassian.net/browse/PR-721
 - Player not correctly being recognized as Bitmovin player
-- Collector permanently stops collecting data after an error event
-  https://bitmovin.atlassian.net/browse/PR-754
 
 ## v2.6.1
 
