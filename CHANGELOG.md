@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Fixed
+
+- Bitmovin `player` name was uppercased which is inconsistent with other Bitmovin Player collectors (AN-4067)
+
 ## v2.6.3
 
 ### Fixed
