@@ -24,7 +24,7 @@ sub initializePlayer(player)
   m.currentState = player.state
 
   eventData = {
-    player: "Roku",
+    player: "roku",
     playerTech: "native",
     version: getPlayerVersion(),
 

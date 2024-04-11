@@ -22,7 +22,7 @@ function getAnalyticsSample()
     paused: 0,
     platform: "roku",
     played: 0,
-    player: "Roku",
+    player: "roku",
     playerKey: "",
     playerStartupTime: 0,
     playerTech: "",
