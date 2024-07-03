@@ -513,5 +513,9 @@ function getPlayerVersion()
 end function
 
 function adBreakStart(adMetadata = invalid)
-  m.collectorCore.callFunc("adBreakStart", adMetadata)
+  m.collectorCore.callFunc("adBreakStart", adBreakMetadata)
+end function
+
+function adStarted()
+  m.collectorCore.callFunc("adStarted", adMetadata)
 end function
