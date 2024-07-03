@@ -11,5 +11,6 @@
     <function name="setCustomData"/>
     <function name="setCustomDataOnce"/>
     <function name="adBreakStart"/>
+    <function name="adStart"/>
   </interface>
 </component>
