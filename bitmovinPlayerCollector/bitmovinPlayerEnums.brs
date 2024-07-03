@@ -11,13 +11,3 @@ function getPlayerControls()
   }
   return controlStates
 end function
-
-' SSAI States
-function getSsaiStates()
-  ssaiStates = {
-    AD_BREAK_STARTED: "AD_BREAK_STARTED",
-    ACTIVE: "ACTIVE",
-    IDLE: "IDLE"
-  }
-  return ssaiStates
-end function
