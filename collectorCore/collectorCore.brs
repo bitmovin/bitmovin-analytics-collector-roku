@@ -301,7 +301,7 @@ sub adBreakStart(adBreakMetadata = invalid)
   m.currentAdMetadata = adBreakMetadata
 end sub
 
-sub adStarted(adMetadata = invalid)
+sub adStart(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
   m.ssaiState = m.SSAI_STATES.ACTIVE

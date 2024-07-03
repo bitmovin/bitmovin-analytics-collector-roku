@@ -517,8 +517,8 @@ function adBreakStart(adBreakMetadata = invalid)
   m.collectorCore.callFunc("adBreakStart", adBreakMetadata)
 end function
 
-function adStarted(adMetadata)
-  m.collectorCore.callFunc("adStarted", adMetadata)
+function adStart(adMetadata)
+  m.collectorCore.callFunc("adStart", adMetadata)
 end function
 
 function adBreakEnd()
