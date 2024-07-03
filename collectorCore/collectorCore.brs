@@ -18,6 +18,8 @@ sub initializeAnalytics(config = invalid)
     setLicenseKey(config.key)
   end if
 
+  m.SSAI_STATES = getSsaiStates()
+  m.AD_TYPE = getAdTypes()
   resetSaaiHelpers()
 
   checkAnalyticsLicenseKey()
@@ -27,11 +29,11 @@ sub initializeAnalytics(config = invalid)
 end sub
 
 sub resetSsaiHelpers()
-  m.ssaiStates = getSsaiStates()
-  m.ssaiState = m.ssaiStates.IDLE
+  m.ssaiState = m.SSAI_STATES.IDLE
   m.currentAdMetadata = {}
   m.isFirstSampleOfAd = false
   m.adCustomData = invalid
+  m.adIndex = 0
 end sub
 
 ' Clean up AnalyticsDataTask
@@ -293,16 +295,16 @@ sub updateAnalyticsConfig(unsanitizedConfig)
 end sub
 
 function adBreakStart(adBreakMetadata = invalid)
-  if m.ssaiState <> m.ssaiStates.IDLE then return
+  if m.ssaiState <> m.SSAI_STATES.IDLE then return
 
-  m.ssaiState = m.ssaiStates.AD_BREAK_STARTED
+  m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
   m.currentAdMetadata = adBreakMetadata
 end function
 
 function adStarted(adMetadata = invalid)
-  if m.ssaiState = m.ssaiStates.IDLE then return
+  if m.ssaiState = m.SSAI_STATES.IDLE then return
 
-  m.ssaiState = m.ssaiState.ACTIVE
+  m.ssaiState = m.SSAI_STATES.ACTIVE
   m.isFirstSampleOfAd = true
 
   sendAnalyticsRequestAndClearValues()
@@ -320,11 +322,34 @@ function adStarted(adMetadata = invalid)
 end function
 
 function adBreakEnd()
-  if m.ssaiState = m.ssaiStates.IDLE then return
+  if m.ssaiState = m.SSAI_STATES.IDLE then return
 
-  if m.ssaiState = m.ssaiStates.ACTIVE
+  if m.ssaiState = m.SSAI_STATES.ACTIVE
     sendAnalyticsRequestAndClearValues()
   end if
 
   resetSsaiHelpers()
+end function
+
+function manipulateSampleForSsai()
+  sampleUpdate = {
+    sampleUpdate.ad = m.AD_TYPE.SSAI
+    sampleUpdate.adId = m.currentAdMetadata.adId
+    sampleUpdate.adSystem = m.currentAdMetadata.adSystem
+    sampleUpdate.adPosition = m.currentAdMetadata.adPosition
+  }
+  if m.isFirstSampleOfAd
+    sampleUpdate.adIndex = m.adIndex
+    m.isFirstSampleOfAd = false
+    m.adIndex++
+  end if
+
+  customData = m.adCustomData
+  if customData <> invalid
+    for each key in m.customDataKeys
+      if customData[key] <> invalid then sampleUpdate.append(key, customData[key])
+    end for
+  end if
+
+  updateSample(sampleUpdate)
 end function
