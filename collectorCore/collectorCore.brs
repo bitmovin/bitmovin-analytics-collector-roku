@@ -298,8 +298,6 @@ end sub
 sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
 
-  m.top.fireHeartbeat = true
-
   m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
   m.currentAdMetadata = adBreakMetadata
 end sub
@@ -307,19 +305,18 @@ end sub
 sub adStart(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
+  m.top.fireHeartbeat = true
+
   m.ssaiState = m.SSAI_STATES.ACTIVE
   m.isFirstSampleOfAd = true
 
-  sendAnalyticsRequestAndClearValues()
-
-  if adMetadata <> invalid then m.adCustomData = adMetadata.customData
-
   if adMetadata <> invalid
+    m.adCustomData = adMetadata.customData
     m.currentAdMetadata = {
       adPosition: m.currentAdMetadata.adPosition,
       adId: adMetadata.adId,
       adSystem: adMetadata.adSystem,
-      customData: m.adCustomData,
+      customData: m.adCustomData
     }
   end if
 end sub
@@ -355,7 +352,7 @@ sub manipulateSampleForSsai()
   customData = m.adCustomData
   if customData <> invalid
     for each key in getCustomDataValueKeys()
-      if customData.DoesExist(key) then sampleUpdate.Append({key: customData[key]})
+      if customData.DoesExist(key) then sampleUpdate.AddReplace(key, customData[key])
     end for
   end if
 
