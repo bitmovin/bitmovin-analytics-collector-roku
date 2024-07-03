@@ -20,7 +20,7 @@ sub initializeAnalytics(config = invalid)
 
   m.SSAI_STATES = getSsaiStates()
   m.AD_TYPE = getAdTypes()
-  resetSaaiHelpers()
+  resetSsaiHelpers()
 
   checkAnalyticsLicenseKey()
   setupSample()
@@ -294,14 +294,14 @@ sub updateAnalyticsConfig(unsanitizedConfig)
   updateSample(m.analyticsConfig)
 end sub
 
-function adBreakStart(adBreakMetadata = invalid)
+sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
 
   m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
   m.currentAdMetadata = adBreakMetadata
-end function
+end sub
 
-function adStarted(adMetadata = invalid)
+sub adStarted(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
   m.ssaiState = m.SSAI_STATES.ACTIVE
@@ -316,12 +316,12 @@ function adStarted(adMetadata = invalid)
       adPosition: m.currentAdMetadata.adPosition,
       adId: adMetadata.adId,
       adSystem: adMetadata.adSystem,
-      customData: customData,
-    };
+      customData: m.adCustomData,
+    }
   end if
-end function
+end sub
 
-function adBreakEnd()
+sub adBreakEnd()
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
   if m.ssaiState = m.SSAI_STATES.ACTIVE
@@ -329,15 +329,16 @@ function adBreakEnd()
   end if
 
   resetSsaiHelpers()
-end function
+end sub
 
 function manipulateSampleForSsai()
-  sampleUpdate = {
-    sampleUpdate.ad = m.AD_TYPE.SSAI
-    sampleUpdate.adId = m.currentAdMetadata.adId
-    sampleUpdate.adSystem = m.currentAdMetadata.adSystem
-    sampleUpdate.adPosition = m.currentAdMetadata.adPosition
-  }
+  sampleUpdate = {}
+
+  sampleUpdate.ad = m.AD_TYPE.SSAI
+  sampleUpdate.adId = m.currentAdMetadata.adId
+  sampleUpdate.adSystem = m.currentAdMetadata.adSystem
+  sampleUpdate.adPosition = m.currentAdMetadata.adPosition
+
   if m.isFirstSampleOfAd
     sampleUpdate.adIndex = m.adIndex
     m.isFirstSampleOfAd = false
