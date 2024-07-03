@@ -10,9 +10,9 @@ end function
 
 function getAdTypes()
   adTypes = {
-    NO_AD = 0,
-    CSAI = 1,
-    SSAI = 2
+    NO_AD: 0,
+    CSAI: 1,
+    SSAI: 2
   }
   return adTypes
 end function
