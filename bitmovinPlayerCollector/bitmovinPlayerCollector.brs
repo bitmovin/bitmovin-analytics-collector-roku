@@ -247,7 +247,8 @@ sub decorateSampleWithPlaybackData(sampleData)
   sampleData.Append({subtitleEnabled: subtitleEnabled})
 
   ' Set video duration
-  videoDuration = m.player.callFunc("getDuration", invalid) * 1000
+  videoDuration = m.player.callFunc("getDuration", invalid)
+  if videoDuration <> invalid then videoDuration = videoDuration * 1000
   sampleData.Append({videoDuration: videoDuration})
 end sub
 
