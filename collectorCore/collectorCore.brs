@@ -18,7 +18,7 @@ sub initializeAnalytics(config = invalid)
     setLicenseKey(config.key)
   end if
 
-  setupSaaiHelpers()
+  resetSaaiHelpers()
 
   checkAnalyticsLicenseKey()
   setupSample()
@@ -26,10 +26,12 @@ sub initializeAnalytics(config = invalid)
   updateAnalyticsConfig(config)
 end sub
 
-sub setupSsaiHelpers()
+sub resetSsaiHelpers()
   m.ssaiStates = getSsaiStates()
   m.ssaiState = m.ssaiStates.IDLE
-  m.adMetadata = {}
+  m.currentAdMetadata = {}
+  m.isFirstSampleOfAd = false
+  m.adCustomData = invalid
 end sub
 
 ' Clean up AnalyticsDataTask
@@ -290,9 +292,29 @@ sub updateAnalyticsConfig(unsanitizedConfig)
   updateSample(m.analyticsConfig)
 end sub
 
-function adBreakStart(adBreakMetadata = invalid)
+function adBreakStart(adMetadata = invalid)
   if m.ssaiState <> m.ssaiStates.IDLE then return
 
   m.ssaiState = m.ssaiStates.AD_BREAK_STARTED
-  m.adBreakMetadata = adBreakMetadata
+  m.currentAdMetadata = adMetadata
+end function
+
+funciton adStarted(adMetadata = invalid)
+  if m.ssaiState = m.ssaiState.IDLE then return
+
+  m.ssaiState = m.ssaiState.ACTIVE
+  m.isFirstSampleOfAd = true
+
+  sendAnalyticsRequestAndClearValues()
+
+  m.adCustomData = extractCustomDataFieldsOnly(adMetadata.customData)
+
+  if adMetadata <> invalid
+    m.currentAdMetadata = {
+      adPosition: m.currentAdMetadata.adPosition,
+      adId: adMetadata.adId,
+      adSystem: adMetadata.adSystem,
+      customData: customData,
+    };
+  end if
 end function
