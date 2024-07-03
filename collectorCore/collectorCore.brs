@@ -309,7 +309,7 @@ function adStarted(adMetadata = invalid)
 
   sendAnalyticsRequestAndClearValues()
 
-  m.adCustomData = extractCustomDataFieldsOnly(adMetadata.customData)
+  if adMetadata <> invalid then m.adCustomData = adMetadata.customData
 
   if adMetadata <> invalid
     m.currentAdMetadata = {
@@ -346,8 +346,8 @@ function manipulateSampleForSsai()
 
   customData = m.adCustomData
   if customData <> invalid
-    for each key in m.customDataKeys
-      if customData[key] <> invalid then sampleUpdate.append(key, customData[key])
+    for each key in getCustomDataValueKeys()
+      if customData.DoesExist(key) then sampleUpdate.Append({key: customData[key]})
     end for
   end if
 
