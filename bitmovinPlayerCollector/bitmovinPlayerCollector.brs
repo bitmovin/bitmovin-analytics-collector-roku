@@ -512,11 +512,11 @@ function getPlayerVersion()
   return "bitmovin-" + m.player.callFunc(m.player.BitmovinFunctions.GET_VERSION)
 end function
 
-function adBreakStart(adMetadata = invalid)
+function adBreakStart(adBreakMetadata = invalid)
   m.collectorCore.callFunc("adBreakStart", adBreakMetadata)
 end function
 
-function adStarted()
+function adStarted(adMetadata)
   m.collectorCore.callFunc("adStarted", adMetadata)
 end function
 

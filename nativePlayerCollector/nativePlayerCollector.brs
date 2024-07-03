@@ -519,11 +519,11 @@ function getPlayerVersion()
   return "roku-" + version.major + "." + version.minor + "." + version.build
 end function
 
-function adBreakStart(adMetadata = invalid)
+function adBreakStart(adBreakMetadata = invalid)
   m.collectorCore.callFunc("adBreakStart", adBreakMetadata)
 end function
 
-function adStarted()
+function adStarted(adMetadata)
   m.collectorCore.callFunc("adStarted", adMetadata)
 end function
 
