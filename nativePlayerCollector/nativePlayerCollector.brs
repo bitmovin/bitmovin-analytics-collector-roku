@@ -518,3 +518,15 @@ function getPlayerVersion()
   version = m.deviceInfo.GetOSVersion()
   return "roku-" + version.major + "." + version.minor + "." + version.build
 end function
+
+function adBreakStart(adMetadata = invalid)
+  m.collectorCore.callFunc("adBreakStart", adBreakMetadata)
+end function
+
+function adStarted()
+  m.collectorCore.callFunc("adStarted", adMetadata)
+end function
+
+function adBreakEnd()
+  m.collectorCore.callFunc("adBreakEnd")
+end function
