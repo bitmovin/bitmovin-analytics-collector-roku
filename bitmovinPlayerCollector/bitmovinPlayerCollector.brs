@@ -519,3 +519,7 @@ end function
 function adStarted()
   m.collectorCore.callFunc("adStarted", adMetadata)
 end function
+
+function adBreakEnd()
+  m.collectorCore.callFunc("adBreakEnd")
+end function

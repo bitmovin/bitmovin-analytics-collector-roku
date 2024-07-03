@@ -299,8 +299,8 @@ function adBreakStart(adBreakMetadata = invalid)
   m.currentAdMetadata = adBreakMetadata
 end function
 
-funciton adStarted(adMetadata = invalid)
-  if m.ssaiState = m.ssaiState.IDLE then return
+function adStarted(adMetadata = invalid)
+  if m.ssaiState = m.ssaiStates.IDLE then return
 
   m.ssaiState = m.ssaiState.ACTIVE
   m.isFirstSampleOfAd = true
@@ -317,4 +317,14 @@ funciton adStarted(adMetadata = invalid)
       customData: customData,
     };
   end if
+end function
+
+function adBreakEnd()
+  if m.ssaiState = m.ssaiStates.IDLE then return
+
+  if m.ssaiState = m.ssaiStates.ACTIVE
+    sendAnalyticsRequestAndClearValues()
+  end if
+
+  resetSsaiHelpers()
 end function
