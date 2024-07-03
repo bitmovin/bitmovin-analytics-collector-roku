@@ -32,7 +32,7 @@ sub resetSsaiHelpers()
   m.ssaiState = m.SSAI_STATES.IDLE
   m.currentAdMetadata = {}
   m.isFirstSampleOfAd = false
-  m.adCustomData = invalid
+  m.adCustomData = {}
   m.adIndex = 0
 end sub
 
