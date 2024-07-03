@@ -48,8 +48,7 @@ function getCustomDataValueKeys()
     "customData27",
     "customData28",
     "customData29",
-    "customData30",
-    "experimentName",
+    "customData30"
   ]
   return customDataValuesKeys
 end function
