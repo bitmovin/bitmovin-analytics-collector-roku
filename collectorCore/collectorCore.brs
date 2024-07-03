@@ -168,6 +168,7 @@ end function
 
 ' TODO: Error handling if the keys are invalid
 sub sendAnalyticsRequestAndClearValues()
+  manipulateSampleForSsai()
   m.AnalyticsDataTask.eventData = m.sample
   m.sample.sequenceNumber++
 
@@ -297,6 +298,9 @@ end sub
 sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
 
+  'sendAnalyticsRequestAndClearValues()
+  m.top.fireHeartbeat = true
+
   m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
   m.currentAdMetadata = adBreakMetadata
 end sub
@@ -323,21 +327,26 @@ end sub
 
 sub adBreakEnd()
   if m.ssaiState = m.SSAI_STATES.IDLE then return
-
   if m.ssaiState = m.SSAI_STATES.ACTIVE
-    sendAnalyticsRequestAndClearValues()
+    'sendAnalyticsRequestAndClearValues()
+    m.top.fireHeartbeat = true
   end if
 
   resetSsaiHelpers()
 end sub
 
-function manipulateSampleForSsai()
+sub manipulateSampleForSsai()
+  if m.ssaiState <> m.SSAI_STATES.ACTIVE then return
+
   sampleUpdate = {}
 
   sampleUpdate.ad = m.AD_TYPE.SSAI
-  sampleUpdate.adId = m.currentAdMetadata.adId
-  sampleUpdate.adSystem = m.currentAdMetadata.adSystem
-  sampleUpdate.adPosition = m.currentAdMetadata.adPosition
+
+  if m.currentAdMetadata <> invalid
+    sampleUpdate.adId = m.currentAdMetadata.adId
+    sampleUpdate.adSystem = m.currentAdMetadata.adSystem
+    sampleUpdate.adPosition = m.currentAdMetadata.adPosition
+  end if
 
   if m.isFirstSampleOfAd
     sampleUpdate.adIndex = m.adIndex
@@ -353,4 +362,4 @@ function manipulateSampleForSsai()
   end if
 
   updateSample(sampleUpdate)
-end function
+end sub
