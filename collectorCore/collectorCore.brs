@@ -292,11 +292,11 @@ sub updateAnalyticsConfig(unsanitizedConfig)
   updateSample(m.analyticsConfig)
 end sub
 
-function adBreakStart(adMetadata = invalid)
+function adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.ssaiStates.IDLE then return
 
   m.ssaiState = m.ssaiStates.AD_BREAK_STARTED
-  m.currentAdMetadata = adMetadata
+  m.currentAdMetadata = adBreakMetadata
 end function
 
 funciton adStarted(adMetadata = invalid)
