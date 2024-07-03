@@ -18,10 +18,18 @@ sub initializeAnalytics(config = invalid)
     setLicenseKey(config.key)
   end if
 
+  setupSaaiHelpers()
+
   checkAnalyticsLicenseKey()
   setupSample()
 
   updateAnalyticsConfig(config)
+end sub
+
+sub setupSsaiHelpers()
+  m.ssaiStates = getSsaiStates()
+  m.ssaiState = m.ssaiStates.IDLE
+  m.adMetadata = {}
 end sub
 
 ' Clean up AnalyticsDataTask
@@ -281,3 +289,10 @@ sub updateAnalyticsConfig(unsanitizedConfig)
 
   updateSample(m.analyticsConfig)
 end sub
+
+function adBreakStart(adBreakMetadata = invalid)
+  if m.ssaiState <> m.ssaiStates.IDLE then return
+
+  m.ssaiState = m.ssaiStates.AD_BREAK_STARTED
+  m.adBreakMetadata = adBreakMetadata
+end function
