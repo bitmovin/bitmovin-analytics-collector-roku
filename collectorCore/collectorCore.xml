@@ -19,6 +19,8 @@
     <function name="setVideoTimeEnd"/>
     <function name="updateAnalyticsConfig"/>
     <function name="adBreakStart"/>
+    <function name="adStarted"/>
+    <function name="adBreakEnd"/>
     <field id="playerState" alias="analyticsDataTask.playerState" type="string"/>
     <field id="fireHeartbeat" type="boolean" alwaysnotify="true"/>
   </interface>
