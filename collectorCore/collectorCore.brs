@@ -298,7 +298,6 @@ end sub
 sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
 
-  'sendAnalyticsRequestAndClearValues()
   m.top.fireHeartbeat = true
 
   m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
@@ -328,7 +327,6 @@ end sub
 sub adBreakEnd()
   if m.ssaiState = m.SSAI_STATES.IDLE then return
   if m.ssaiState = m.SSAI_STATES.ACTIVE
-    'sendAnalyticsRequestAndClearValues()
     m.top.fireHeartbeat = true
   end if
 
