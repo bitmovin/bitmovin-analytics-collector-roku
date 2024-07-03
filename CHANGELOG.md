@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Added
+
+- `adBreakStart`, `adStart`, `adBreakEnd` API calls to enable the tracking of SSAI ads.
+  https://bitmovin.atlassian.net/browse/PR-754
+
 ### Fixed
 
 - Bitmovin `player` name was uppercased which is inconsistent with other Bitmovin Player collectors (AN-4067)
