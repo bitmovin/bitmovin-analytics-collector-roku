@@ -18,12 +18,13 @@ sub initializeAnalytics(config = invalid)
     setLicenseKey(config.key)
   end if
 
-  m.SSAI_STATES = getSsaiStates()
-  m.AD_TYPE = getAdTypes()
-  resetSsaiHelpers()
-
   checkAnalyticsLicenseKey()
   setupSample()
+
+  m.SSAI_STATES = getSsaiStates()
+  m.AD_TYPE = getAdTypes()
+  m.adIndex = 0
+  resetSsaiHelpers()
 
   updateAnalyticsConfig(config)
 end sub
@@ -33,7 +34,14 @@ sub resetSsaiHelpers()
   m.currentAdMetadata = {}
   m.isFirstSampleOfAd = false
   m.adCustomData = {}
-  m.adIndex = 0
+
+  resetAdValues = {
+    adIndex: invalid
+    adId: invalid
+    adSystem: invalid
+    adPosition: invalid
+  }
+  updateSample(resetAdValues)
 end sub
 
 ' Clean up AnalyticsDataTask
@@ -258,6 +266,8 @@ function getMetadataFromAnalyticsConfig(config)
     customDataField = "customData" + i.ToStr()
     if config.DoesExist(customDataField)
       metadata[customDataField] = config[customDataField]
+    else
+      metadata[customDataField] = invalid
     end if
   end for
 
@@ -306,6 +316,7 @@ sub adStart(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
   m.top.fireHeartbeat = true
+  updateSample(m.analyticsConfig)
 
   m.ssaiState = m.SSAI_STATES.ACTIVE
   m.isFirstSampleOfAd = true
@@ -323,8 +334,10 @@ end sub
 
 sub adBreakEnd()
   if m.ssaiState = m.SSAI_STATES.IDLE then return
+
   if m.ssaiState = m.SSAI_STATES.ACTIVE
     m.top.fireHeartbeat = true
+    updateSample(m.analyticsConfig)
   end if
 
   resetSsaiHelpers()
