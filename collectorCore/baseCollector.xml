@@ -10,5 +10,8 @@
     <function name="setNewMetadata" />
     <function name="setCustomData"/>
     <function name="setCustomDataOnce"/>
+    <function name="adBreakStart"/>
+    <function name="adStart"/>
+    <function name="adBreakEnd"/>
   </interface>
 </component>

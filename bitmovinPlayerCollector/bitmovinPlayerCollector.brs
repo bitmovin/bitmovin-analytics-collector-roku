@@ -247,7 +247,8 @@ sub decorateSampleWithPlaybackData(sampleData)
   sampleData.Append({subtitleEnabled: subtitleEnabled})
 
   ' Set video duration
-  videoDuration = m.player.callFunc("getDuration", invalid) * 1000
+  videoDuration = m.player.callFunc("getDuration", invalid)
+  if videoDuration <> invalid then videoDuration = videoDuration * 1000
   sampleData.Append({videoDuration: videoDuration})
 end sub
 
@@ -510,4 +511,16 @@ end sub
 
 function getPlayerVersion()
   return "bitmovin-" + m.player.callFunc(m.player.BitmovinFunctions.GET_VERSION)
+end function
+
+function adBreakStart(adBreakMetadata = invalid)
+  m.collectorCore.callFunc("adBreakStart", adBreakMetadata)
+end function
+
+function adStart(adMetadata = invalid)
+  m.collectorCore.callFunc("adStart", adMetadata)
+end function
+
+function adBreakEnd()
+  m.collectorCore.callFunc("adBreakEnd")
 end function
