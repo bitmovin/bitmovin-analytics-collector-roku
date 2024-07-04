@@ -75,6 +75,8 @@ sub manipulateSampleForSsai()
     sampleUpdate.adIndex = m.adIndex
     m.isFirstSampleOfAd = false
     m.adIndex++
+  else
+    updateSample({adIndex: invalid})
   end if
 
   customData = m.adCustomData
