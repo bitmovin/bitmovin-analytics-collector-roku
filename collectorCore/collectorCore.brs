@@ -267,6 +267,9 @@ function getMetadataFromAnalyticsConfig(config)
     if config.DoesExist(customDataField)
       metadata[customDataField] = config[customDataField]
     else
+      ' If a custom data field does not exists we set it to invalid
+      ' We do this simply so it exists
+      ' This is needed so that the SSAI logic can correctly reset custom data fields after an ad has finished
       metadata[customDataField] = invalid
     end if
   end for
