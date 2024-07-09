@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.7.0
+
 ### Added
 
 - `adBreakStart`, `adStart`, `adBreakEnd` API calls to enable the tracking of SSAI ads.
