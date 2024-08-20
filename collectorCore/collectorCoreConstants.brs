@@ -17,6 +17,16 @@ function getAdTypes()
   return adTypes
 end function
 
+function getAdQuartileTypes()
+  adQuartileTypes = {
+    FIRST: 0,
+    MIDPOINT: 1,
+    THIRD: 2,
+    COMPLETED: 3,
+  }
+  return adQuartileTypes
+end function
+
 function getCustomDataValueKeys()
   customDataValuesKeys = [
     "customData1",
