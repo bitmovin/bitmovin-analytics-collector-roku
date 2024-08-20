@@ -525,6 +525,6 @@ function adBreakEnd()
   m.collectorCore.callFunc("adBreakEnd")
 end function
 
-function adQuartileFinished(ssaiAdQuartileMetadata)
-  m.collectorCore.callFunc("adBreakEnd", adQuartileFinished, ssaiAdQuartileMetadata)
+function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
+  m.collectorCore.callFunc("adBreakEnd", adQuartileFinished, adQuartile, adQuartileMetadata)
 end function
