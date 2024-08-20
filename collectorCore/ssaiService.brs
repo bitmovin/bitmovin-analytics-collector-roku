@@ -88,3 +88,7 @@ sub manipulateSampleForSsai()
 
   updateSample(sampleUpdate)
 end sub
+
+sub adQuartileFinished(ssaiAdQuartileMetadata)
+  ' TODO: implement
+end sub

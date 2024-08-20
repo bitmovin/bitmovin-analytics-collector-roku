@@ -524,3 +524,7 @@ end function
 function adBreakEnd()
   m.collectorCore.callFunc("adBreakEnd")
 end function
+
+function adQuartileFinished(ssaiAdQuartileMetadata)
+  m.collectorCore.callFunc("adBreakEnd", adQuartileFinished, ssaiAdQuartileMetadata)
+end function
