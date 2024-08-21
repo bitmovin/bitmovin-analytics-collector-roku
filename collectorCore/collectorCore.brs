@@ -91,6 +91,29 @@ sub setupSample()
   m.sample.deviceInformation = getDeviceInformation()
 end sub
 
+function getBaseAdSample()
+  ' TODO: Check if setupSample needs to be called if m.sample = invalid
+
+  ' TODO: get attributes from analytics config
+  return {
+    platform: m.sample.platform,
+    screenHeight: m.sample.screenHeight,
+    screenWidth: m.sample.screenWidth,
+    streamFormat: m.sample.streamFormat,
+    videoImpressionId: m.sample.impressionId,
+    userAgent: m.sample.userAgent,
+    language: m.sample.language,
+    domain: m.sample.domain,
+    player: m.sample.player,
+    playerKey: m.sample.playerKey,
+    key: m.sample.key,
+    userId: m.sample.userId,
+    version: m.sample.version,
+    playerTech: m.sample.playerTech,
+    path: m.sample.path,
+  }
+end function
+
 sub clearSampleValues()
   m.sample.ad = 0
   m.sample.paused = 0
