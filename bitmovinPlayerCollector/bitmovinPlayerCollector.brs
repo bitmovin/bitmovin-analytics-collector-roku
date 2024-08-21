@@ -526,7 +526,7 @@ function adBreakEnd()
 end function
 
 function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
-  m.collectorCore.callFunc("adQuartileFinished", adQuartileFinished, adQuartile, adQuartileMetadata)
+  m.collectorCore.callFunc("adQuartileFinished", adQuartile, adQuartileMetadata)
   ' TODO: Check why other SSAI functions don't do that and align
   m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
 end function
