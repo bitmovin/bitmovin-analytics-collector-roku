@@ -1,6 +1,7 @@
 sub setupSsaiService()
   m.SSAI_STATES = getSsaiStates()
   m.AD_TYPE = getAdTypes()
+  m.AD_QUARTILES = getAdQuartileTypes()
   m.adIndex = 0
   resetSsaiHelpers()
 end sub
@@ -89,11 +90,27 @@ sub manipulateSampleForSsai()
   updateSample(sampleUpdate)
 end sub
 
+function getFlagForAdQuartile(adQuartile)
+  if adQuartile = m.AD_QUARTILES.FIRST then
+    return { quartile1: 1 }
+  else if adQuartile = m.AD_QUARTILES.MIDPOINT then
+    return { midpoint: 1 }
+  else if adQuartile = m.AD_QUARTILES.THIRD then
+    return { quartile3: 1 }
+  else if adQuartile = m.AD_QUARTILES.COMPLETED then
+    return { completed: 1 }
+  else
+    return {}
+  end if
+end function
+
 sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   adTypes = getAdTypes()
   adSample = getBaseAdSample()
   adSample.adType = adTypes.SSAI
-  adSample.adQuartile = adQuartile
+
+  quartileFlag = getFlagForAdQuartile(adQuartile)
+  adSample.append(quartileFlag)
 
   if adQuartileMetadata <> invalid then
     adSample.adQuartileMetadata = adQuartileMetadata
