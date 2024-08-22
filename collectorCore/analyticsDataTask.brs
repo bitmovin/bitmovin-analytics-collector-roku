@@ -9,7 +9,6 @@ sub init()
   m.heartbeatTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
   m.licensingUrl = m.config.serviceEndpoints.analyticsLicense
-  m.dataUrl = m.config.serviceEndpoints.analyticsData
   m.licensingResponse = {}
   m.AnalyticsRequestTypes = getAnalyticsRequestTypes()
 
@@ -19,12 +18,12 @@ end sub
 
 function getDataUrl(analyticsRequestType)
   if analyticsRequestType = m.AnalyticsRequestTypes.REGULAR then
-    return m.config.serviceEndpoints.analyticsData;
+    return m.config.serviceEndpoints.analyticsData
   else if analyticsRequestType = m.AnalyticsRequestTypes.AD_ENGAGEMENT then
-    return m.config.serviceEndpoints.analyticsAdData;
+    return m.config.serviceEndpoints.analyticsAdData
   else
     ' Unknown request type - assume REGULAR request
-    return m.config.serviceEndpoints.analyticsData;
+    return m.config.serviceEndpoints.analyticsData
   end if
 end function
 
@@ -139,14 +138,17 @@ sub sendAnalyticsLicensingRequest(licensingData)
 end sub
 
 sub sendAnalyticsData(eventData)
+  analyticsEndpointUrl = getDataUrl(eventData.requestType)
+  payload = eventData.requestData
+
   http = CreateObject("roUrlTransfer")
   http.SetCertificatesFile("common:/certs/ca-bundle.crt")
   port = CreateObject("roMessagePort")
   http.setPort(port)
-  http.setUrl(m.dataUrl)
+  http.setUrl(analyticsEndpointUrl)
   http.AddHeader("Origin", m.top.licensingData.domain)
 
-  data = FormatJson(eventData)
+  data = FormatJson(payload)
 
   if http.asyncPostFromString(data)
     msg = wait(0, port)

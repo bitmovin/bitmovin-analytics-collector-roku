@@ -99,6 +99,9 @@ sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
     adSample.adQuartileMetadata = adQuartileMetadata
   end if
 
-  m.AnalyticsDataTask.eventData = adSample
+  m.AnalyticsDataTask.eventData = {
+    requestType: m.AnalyticsRequestTypes.AD_ENGAGEMENT
+    requestData: adSample
+  }
   sendAnalyticsRequest()
 end sub

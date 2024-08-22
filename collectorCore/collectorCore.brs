@@ -6,6 +6,7 @@ sub init()
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
   m.AnalyticsDataTask = m.top.findNode("analyticsDataTask")
+  m.AnalyticsRequestTypes = getAnalyticsRequestTypes()
   m.analyticsConfig = CreateObject("roAssociativeArray")
   m.sample = invalid
 end sub
@@ -180,20 +181,26 @@ function getPersistedUserId(sectionRegistryName)
 end function
 
 ' TODO: Error handling if the keys are invalid
-sub sendAnalyticsRequestAndClearValues()
+sub sendAnalyticsRequestAndClearValues(analyticsRequestType = m.AnalyticsRequestTypes.REGULAR)
   manipulateSampleForSsai()
-  m.AnalyticsDataTask.eventData = m.sample
+  m.AnalyticsDataTask.eventData = {
+    requestType: analyticsRequestType
+    requestData: m.sample
+  }
   m.sample.sequenceNumber++
 
   sendAnalyticsRequest()
   clearSampleValues()
 end sub
 
-sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData)
+sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData, analyticsRequestType = m.AnalyticsRequestTypes.REGULAR)
   if updatedSampleData = invalid return
 
   sendOnceSample = createSendOnceSample(updatedSampleData)
-  m.AnalyticsDataTask.eventData = sendOnceSample
+  m.AnalyticsDataTask.eventData = {
+    requestType: analyticsRequestType
+    requestData: sendOnceSample
+  }
 
   sendAnalyticsRequest()
 end sub
