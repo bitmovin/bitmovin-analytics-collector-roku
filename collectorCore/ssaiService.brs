@@ -90,5 +90,15 @@ sub manipulateSampleForSsai()
 end sub
 
 sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
-  ' TODO: implement
+  adTypes = getAdTypes()
+  adSample = getBaseAdSample()
+  adSample.adType = adTypes.SSAI
+  adSample.adQuartile = adQuartile
+
+  if adQuartileMetadata <> invalid then
+    adSample.adQuartileMetadata = adQuartileMetadata
+  end if
+
+  m.AnalyticsDataTask.eventData = adSample
+  sendAnalyticsRequest()
 end sub
