@@ -11,10 +11,22 @@ sub init()
   m.licensingUrl = m.config.serviceEndpoints.analyticsLicense
   m.dataUrl = m.config.serviceEndpoints.analyticsData
   m.licensingResponse = {}
+  m.AnalyticsRequestTypes = getAnalyticsRequestTypes()
 
   m.AnalyticsDataTaskControlValues = getAnalyticsDataTaskControlValues()
   m.AnalyticsDataTaskFieldNames = getAnlyticsDataTaskFieldNames()
 end sub
+
+function getDataUrl(analyticsRequestType)
+  if analyticsRequestType = m.AnalyticsRequestTypes.REGULAR then
+    return m.config.serviceEndpoints.analyticsData;
+  else if analyticsRequestType = m.AnalyticsRequestTypes.AD_ENGAGEMENT then
+    return m.config.serviceEndpoints.analyticsAdData;
+  else
+    ' Unknown request type - assume REGULAR request
+    return m.config.serviceEndpoints.analyticsData;
+  end if
+end function
 
 sub runTask(param = invalid)
   if isTaskRunning() then return
