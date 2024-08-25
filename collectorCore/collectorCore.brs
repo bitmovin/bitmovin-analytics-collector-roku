@@ -112,6 +112,8 @@ function getBaseAdSample()
     version: m.sample.version,
     playerTech: m.sample.playerTech,
     path: m.sample.path,
+    analyticsVersion: getVersion(),
+    adImpressionId: lcase(m.deviceInfo.GetRandomUUID()),
   }
 end function
 
