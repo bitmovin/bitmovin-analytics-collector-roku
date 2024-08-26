@@ -93,7 +93,7 @@ sub setupSample()
 end sub
 
 function getBaseAdSample()
-  ' TODO: Check if setupSample needs to be called if m.sample = invalid
+  if m.sample = invalid then setupSample()
 
   baseAdSample = {
     platform: m.sample.platform,
