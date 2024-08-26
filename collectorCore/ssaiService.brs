@@ -107,7 +107,7 @@ end function
 sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   adTypes = getAdTypes()
   adSample = getBaseAdSample()
-  adSample.adType = adTypes.SSAI
+  adSample.ad = adTypes.SSAI
 
   quartileFlag = getFlagForAdQuartile(adQuartile)
   adSample.append(quartileFlag)
