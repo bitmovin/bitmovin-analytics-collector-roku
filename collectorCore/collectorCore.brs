@@ -92,11 +92,22 @@ sub setupSample()
   m.sample.deviceInformation = getDeviceInformation()
 end sub
 
+function getCurrentCustomData()
+  customDataAttributes = {}
+
+  for each key in getCustomDataValueKeys()
+    if m.sample[key] <> invalid then customDataAttributes[key] = m.sample[key]
+  end for
+
+  return customDataAttributes
+end function
+
 function getBaseAdSample()
   ' TODO: Check if setupSample needs to be called if m.sample = invalid
 
   ' TODO: get attributes from analytics config
-  return {
+
+  baseAdSample = {
     platform: m.sample.platform,
     screenHeight: m.sample.screenHeight,
     screenWidth: m.sample.screenWidth,
@@ -115,6 +126,10 @@ function getBaseAdSample()
     analyticsVersion: getVersion(),
     adImpressionId: lcase(m.deviceInfo.GetRandomUUID()),
   }
+
+  baseAdSample.append(getCurrentCustomData())
+
+  return baseAdSample
 end function
 
 sub clearSampleValues()
