@@ -361,7 +361,7 @@ sub setAnalyticsConfig(config)
 end sub
 
 function getImpressionIdForSample()
-  return m.collectorCore.callFunc("createImpressionId")
+  return m.collectorCore.callFunc("getRandomImpressionId")
 end function
 
 function getPlayerKeyFromManifest(appInfo)

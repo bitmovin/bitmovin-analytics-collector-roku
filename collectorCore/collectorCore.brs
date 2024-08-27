@@ -88,7 +88,7 @@ sub setupSample()
   m.sample.language = m.deviceInfo.GetCurrentLocale()
 
   m.sample.sequenceNumber = 0
-  m.sample.impressionId = createImpressionId()
+  m.sample.impressionId = getRandomImpressionId()
   m.sample.deviceInformation = getDeviceInformation()
 end sub
 
@@ -112,7 +112,7 @@ function getBaseAdSample()
     playerTech: m.sample.playerTech,
     path: m.sample.path,
     analyticsVersion: getVersion(),
-    adImpressionId: lcase(m.deviceInfo.GetRandomUUID()),
+    adImpressionId: getRandomImpressionId()
   }
 
   baseAdSample.append(m.analyticsConfig)
@@ -159,8 +159,8 @@ function getDeviceInformation()
  }
 end function
 
-' Create a new unique impression ID.
-function createImpressionId()
+' Generates a random UUID that can be used as an (ad-)impression id.
+function getRandomImpressionId()
   return lcase(m.deviceInfo.GetRandomUUID())
 end function
 
