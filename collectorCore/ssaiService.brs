@@ -6,6 +6,15 @@ sub setupSsaiService()
   resetSsaiHelpers()
 end sub
 
+sub resetReportedQuartiles()
+  m.reportedQuartilesForCurrentAd = {}
+
+  for each quartileName in m.AD_QUARTILES.keys()
+    quartileValue = m.AD_QUARTILES[quartileName]
+    m.reportedQuartilesForCurrentAd[quartileValue] = false
+  end for
+end sub
+
 sub resetSsaiHelpers()
   m.ssaiState = m.SSAI_STATES.IDLE
   m.currentAdMetadata = {}
@@ -19,6 +28,7 @@ sub resetSsaiHelpers()
     adPosition: invalid
     adImpressionId: invalid
   }
+  resetReportedQuartiles()
   updateSample(resetAdValues)
 end sub
 
@@ -31,6 +41,7 @@ end sub
 
 sub adStart(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
+  resetReportedQuartiles()
 
   adImpressionIdUpdate = {
     adImpressionId: getRandomImpressionId()
@@ -110,6 +121,8 @@ function getFlagForAdQuartile(adQuartile)
 end function
 
 sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
+  if m.ssaiState <> m.SSAI_STATES.ACTIVE or hasQuartileAlreadyBeenReported(adQuartile) then return
+
   adTypes = getAdTypes()
   adSample = getBaseAdSample()
   adSample.adType = adTypes.SSAI
@@ -129,8 +142,17 @@ sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
     isSsaiRelated: isCurrentSampleSsaiRelated()
   }
   sendAnalyticsRequest()
+  markQuartileAsReported(adQuartile)
 end sub
 
 function isCurrentSampleSsaiRelated()
   return m.ssaiState = m.SSAI_STATES.ACTIVE or m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
 end function
+
+function hasQuartileAlreadyBeenReported(adQuartile)
+  return m.reportedQuartilesForCurrentAd[adQuartile]
+end function
+
+sub markQuartileAsReported(adQuartile)
+  m.reportedQuartilesForCurrentAd[adQuartile] = true
+end sub
