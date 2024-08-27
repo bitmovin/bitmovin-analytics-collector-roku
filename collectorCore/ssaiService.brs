@@ -126,6 +126,11 @@ sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   m.AnalyticsDataTask.eventData = {
     requestType: m.AnalyticsRequestTypes.AD_ENGAGEMENT
     requestData: adSample
+    isSsaiRelated: isCurrentSampleSsaiRelated()
   }
   sendAnalyticsRequest()
 end sub
+
+function isCurrentSampleSsaiRelated()
+  return m.ssaiState = m.SSAI_STATES.ACTIVE or m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
+end function

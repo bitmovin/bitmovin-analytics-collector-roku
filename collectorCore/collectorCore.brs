@@ -191,6 +191,7 @@ sub sendAnalyticsRequestAndClearValues(analyticsRequestType = m.AnalyticsRequest
   m.AnalyticsDataTask.eventData = {
     requestType: analyticsRequestType
     requestData: m.sample
+    isSsaiRelated: isCurrentSampleSsaiRelated()
   }
   m.sample.sequenceNumber++
 
@@ -205,6 +206,7 @@ sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData, analytics
   m.AnalyticsDataTask.eventData = {
     requestType: analyticsRequestType
     requestData: sendOnceSample
+    isSsaiRelated: isCurrentSampleSsaiRelated()
   }
 
   sendAnalyticsRequest()
