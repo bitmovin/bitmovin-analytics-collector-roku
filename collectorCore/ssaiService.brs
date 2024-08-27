@@ -121,6 +121,8 @@ sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
     adSample.adQuartileMetadata = adQuartileMetadata
   end if
 
+  ' TODO: Check if we need to increase m.sample.sequenceNumber
+  ' TODO: outsource this into method that allows sending arbitrary samples once
   m.AnalyticsDataTask.eventData = {
     requestType: m.AnalyticsRequestTypes.AD_ENGAGEMENT
     requestData: adSample
