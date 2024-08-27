@@ -112,7 +112,7 @@ function getBaseAdSample()
     playerTech: m.sample.playerTech,
     path: m.sample.path,
     analyticsVersion: getVersion(),
-    adImpressionId: getRandomImpressionId()
+    adImpressionId: m.sample.adImpressionId
   }
 
   baseAdSample.append(m.analyticsConfig)
