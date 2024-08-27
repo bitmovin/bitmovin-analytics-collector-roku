@@ -142,6 +142,8 @@ sub sendAnalyticsData(eventData)
   payload = eventData.requestData
   isSsaiRelated = eventData.isSsaiRelated
 
+  print "[isSsaiRelated=";isSsaiRelated;"] Sending to ";analyticsEndpointUrl;": ";payload
+
   http = CreateObject("roUrlTransfer")
   http.SetCertificatesFile("common:/certs/ca-bundle.crt")
   port = CreateObject("roMessagePort")
