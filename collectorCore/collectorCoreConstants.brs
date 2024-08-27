@@ -19,10 +19,10 @@ end function
 
 function getAdQuartileTypes()
   adQuartileTypes = {
-    FIRST: 0,
-    MIDPOINT: 1,
-    THIRD: 2,
-    COMPLETED: 3,
+    FIRST: "first",
+    MIDPOINT: "midpoint",
+    THIRD: "third",
+    COMPLETED: "completed",
   }
   return adQuartileTypes
 end function
