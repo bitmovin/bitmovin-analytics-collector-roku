@@ -140,6 +140,7 @@ end sub
 sub sendAnalyticsData(eventData)
   analyticsEndpointUrl = getDataUrl(eventData.requestType)
   payload = eventData.requestData
+  isSsaiRelated = eventData.isSsaiRelated
 
   http = CreateObject("roUrlTransfer")
   http.SetCertificatesFile("common:/certs/ca-bundle.crt")
@@ -147,6 +148,8 @@ sub sendAnalyticsData(eventData)
   http.setPort(port)
   http.setUrl(analyticsEndpointUrl)
   http.AddHeader("Origin", m.top.licensingData.domain)
+
+  if isSsaiRelated <> invalid and isSsaiRelated then http.AddHeader("X-Bitmovin-Routingkey", "ssai")
 
   data = FormatJson(payload)
 
