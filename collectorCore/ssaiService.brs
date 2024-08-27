@@ -32,14 +32,13 @@ end sub
 sub adStart(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
-  m.top.fireHeartbeat = true
-
-  newSampleData = {
+  adImpressionIdUpdate = {
     adImpressionId: getRandomImpressionId()
   }
-  newSampleData.append(m.analyticsConfig)
-  updateSample(newSampleData)
+  updateSample(adImpressionIdUpdate)
+  m.top.fireHeartbeat = true
 
+  updateSample(m.analyticsConfig)
   m.ssaiState = m.SSAI_STATES.ACTIVE
   m.isFirstSampleOfAd = true
 
