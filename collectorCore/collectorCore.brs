@@ -112,8 +112,17 @@ function getBaseAdSample()
     playerTech: m.sample.playerTech,
     path: m.sample.path,
     analyticsVersion: getVersion(),
-    adImpressionId: m.sample.adImpressionId
+    adImpressionId: m.sample.adImpressionId,
+    adIndex: m.adIndex,
   }
+
+  if m.currentAdMetadata <> invalid
+    baseAdSample.append({
+      adPosition: m.currentAdMetadata.adPosition,
+      adId: m.currentAdMetadata.adId,
+      adSystem: m.currentAdMetadata.adSystem
+    })
+  end if
 
   baseAdSample.append(m.analyticsConfig)
 
