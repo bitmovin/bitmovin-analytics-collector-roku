@@ -56,7 +56,6 @@ sub adStart(adMetadata = invalid)
   if adMetadata <> invalid
     m.adCustomData = adMetadata.customData
     m.currentAdMetadata = {
-      ' TODO: This seems to be taken from adBreakStart; is that intended?
       adPosition: m.currentAdMetadata.adPosition,
       adId: adMetadata.adId,
       adSystem: adMetadata.adSystem,
