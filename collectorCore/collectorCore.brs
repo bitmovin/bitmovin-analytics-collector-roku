@@ -130,8 +130,22 @@ function getBaseAdSample()
   end if
 
   baseAdSample.append(m.analyticsConfig)
+  adMetadataCustomDataFields = getCurrentAdMetadataCustomDataFields()
+  baseAdSample.append(adMetadataCustomDataFields)
 
   return baseAdSample
+end function
+
+function getCurrentAdMetadataCustomDataFields()
+  if m.adCustomData = invalid return {}
+
+  populatedCustomDataFields = {}
+
+  for each key in m.adCustomData.keys()
+    if m.adCustomData[key] <> invalid then populatedCustomDataFields[key] = m.adCustomData[key]
+  end for
+
+  return populatedCustomDataFields
 end function
 
 sub clearSampleValues()
