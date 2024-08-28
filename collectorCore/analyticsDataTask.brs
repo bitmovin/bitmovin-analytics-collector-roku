@@ -142,6 +142,8 @@ sub sendAnalyticsData(eventData)
   payload = eventData.requestData
   isSsaiRelated = eventData.isSsaiRelated
 
+  if isSsaiRelated <> invalid and isSsaiRelated then analyticsEndpointUrl = addQueryParamToUrl(analyticsEndpointUrl, "routingParam", "ssai")
+
   http = CreateObject("roUrlTransfer")
   http.SetCertificatesFile("common:/certs/ca-bundle.crt")
   port = CreateObject("roMessagePort")
@@ -149,7 +151,6 @@ sub sendAnalyticsData(eventData)
   http.setUrl(analyticsEndpointUrl)
   http.AddHeader("Origin", m.top.licensingData.domain)
 
-  if isSsaiRelated <> invalid and isSsaiRelated then http.AddHeader("X-Bitmovin-Routingkey", "ssai")
 
   data = FormatJson(payload)
 
@@ -168,6 +169,29 @@ sub sendAnalyticsData(eventData)
     end if
   end if
 end sub
+
+function addQueryParamToUrl(url, queryParamName, queryParamValue)
+  queryParamKeyValuePair = queryParamName + "=" + queryParamValue
+  appendableQueryParam = ""
+
+  splitUrl = url.split("?")
+  hasUrlQueryParamPart = splitUrl.Count() > 1
+
+  if hasUrlQueryParamPart
+    domainPart = splitUrl[0]
+    queryParamPart = splitUrl[1]
+
+    isQueryParamPartEmpty = len(queryParamPart) = 0
+
+    if not isQueryParamPartEmpty then appendableQueryParam += "&"
+  else
+    appendableQueryParam += "?"
+  end if
+
+  appendableQueryParam += queryParamKeyValuePair
+
+  return url + appendableQueryParam
+end function
 
 sub sendAnalyticsEventsFromQueue()
   if m.analyticsEventsQueue.Count() = 0 then return
