@@ -99,6 +99,8 @@ function getBaseAdSample()
     platform: m.sample.platform,
     screenHeight: m.sample.screenHeight,
     screenWidth: m.sample.screenWidth,
+    adPlaybackHeight: m.sample.screenHeight,
+    adPlaybackWidth: m.sample.screenWidth,
     streamFormat: m.sample.streamFormat,
     videoImpressionId: m.sample.impressionId,
     userAgent: m.sample.userAgent,
@@ -114,6 +116,9 @@ function getBaseAdSample()
     analyticsVersion: getVersion(),
     adImpressionId: m.sample.adImpressionId,
     adIndex: m.adIndex,
+    videoId: m.sample.videoId,
+    videoTitle: m.sample.videoTitle,
+    userId: m.sample.userId,
   }
 
   if m.currentAdMetadata <> invalid
