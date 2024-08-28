@@ -43,13 +43,13 @@ sub adStart(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
   resetReportedQuartiles()
 
-  adImpressionIdUpdate = {
-    adImpressionId: getRandomImpressionId()
-  }
-  updateSample(adImpressionIdUpdate)
   m.top.fireHeartbeat = true
 
-  updateSample(m.analyticsConfig)
+  sampleUpdate = {
+    adImpressionId: getRandomImpressionId()
+  }
+  sampleUpdate.append(m.analyticsConfig)
+  updateSample(sampleUpdate)
   m.ssaiState = m.SSAI_STATES.ACTIVE
   m.isFirstSampleOfAd = true
 
