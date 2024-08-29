@@ -33,6 +33,15 @@ sub resetSsaiHelpers()
   updateSample(resetAdValues)
 end sub
 
+function getSsaiAdSample()
+  adSample = getBaseAdSample()
+
+  adSample.adType = m.AD_TYPE.SSAI
+  adSample.timeSinceAdStartedInMs = m.lastAdStartTimer.TotalMilliseconds()
+
+  return adSample
+end function
+
 sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
 
@@ -65,7 +74,7 @@ sub adStart(adMetadata = invalid)
     }
   end if
 
-  adStartedEngagementSample = getBaseAdSample()
+  adStartedEngagementSample = getSsaiAdSample()
   adStartedEngagementSample.append({ started: 1 })
   sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 end sub
@@ -129,10 +138,7 @@ end function
 sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.ACTIVE or hasQuartileAlreadyBeenReported(adQuartile) then return
 
-  adTypes = getAdTypes()
-  adSample = getBaseAdSample()
-  adSample.adType = adTypes.SSAI
-  adSample.timeSinceAdStartedInMs = m.lastAdStartTimer.TotalMilliseconds()
+  adSample = getSsaiAdSample()
 
   quartileFlag = getFlagForAdQuartile(adQuartile)
   adSample.append(quartileFlag)
