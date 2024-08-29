@@ -119,6 +119,10 @@ function getBaseAdSample()
     videoId: m.sample.videoId,
     videoTitle: m.sample.videoTitle,
     userId: m.sample.userId,
+    size: m.sample.size,
+    time: m.sample.time,
+    videoWindowHeight: m.sample.videoWindowHeight,
+    videoWindowWidth: m.sample.videoWindowWidth,
   }
 
   if m.currentAdMetadata <> invalid
