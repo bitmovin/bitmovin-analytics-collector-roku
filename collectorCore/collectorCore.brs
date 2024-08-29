@@ -240,6 +240,18 @@ sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData, analytics
   sendAnalyticsRequest()
 end sub
 
+' TODO: Maybe consolidate with createTempMetadataSampleAndSendAnalyticsRequest
+' TODO: Check if we need to increase m.sample.sequenceNumber
+sub sendAnalyticsSampleOnce(analyticsSample, analyticsRequestType = m.AnalyticsRequestTypes.REGULAR)
+  m.AnalyticsDataTask.eventData = {
+    requestType: analyticsRequestType,
+    requestData: analyticsSample,
+    isSsaiRelated: isCurrentSampleSsaiRelated()
+  }
+
+  sendAnalyticsRequest()
+end sub
+
 function updateSample(newSampleData)
   if newSampleData = invalid then return false
 
@@ -265,6 +277,7 @@ function createSendOnceSample(metadata)
   return tempSample
 end function
 
+' TODO: maybe rename to 'triggerAnalyticsRequestSend' ?
 sub sendAnalyticsRequest()
   m.AnalyticsDataTask.sendData = true
 end sub
