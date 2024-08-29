@@ -20,6 +20,7 @@ sub resetSsaiHelpers()
   m.currentAdMetadata = {}
   m.isFirstSampleOfAd = false
   m.adCustomData = {}
+  m.lastAdStartTimer = -1
 
   resetAdValues = {
     adIndex: invalid
@@ -41,6 +42,7 @@ end sub
 
 sub adStart(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
+  m.lastAdStartTimer = CreateObject("roTimespan")
   resetReportedQuartiles()
 
   m.top.fireHeartbeat = true
@@ -130,6 +132,7 @@ sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   adTypes = getAdTypes()
   adSample = getBaseAdSample()
   adSample.adType = adTypes.SSAI
+  adSample.timeSinceAdStartedInMs = m.lastAdStartTimer.TotalMilliseconds()
 
   quartileFlag = getFlagForAdQuartile(adQuartile)
   adSample.append(quartileFlag)
