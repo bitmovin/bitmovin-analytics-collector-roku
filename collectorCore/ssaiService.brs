@@ -62,6 +62,10 @@ sub adStart(adMetadata = invalid)
       customData: m.adCustomData
     }
   end if
+
+  adStartedEngagementSample = getBaseAdSample()
+  adStartedEngagementSample.append({ started: 1 })
+  sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 end sub
 
 sub adBreakEnd()
