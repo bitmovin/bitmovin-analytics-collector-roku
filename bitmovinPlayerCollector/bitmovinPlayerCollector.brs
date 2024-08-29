@@ -325,6 +325,8 @@ sub onError()
 
   ' Stop collecting data
   unobserveFields()
+
+  m.collectorCore.callFunc("onError", m.player.error.code, m.player.error.message)
 end sub
 
 ' Handler for player's onDestroy callback.

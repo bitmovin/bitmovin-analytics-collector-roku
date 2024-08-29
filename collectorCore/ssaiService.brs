@@ -162,3 +162,13 @@ end function
 sub markQuartileAsReported(adQuartile)
   m.reportedQuartilesForCurrentAd[adQuartile] = true
 end sub
+
+sub onError(errorCode, errorMessage)
+  if m.ssaiState = m.SSAI_STATES.IDLE then return
+
+  adSample = getSsaiAdSample()
+  adSample.errorCode = errorCode
+  adSample.errorMessage = errorMessage
+
+  sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+end sub
