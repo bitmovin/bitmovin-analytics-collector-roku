@@ -138,7 +138,7 @@ sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   adSample.append(quartileFlag)
 
   if adQuartileMetadata <> invalid then
-    adSample.adQuartileMetadata = adQuartileMetadata
+    adSample.append(adQuartileMetadata)
   end if
 
   sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
