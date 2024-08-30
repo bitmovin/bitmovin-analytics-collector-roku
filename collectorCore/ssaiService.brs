@@ -21,6 +21,7 @@ sub resetSsaiHelpers()
   m.isFirstSampleOfAd = false
   m.adCustomData = {}
   m.lastAdStartTimer = -1
+  m.hasErrorBeenReportedForCurrentAd = false
 
   resetAdValues = {
     adIndex: invalid
@@ -53,6 +54,7 @@ sub adStart(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
   m.lastAdStartTimer = CreateObject("roTimespan")
   resetReportedQuartiles()
+  m.hasErrorBeenReportedForCurrentAd = false
 
   m.top.fireHeartbeat = true
 
@@ -179,11 +181,12 @@ sub markQuartileAsReported(adQuartile)
 end sub
 
 sub onError(errorCode, errorMessage)
-  if m.ssaiState = m.SSAI_STATES.IDLE then return
+  if m.ssaiState = m.SSAI_STATES.IDLE or m.hasErrorBeenReportedForCurrentAd then return
 
   adSample = getSsaiAdSample()
   adSample.errorCode = errorCode
   adSample.errorMessage = errorMessage
 
   sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  m.hasErrorBeenReportedForCurrentAd = true
 end sub
