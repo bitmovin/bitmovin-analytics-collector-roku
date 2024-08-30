@@ -2,6 +2,7 @@ sub setupSsaiService()
   m.SSAI_STATES = getSsaiStates()
   m.AD_TYPE = getAdTypes()
   m.AD_QUARTILES = getAdQuartileTypes()
+  m.AD_TIMER_INIT_VALUE = -1
   m.adIndex = 0
   resetSsaiHelpers()
 end sub
@@ -20,7 +21,7 @@ sub resetSsaiHelpers()
   m.currentAdMetadata = {}
   m.isFirstSampleOfAd = false
   m.adCustomData = {}
-  m.lastAdStartTimer = -1
+  m.lastAdStartTimer = m.AD_TIMER_INIT_VALUE
   m.hasErrorBeenReportedForCurrentAd = false
 
   resetAdValues = {
@@ -38,7 +39,12 @@ function getSsaiAdSample()
   adSample = getBaseAdSample()
 
   adSample.adType = m.AD_TYPE.SSAI
-  adSample.timeSinceAdStartedInMs = m.lastAdStartTimer.TotalMilliseconds()
+
+  if m.lastAdStartTimer = m.AD_TIMER_INIT_VALUE
+    adSample.timeSinceAdStartedInMs = m.lastAdStartTimer.TotalMilliseconds()
+  else
+    adSample.timeSinceAdStartedInMs = m.AD_TIMER_INIT_VALUE
+  end if
 
   return adSample
 end function
