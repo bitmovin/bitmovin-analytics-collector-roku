@@ -244,8 +244,6 @@ sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData, analytics
   sendAnalyticsRequest()
 end sub
 
-' TODO: Maybe consolidate with createTempMetadataSampleAndSendAnalyticsRequest
-' TODO: Check if we need to increase m.sample.sequenceNumber
 sub sendAnalyticsSampleOnce(analyticsSample, analyticsRequestType = m.AnalyticsRequestTypes.REGULAR)
   m.AnalyticsDataTask.eventData = {
     requestType: analyticsRequestType,
