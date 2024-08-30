@@ -135,17 +135,32 @@ function getFlagForAdQuartile(adQuartile)
   end if
 end function
 
+function getFailedAdQuartileProp(adQuartile, adQuartileMetadata)
+  if adQuartileMetadata = invalid or adQuartileMetadata.failedBeaconUrl = invalid return {}
+  failedBeaconUrl = adQuartileMetadata.failedBeaconUrl
+
+  if adQuartile = m.AD_QUARTILES.FIRST then
+    return { quartile1FailedBeaconUrl: failedBeaconUrl }
+  else if adQuartile = m.AD_QUARTILES.MIDPOINT then
+    return { midpointFailedBeaconUrl: failedBeaconUrl }
+  else if adQuartile = m.AD_QUARTILES.THIRD then
+    return { quartile3FailedBeaconUrl: failedBeaconUrl }
+  else if adQuartile = m.AD_QUARTILES.COMPLETED then
+    return { completedFailedBeaconUrl: failedBeaconUrl }
+  else
+    return {}
+  end if
+end function
+
 sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.ACTIVE or hasQuartileAlreadyBeenReported(adQuartile) then return
 
   adSample = getSsaiAdSample()
 
   quartileFlag = getFlagForAdQuartile(adQuartile)
+  failedBeaconFlag = getFailedAdQuartileProp(adQuartile, adQuartileMetadata)
   adSample.append(quartileFlag)
-
-  if adQuartileMetadata <> invalid then
-    adSample.append(adQuartileMetadata)
-  end if
+  adSample.append(failedBeaconFlag)
 
   sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
   markQuartileAsReported(adQuartile)
