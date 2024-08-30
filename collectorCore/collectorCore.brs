@@ -279,7 +279,6 @@ function createSendOnceSample(metadata)
   return tempSample
 end function
 
-' TODO: maybe rename to 'triggerAnalyticsRequestSend' ?
 sub sendAnalyticsRequest()
   m.AnalyticsDataTask.sendData = true
 end sub
