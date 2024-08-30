@@ -41,6 +41,8 @@ function getSsaiAdSample()
   adSample.adType = m.AD_TYPE.SSAI
 
   if m.lastAdStartTimer = m.AD_TIMER_INIT_VALUE
+    adSample.timeSinceAdStartedInMs = m.AD_TIMER_INIT_VALUE
+  else
     adSample.timeSinceAdStartedInMs = m.lastAdStartTimer.TotalMilliseconds()
   else
     adSample.timeSinceAdStartedInMs = m.AD_TIMER_INIT_VALUE
