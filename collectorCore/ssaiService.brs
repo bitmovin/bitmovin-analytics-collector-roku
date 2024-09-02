@@ -44,8 +44,6 @@ function getSsaiAdSample()
     adSample.timeSinceAdStartedInMs = m.AD_TIMER_INIT_VALUE
   else
     adSample.timeSinceAdStartedInMs = m.lastAdStartTimer.TotalMilliseconds()
-  else
-    adSample.timeSinceAdStartedInMs = m.AD_TIMER_INIT_VALUE
   end if
 
   return adSample
