@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Added
+
+- `adQuartileFinished` API call to enable tracking of SSAI ad quartiles
+  https://bitmovin.atlassian.net/browse/PR-830
+
 ## v2.7.0
 
 ### Added
