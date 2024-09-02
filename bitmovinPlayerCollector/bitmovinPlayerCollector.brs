@@ -527,6 +527,9 @@ function adBreakEnd()
   m.collectorCore.callFunc("adBreakEnd")
 end function
 
+'Function to report that an `adQuartile` has been reached during an SSAI-based ad.
+'@params {string} adQuartile - The adQuartile to be reported. Values can either be `"first'`, `"midpoint"`, `"third"` or `"completed"`.
+'@return {Object} adQuartileMetadata - Metadata to be reported with the `adQuartile`. Can currently only contain a `failedBeaconUrl` to indicate that pinging a related beacon was not successful.
 function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   m.collectorCore.callFunc("adQuartileFinished", adQuartile, adQuartileMetadata)
 end function
