@@ -9,12 +9,23 @@ sub init()
   m.heartbeatTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
   m.licensingUrl = m.config.serviceEndpoints.analyticsLicense
-  m.dataUrl = m.config.serviceEndpoints.analyticsData
   m.licensingResponse = {}
+  m.AnalyticsRequestTypes = getAnalyticsRequestTypes()
 
   m.AnalyticsDataTaskControlValues = getAnalyticsDataTaskControlValues()
   m.AnalyticsDataTaskFieldNames = getAnlyticsDataTaskFieldNames()
 end sub
+
+function getDataUrl(analyticsRequestType)
+  if analyticsRequestType = m.AnalyticsRequestTypes.REGULAR then
+    return m.config.serviceEndpoints.analyticsData
+  else if analyticsRequestType = m.AnalyticsRequestTypes.AD_ENGAGEMENT then
+    return m.config.serviceEndpoints.analyticsAdData
+  else
+    ' Unknown request type - assume REGULAR request
+    return m.config.serviceEndpoints.analyticsData
+  end if
+end function
 
 sub runTask(param = invalid)
   if isTaskRunning() then return
@@ -127,14 +138,21 @@ sub sendAnalyticsLicensingRequest(licensingData)
 end sub
 
 sub sendAnalyticsData(eventData)
+  analyticsEndpointUrl = getDataUrl(eventData.requestType)
+  payload = eventData.requestData
+  isSsaiRelated = eventData.isSsaiRelated
+
+  if isSsaiRelated <> invalid and isSsaiRelated then analyticsEndpointUrl = addQueryParamToUrl(analyticsEndpointUrl, "routingParam", "ssai")
+
   http = CreateObject("roUrlTransfer")
   http.SetCertificatesFile("common:/certs/ca-bundle.crt")
   port = CreateObject("roMessagePort")
   http.setPort(port)
-  http.setUrl(m.dataUrl)
+  http.setUrl(analyticsEndpointUrl)
   http.AddHeader("Origin", m.top.licensingData.domain)
 
-  data = FormatJson(eventData)
+
+  data = FormatJson(payload)
 
   if http.asyncPostFromString(data)
     msg = wait(0, port)
@@ -151,6 +169,29 @@ sub sendAnalyticsData(eventData)
     end if
   end if
 end sub
+
+function addQueryParamToUrl(url, queryParamName, queryParamValue)
+  queryParamKeyValuePair = queryParamName + "=" + queryParamValue
+  appendableQueryParam = ""
+
+  splitUrl = url.split("?")
+  hasUrlQueryParamPart = splitUrl.Count() > 1
+
+  if hasUrlQueryParamPart
+    domainPart = splitUrl[0]
+    queryParamPart = splitUrl[1]
+
+    isQueryParamPartEmpty = len(queryParamPart) = 0
+
+    if not isQueryParamPartEmpty then appendableQueryParam += "&"
+  else
+    appendableQueryParam += "?"
+  end if
+
+  appendableQueryParam += queryParamKeyValuePair
+
+  return url + appendableQueryParam
+end function
 
 sub sendAnalyticsEventsFromQueue()
   if m.analyticsEventsQueue.Count() = 0 then return

@@ -325,6 +325,8 @@ sub onError()
 
   ' Stop collecting data
   unobserveFields()
+
+  m.collectorCore.callFunc("onError", m.player.error.code, m.player.error.message)
 end sub
 
 ' Handler for player's onDestroy callback.
@@ -361,7 +363,7 @@ sub setAnalyticsConfig(config)
 end sub
 
 function getImpressionIdForSample()
-  return m.collectorCore.callFunc("createImpressionId")
+  return m.collectorCore.callFunc("getRandomImpressionId")
 end function
 
 function getPlayerKeyFromManifest(appInfo)
@@ -523,4 +525,11 @@ end function
 
 function adBreakEnd()
   m.collectorCore.callFunc("adBreakEnd")
+end function
+
+'Function to report that an `adQuartile` has been reached during an SSAI-based ad.
+'@param {String} adQuartile - The adQuartile to be reported. Values can either be `"first'`, `"midpoint"`, `"third"` or `"completed"`.
+'@param {Object} adQuartileMetadata - Metadata to be reported with the `adQuartile`. Can currently only contain a `failedBeaconUrl` to indicate that pinging a related beacon was not successful.
+function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
+  m.collectorCore.callFunc("adQuartileFinished", adQuartile, adQuartileMetadata)
 end function

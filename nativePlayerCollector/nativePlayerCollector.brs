@@ -530,3 +530,7 @@ end function
 function adBreakEnd()
   m.collectorCore.callFunc("adBreakEnd")
 end function
+
+function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
+  m.collectorCore.callFunc("adQuartileFinished", adQuartile, adQuartileMetadata)
+end function

@@ -23,6 +23,8 @@
     <function name="adBreakStart"/>
     <function name="adStart"/>
     <function name="adBreakEnd"/>
+    <function name="adQuartileFinished"/>
+    <function name="onError"/>
     <field id="playerState" alias="analyticsDataTask.playerState" type="string"/>
     <field id="fireHeartbeat" type="boolean" alwaysnotify="true"/>
   </interface>

@@ -6,6 +6,7 @@ sub init()
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.sectionRegistryName = "BitmovinAnalytics"
   m.AnalyticsDataTask = m.top.findNode("analyticsDataTask")
+  m.AnalyticsRequestTypes = getAnalyticsRequestTypes()
   m.analyticsConfig = CreateObject("roAssociativeArray")
   m.sample = invalid
 end sub
@@ -87,9 +88,69 @@ sub setupSample()
   m.sample.language = m.deviceInfo.GetCurrentLocale()
 
   m.sample.sequenceNumber = 0
-  m.sample.impressionId = createImpressionId()
+  m.sample.impressionId = getRandomImpressionId()
   m.sample.deviceInformation = getDeviceInformation()
 end sub
+
+function getBaseAdSample()
+  if m.sample = invalid then setupSample()
+
+  baseAdSample = {
+    platform: m.sample.platform,
+    screenHeight: m.sample.screenHeight,
+    screenWidth: m.sample.screenWidth,
+    adPlaybackHeight: m.sample.screenHeight,
+    adPlaybackWidth: m.sample.screenWidth,
+    streamFormat: m.sample.streamFormat,
+    videoImpressionId: m.sample.impressionId,
+    userAgent: m.sample.userAgent,
+    language: m.sample.language,
+    domain: m.sample.domain,
+    player: m.sample.player,
+    playerKey: m.sample.playerKey,
+    key: m.sample.key,
+    userId: m.sample.userId,
+    version: m.sample.version,
+    playerTech: m.sample.playerTech,
+    path: m.sample.path,
+    analyticsVersion: getVersion(),
+    adImpressionId: m.sample.adImpressionId,
+    adIndex: m.adIndex,
+    videoId: m.sample.videoId,
+    videoTitle: m.sample.videoTitle,
+    userId: m.sample.userId,
+    size: m.sample.size,
+    time: m.sample.time,
+    videoWindowHeight: m.sample.videoWindowHeight,
+    videoWindowWidth: m.sample.videoWindowWidth,
+  }
+
+  if m.currentAdMetadata <> invalid
+    baseAdSample.append({
+      adPosition: m.currentAdMetadata.adPosition,
+      adId: m.currentAdMetadata.adId,
+      adSystem: m.currentAdMetadata.adSystem
+    })
+  end if
+
+  baseAdSample.append(m.analyticsConfig)
+  adMetadataCustomDataFields = getCurrentAdMetadataCustomDataFields()
+  baseAdSample.append(adMetadataCustomDataFields)
+
+  return baseAdSample
+end function
+
+function getCurrentAdMetadataCustomDataFields()
+  if m.adCustomData = invalid return {}
+
+  populatedCustomDataFields = {}
+
+  for each key in m.adCustomData.keys()
+    if m.adCustomData[key] <> invalid then populatedCustomDataFields[key] = m.adCustomData[key]
+  end for
+
+  return populatedCustomDataFields
+end function
 
 sub clearSampleValues()
   m.sample.ad = 0
@@ -130,8 +191,8 @@ function getDeviceInformation()
  }
 end function
 
-' Create a new unique impression ID.
-function createImpressionId()
+' Generates a random UUID that can be used as an (ad-)impression id.
+function getRandomImpressionId()
   return lcase(m.deviceInfo.GetRandomUUID())
 end function
 
@@ -157,20 +218,38 @@ function getPersistedUserId(sectionRegistryName)
 end function
 
 ' TODO: Error handling if the keys are invalid
-sub sendAnalyticsRequestAndClearValues()
+sub sendAnalyticsRequestAndClearValues(analyticsRequestType = m.AnalyticsRequestTypes.REGULAR)
   manipulateSampleForSsai()
-  m.AnalyticsDataTask.eventData = m.sample
+  m.AnalyticsDataTask.eventData = {
+    requestType: analyticsRequestType
+    requestData: m.sample
+    isSsaiRelated: isCurrentSampleSsaiRelated()
+  }
   m.sample.sequenceNumber++
 
   sendAnalyticsRequest()
   clearSampleValues()
 end sub
 
-sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData)
+sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData, analyticsRequestType = m.AnalyticsRequestTypes.REGULAR)
   if updatedSampleData = invalid return
 
   sendOnceSample = createSendOnceSample(updatedSampleData)
-  m.AnalyticsDataTask.eventData = sendOnceSample
+  m.AnalyticsDataTask.eventData = {
+    requestType: analyticsRequestType
+    requestData: sendOnceSample
+    isSsaiRelated: isCurrentSampleSsaiRelated()
+  }
+
+  sendAnalyticsRequest()
+end sub
+
+sub sendAnalyticsSampleOnce(analyticsSample, analyticsRequestType = m.AnalyticsRequestTypes.REGULAR)
+  m.AnalyticsDataTask.eventData = {
+    requestType: analyticsRequestType,
+    requestData: analyticsSample,
+    isSsaiRelated: isCurrentSampleSsaiRelated()
+  }
 
   sendAnalyticsRequest()
 end sub
