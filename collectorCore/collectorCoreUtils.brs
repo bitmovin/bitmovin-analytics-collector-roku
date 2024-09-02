@@ -24,3 +24,12 @@ end function
 function isArray(v)
   return getInterface(v, "ifArray") <> invalid
 end function
+
+function getAnalyticsRequestTypes()
+  analyticsRequestTypes = {
+    REGULAR: 0,
+    AD_ENGAGEMENT: 1
+  }
+
+  return analyticsRequestTypes
+end function

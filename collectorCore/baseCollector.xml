@@ -13,5 +13,6 @@
     <function name="adBreakStart"/>
     <function name="adStart"/>
     <function name="adBreakEnd"/>
+    <function name="adQuartileFinished"/>
   </interface>
 </component>
