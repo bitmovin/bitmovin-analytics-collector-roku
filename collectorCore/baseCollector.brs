@@ -1,0 +1,23 @@
+
+sub initializeAnalytics()
+end sub
+sub setAnalyticsConfig()
+end sub
+sub initializePlayer()
+end sub
+sub destroy()
+end sub
+sub setNewMetadata()
+end sub
+sub setCustomData()
+end sub
+sub setCustomDataOnce()
+end sub
+sub adBreakStart()
+end sub
+sub adStart()
+end sub
+sub  adBreakEnd()
+end sub
+sub adQuartileFinished()
+end sub

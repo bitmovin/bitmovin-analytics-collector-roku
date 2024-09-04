@@ -2,9 +2,6 @@ sub Main(args as dynamic)
     ? "Launching with args "
     ? args
     m.args = args
-
-    if (type(Rooibos__Init) = "Function") then Rooibos__Init()
-
     InitScreen()
 end sub
 
@@ -20,8 +17,6 @@ function InitScreen() as void
     rootScene.id = "ROOT"
 
     screen.show()
-
-    SetupGlobals(screen)
 
     while(true)
         msg = wait(0, m.port)
