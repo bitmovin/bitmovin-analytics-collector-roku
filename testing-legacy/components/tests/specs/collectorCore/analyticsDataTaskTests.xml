@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component
+	name="analyticsDataTaskTests"
+	extends="analyticsDataTask"
+	xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
+>
+	<interface>
+		<!-- public fields/functions -->
+		<function name="Rooibos_RunNodeTests" />
+	</interface>
+
+	<script
+		type="text/brightscript"
+		uri="pkg:/source/tests/specs/collectorCore/analyticsDataTaskTests.brs" />
+
+	<script
+		type="text/brightscript"
+		uri="pkg:/source/tests/rooibos/rooibosFunctionMap.brs" />
+
+	<script
+		type="text/brightscript"
+		uri="pkg:/source/tests/rooibos/rooibosDist.brs" />
+	<script
+		type="text/brightscript"
+		uri="pkg:/source/tests/rooibos/TestUtils.brs" />
+
+</component>

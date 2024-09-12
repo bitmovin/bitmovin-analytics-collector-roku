@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="baseCollector" extends="Group">
+  <script type="text/brightscript" uri="./collectorConstants.brs"/>
+  <script type="text/brightscript" uri="./collectorUtils.brs"/>
+  <script type="text/brightscript" uri="./baseCollector.brs"/>
+  <interface>
+    <function name="initializeAnalytics" />
+    <function name="setAnalyticsConfig"/>
+    <function name="initializePlayer"/>
+    <function name="destroy"/>
+    <function name="setNewMetadata" />
+    <function name="setCustomData"/>
+    <function name="setCustomDataOnce"/>
+    <function name="adBreakStart"/>
+    <function name="adStart"/>
+    <function name="adBreakEnd"/>
+    <function name="adQuartileFinished"/>
+  </interface>
+</component>

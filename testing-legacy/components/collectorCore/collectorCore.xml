@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="collectorCore" extends="Group">
+  <script type="text/brightscript" uri="./collectorCoreUtils.brs"/>
+  <script type="text/brightscript" uri="./collectorCore.brs"/>
+  <script type="text/brightscript" uri="./ssaiService.brs"/>
+  <script type="text/brightscript" uri="./analyticsSample.brs"/>
+  <script type="text/brightscript" uri="./collectorCoreConstants.brs"/>
+  <children>
+    <analyticsDataTask id="analyticsDataTask"/>
+  </children>
+  <interface>
+    <function name="initializeAnalytics" />
+    <function name="internalDestroy"/>
+    <function name="setupSample"/>
+    <function name="getCurrentImpressionId"/>
+    <function name="getVersion"/>
+    <function name="sendAnalyticsRequestAndClearValues"/>
+    <function name="createTempMetadataSampleAndSendAnalyticsRequest"/>
+    <function name="updateSample"/>
+    <function name="setVideoTimeStart"/>
+    <function name="setVideoTimeEnd"/>
+    <function name="updateAnalyticsConfig"/>
+    <function name="adBreakStart"/>
+    <function name="adStart"/>
+    <function name="adBreakEnd"/>
+    <function name="adQuartileFinished"/>
+    <function name="onError"/>
+    <field id="playerState" alias="analyticsDataTask.playerState" type="string"/>
+    <field id="fireHeartbeat" type="boolean" alwaysnotify="true"/>
+  </interface>
+</component>
