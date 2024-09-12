@@ -54,9 +54,8 @@ end sub
 
 sub unobserveFields(isDestroyed = false)
   if m.player <> invalid
-    destroyed = isDestroyed
     ' Only unobserve content if it is a destroy event so we can collect data again when a new content is set
-    if destroyed then m.player.unobserveFieldScoped("content")
+    if isDestroyed then m.player.unobserveFieldScoped("content")
     m.player.unobserveFieldScoped("contentIndex")
     m.player.unobserveFieldScoped("state")
     m.player.unobserveFieldScoped("seek")
