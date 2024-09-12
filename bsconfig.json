@@ -1,5 +1,5 @@
 {
-  "rootDir": "src",
+  "rootDir": "testing",
   "files": [
     "manifest",
     "source/*.*",
