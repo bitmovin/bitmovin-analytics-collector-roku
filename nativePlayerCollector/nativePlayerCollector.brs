@@ -263,9 +263,8 @@ sub decorateSampleWithPlaybackData(sampleData)
   sampleData.Append({videoDuration: videoDuration})
 end sub
 
-sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration = invalid, state = m.previousState)
+sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration = (m.player.duration * 1000), state = m.previousState)
   sampleData = eventData
-  if duration = invalid then duration = m.player.duration * 1000
   sampleData.Append({
     state: state,
     duration: duration,
