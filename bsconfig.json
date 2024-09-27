@@ -8,7 +8,7 @@
   ],
   "autoImportComponentScript": true,
   "createPackage": false,
-  "stagingFolderPath": "build",
+  "stagingDir": "build",
   "plugins": [
     "rooibos-roku"
   ],
