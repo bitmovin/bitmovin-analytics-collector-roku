@@ -2,7 +2,6 @@
 <component name="baseCollector" extends="Group">
   <script type="text/brightscript" uri="./collectorConstants.brs"/>
   <script type="text/brightscript" uri="./collectorUtils.brs"/>
-  <script type="text/brightscript" uri="./baseCollector.brs"/>
   <interface>
     <function name="initializeAnalytics" />
     <function name="setAnalyticsConfig"/>
