@@ -9,5 +9,5 @@
   />
 </children>
   <script type="text/brightscript" uri="pkg:/components/demo.brs"/>
-  <script type="text/brightscript" uri="pkg:/config/playerConfig.brs"/>
+  <script type="text/brightscript" uri="pkg:/components/playerConfig.brs"/>
 </component>

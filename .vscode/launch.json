@@ -5,6 +5,36 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "test",
+      "type": "brightscript",
+      "request": "launch",
+      "consoleOutput": "full",
+      "internalConsoleOptions": "neverOpen",
+      "preLaunchTask": "build-tests",
+      "host": "",
+      "password": "rokudev",
+      "retainStagingFolder": true,
+      "stopOnEntry": false,
+      "files": [
+        "!**/images/*.*",
+        "!**/fonts/*.*",
+        "!*.jpg",
+        "!*.png",
+        "*",
+        "*.*",
+        "**/*.*",
+        "!*.zip",
+        "!**/*.zip"
+      ],
+      "rootDir": "${workspaceFolder}/build",
+      "sourceDirs": ["${workspaceFolder}/testing"],
+      "enableDebuggerAutoRecovery": true,
+      "stopDebuggerOnAppExit": true,
+      "enableVariablesPanel": false,
+      "injectRaleTrackerTask": false,
+      "enableDebugProtocol": false
+    },
+    {
       "type": "brightscript",
       "request": "launch",
       "name": "Demo: Bitmovin",

@@ -52,10 +52,11 @@ sub setUpObservers()
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
 
-sub unobserveFields(isDestroyed = false)
+sub unobserveFields(isDestory = false)
   if m.player <> invalid
+    destroyed = isDestory
     ' Only unobserve content if it is a destroy event so we can collect data again when a new content is set
-    if isDestroyed then m.player.unobserveFieldScoped("content")
+    if destroyed then m.player.unobserveFieldScoped("content")
     m.player.unobserveFieldScoped("contentIndex")
     m.player.unobserveFieldScoped("state")
     m.player.unobserveFieldScoped("seek")
@@ -263,8 +264,9 @@ sub decorateSampleWithPlaybackData(sampleData)
   sampleData.Append({videoDuration: videoDuration})
 end sub
 
-sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration = (m.player.duration * 1000), state = m.previousState)
+sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration = invalid, state = m.previousState)
   sampleData = eventData
+  if duration = invalid then duration = m.player.duration * 1000
   sampleData.Append({
     state: state,
     duration: duration,
