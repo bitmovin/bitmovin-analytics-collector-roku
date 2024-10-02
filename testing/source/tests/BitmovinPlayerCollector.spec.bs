@@ -1,63 +1,68 @@
-import "../../components/bitmovinPlayerCollector/bitmovinPlayerCollector.brs"
+IMPORT "../../components/bitmovinPlayerCollector/bitmovinPlayerCollector.brs"
+IMPORT "../../components/collectorCore/collectorConstants.brs"
+IMPORT "../../components/collectorCore/collectorUtils.brs"
+IMPORT "../../components/collectorCore/collectorUtils.brs"
+IMPORT "../../components/bitmovinPlayerCollector/bitmovinPlayerEnums.brs"
 
-'@SGNode bitmovinPlayerCollectorTests
-'@TestSuite [BPCT] Bitmovin Player Collector Tests
+NAMESPACE tests
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It tests bitmovinPlayerCollector
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  @suite
+  CLASS BitmovinPlayerCollectorTests extends tests.BaseTestSuite
 
-'@Test getPlayerKeyFromManifest with valid params - returns valid playerKey
-'@Params[{"bitmovin_player_license_key": "dummyKeyValue"}]
-function BPCT__getPlayerKeyFromManifest_valid_params(manifestData) as void
-  appInfo = getMockedAppInfoWithPlayerKeyData(manifestData)
-  expectedPlayerKey = manifestData.bitmovin_player_license_key
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("BitmovinPlayerCollector")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  m.AssertEqual(getPlayerKeyFromManifest(appInfo), expectedPlayerKey)
-end function
+    @it("should extract the player key from the channel manifest with valid parameters")
+    FUNCTION BPCT__getPlayerKeyFromManifest_valid_params()
+      manifestData = {"bitmovin_player_license_key": "dummyKeyValue"}
+      appInfo = getMockedAppInfoWithPlayerKeyData(manifestData)
+      expectedPlayerKey = manifestData.bitmovin_player_license_key
 
-'@Test getPlayerKeyFromManifest with invalid params - returns invalid
-'@Params[invalid]
-function BPCT__getPlayerKeyFromManifest_invalid_params(appInfo) as void
-  bitmovinPlayerKey = getPlayerKeyFromManifest(appInfo)
-  m.AssertInvalid(bitmovinPlayerKey)
-end function
+      m.AssertEqual(getPlayerKeyFromManifest(appInfo), expectedPlayerKey)
+    END FUNCTION
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It tests bitmovinPlayerCollector API
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @it("should extract the player key from the channel manifest with invalid parameters")
+    FUNCTION BPCT__getPlayerKeyFromManifest_invalid_params()
+      appInfo = invalid
+      bitmovinPlayerKey = getPlayerKeyFromManifest(appInfo)
+      m.AssertInvalid(bitmovinPlayerKey)
+    END FUNCTION
 
-'@Test setAnalyticsConfig with valid params - returns true
-'@Params[{"customDataTest": "customData"}]
-function BPCT__setAnalyticsConfig_valid_params(analyticsConfig) as void
-  isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
-  m.AssertTrue(isAnalyticsConfigSet)
-end function
+    @it("foo")
+    FUNCTION BPCT__setAnalyticsConfig_valid_params()
+      analyticsConfig = {"customDataTest": "customData"}
+      isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
+      m.AssertTrue(isAnalyticsConfigSet)
+    END FUNCTION
 
-'@Test setAnalyticsConfig with invalid params - returns invalid
-'@Params[invalid]
-function BPCT__setAnalyticsConfig_invalid_params(analyticsConfig) as void
-  isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
-  m.AssertInvalid(isAnalyticsConfigSet)
-end function
+    @it("bla")
+    FUNCTION BPCT__setAnalyticsConfig_invalid_params()
+      analyticsConfig = invalid
+      isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
+      m.AssertInvalid(isAnalyticsConfigSet)
+    END FUNCTION
+  END CLASS
+END NAMESPACE
+
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 'Mock Data
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function getMockedAppInfoWithPlayerKeyData(manifestData)
+FUNCTION getMockedAppInfoWithPlayerKeyData(manifestData)
   mockAppInfo = {}
   'mimic behaviour of roAppInfo's getValue() function
   mockAppInfo.mockManifestData = manifestData
-  mockAppInfo.getValue = function(key)
-    if m.mockManifestData[key] <> invalid
+  mockAppInfo.getValue = FUNCTION(key)
+    IF m.mockManifestData[key] <> INVALID
       value = m.mockManifestData[key]
-    else
+    ELSE
       value = ""
-    end if
+    END IF
 
-    return value
-  end function
+    RETURN value
+  END FUNCTION
 
-  return mockAppInfo
-end function
+  RETURN mockAppInfo
+END FUNCTION
