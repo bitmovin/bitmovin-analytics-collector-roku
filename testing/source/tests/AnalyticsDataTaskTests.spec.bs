@@ -1,4 +1,5 @@
-import "pkg:/components/collectorCore/analyticsDataTask.brs"
+' import "pkg:/components/collectorCore/analyticsDataTask.brs"
+import "pkg:/components/collectorCore/collectorUtils.brs"
 
 namespace tests
 
@@ -7,33 +8,27 @@ namespace tests
 
     @describe("Test for the analytics data tasks")
 
-    @it("actually does something")
-    function _one()
-      works = true
-      m.assertEqual(works, true)
-    end function
-
     @it("pushToAnalyticsEventsQueue - valid params - returns true")
     @Params({"customDataTest": "customData"})
-    function ADTT__pushToAnalyticsEventsQueue_valid_params(sampleEvent) as void
+    function ADTT__pushToAnalyticsEventsQueue_valid_params(sampleEvent)
       m.AssertTrue(pushToAnalyticsEventsQueue(sampleEvent))
     end function
 
     @it("pushToAnalyticsEventsQueue - invalid params - returns false")
     @Params(invalid)
-    function ADTT__pushToAnalyticsEventsQueue_invalid_params(sampleEvent) as void
+    function ADTT__pushToAnalyticsEventsQueue_invalid_params(sampleEvent)
       m.AssertFalse(pushToAnalyticsEventsQueue(sampleEvent))
     end function
 
     @it("clearAnalyticsEventsQueue - not empty analyticsEventsQueue - returns true")
     @Params({"customDataTest": "customData"})
-    function ADTT__clearAnalyticsEventsQueue_not_empty_analyticsEventsQueue(sampleEvent) as void
+    function ADTT__clearAnalyticsEventsQueue_not_empty_analyticsEventsQueue(sampleEvent)
       pushToAnalyticsEventsQueue(sampleEvent)
       m.AssertTrue(clearAnalyticsEventsQueue())
     end function
 
     @it("clearAnalyticsEventsQueue - empty analyticsEventsQueue - returns false")
-    function ADTT__clearAnalyticsEventsQueue_empty_analyticsEventsQueue() as void
+    function ADTT__clearAnalyticsEventsQueue_empty_analyticsEventsQueue()
       m.AssertFalse(clearAnalyticsEventsQueue())
     end function
 

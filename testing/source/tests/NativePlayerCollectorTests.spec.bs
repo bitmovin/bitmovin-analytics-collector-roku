@@ -10,12 +10,6 @@ namespace tests
 
     @describe("Test for the Native Player Collector")
 
-    @it("actually does something")
-    function _one()
-      works = true
-      m.assertEqual(works, true)
-    end function
-
     @it("setAnalyticsConfig with valid params - returns true")
     @Params({"customDataTest": "customData"})
     function NPCT__setAnalyticsConfig_valid_params(analyticsConfig)
