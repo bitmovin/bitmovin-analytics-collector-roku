@@ -1,0 +1,42 @@
+import "pkg:/components/collectorCore/analyticsDataTask.brs"
+
+namespace tests
+
+  @suite
+  class AnalyticsDataTaskTests extends tests.BaseTestSuite
+
+    @describe("Test for the analytics data tasks")
+
+    @it("actually does something")
+    function _one()
+      works = true
+      m.assertEqual(works, true)
+    end function
+
+    @it("pushToAnalyticsEventsQueue - valid params - returns true")
+    @Params({"customDataTest": "customData"})
+    function ADTT__pushToAnalyticsEventsQueue_valid_params(sampleEvent) as void
+      m.AssertTrue(pushToAnalyticsEventsQueue(sampleEvent))
+    end function
+
+    @it("pushToAnalyticsEventsQueue - invalid params - returns false")
+    @Params(invalid)
+    function ADTT__pushToAnalyticsEventsQueue_invalid_params(sampleEvent) as void
+      m.AssertFalse(pushToAnalyticsEventsQueue(sampleEvent))
+    end function
+
+    @it("clearAnalyticsEventsQueue - not empty analyticsEventsQueue - returns true")
+    @Params({"customDataTest": "customData"})
+    function ADTT__clearAnalyticsEventsQueue_not_empty_analyticsEventsQueue(sampleEvent) as void
+      pushToAnalyticsEventsQueue(sampleEvent)
+      m.AssertTrue(clearAnalyticsEventsQueue())
+    end function
+
+    @it("clearAnalyticsEventsQueue - empty analyticsEventsQueue - returns false")
+    function ADTT__clearAnalyticsEventsQueue_empty_analyticsEventsQueue() as void
+      m.AssertFalse(clearAnalyticsEventsQueue())
+    end function
+
+  end class
+
+end namespace
