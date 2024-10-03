@@ -1,4 +1,4 @@
-' import "pkg:/components/collectorCore/analyticsDataTask.brs"
+import "pkg:/components/collectorCore/analyticsDataTask.brs"
 import "pkg:/components/collectorCore/collectorUtils.brs"
 
 namespace tests
