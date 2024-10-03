@@ -1,0 +1,36 @@
+import "pkg:/components/nativePlayerCollector/nativePlayerCollector.brs"
+import "pkg:/components/collectorCore/collectorConstants.brs"
+import "pkg:/components/collectorCore/collectorUtils.brs"
+import "pkg:/components/nativePlayerCollector/nativePlayerEnums.brs"
+
+namespace tests
+
+  @suite
+  class NativePlayerCollectorTests extends tests.BaseTestSuite
+
+    @describe("Test for the Native Player Collector")
+
+    @it("actually does something")
+    function _one()
+      works = true
+      m.assertEqual(works, true)
+    end function
+
+    @it("setAnalyticsConfig with valid params - returns true")
+    @Params({"customDataTest": "customData"})
+    function NPCT__setAnalyticsConfig_valid_params(analyticsConfig)
+      isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
+      m.AssertTrue(isAnalyticsConfigSet)
+    end function
+
+
+    @it("setAnalyticsConfig with invalid params - returns invalid")
+    @Params(invalid)
+    function NPCT__setAnalyticsConfig_invalid_params(analyticsConfig)
+      isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
+      m.AssertInvalid(isAnalyticsConfigSet)
+    end function
+
+  end class
+
+end namespace
