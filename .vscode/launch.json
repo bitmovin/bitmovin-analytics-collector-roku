@@ -30,7 +30,7 @@
       "sourceDirs": ["${workspaceFolder}/testing"],
       "enableDebuggerAutoRecovery": true,
       "stopDebuggerOnAppExit": true,
-      "enableVariablesPanel": false,
+      "enableVariablesPanel": true,
       "injectRaleTrackerTask": false,
       "enableDebugProtocol": false
     },
