@@ -203,17 +203,21 @@ sub sendAnalyticsEventsFromQueue()
   clearAnalyticsEventsQueue()
 end sub
 
-sub clearAnalyticsEventsQueue()
-  if m.analyticsEventsQueue.Count() = 0 then return
+function clearAnalyticsEventsQueue()
+  if m.analyticsEventsQueue.Count() = 0 then return false
   m.analyticsEventsQueue.Clear()
-end sub
 
-sub pushToAnalyticsEventsQueue(event)
-  if event = invalid then return
+  return true
+end function
+
+function pushToAnalyticsEventsQueue(event)
+  if event = invalid then return false
 
   m.analyticsEventsQueue.Push(event)
   m.heartbeatTimer.Mark()
-end sub
+
+  return true
+end function
 
 sub clearLicensingResponseAndAnalyticsEventsQueue()
   m.licensingResponse = {}
