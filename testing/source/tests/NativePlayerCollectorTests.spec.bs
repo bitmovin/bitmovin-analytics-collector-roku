@@ -1,18 +1,20 @@
-import "pkg:/components/nativePlayerCollector/nativePlayerCollector.brs"
-import "pkg:/components/collectorCore/collectorConstants.brs"
-import "pkg:/components/collectorCore/collectorUtils.brs"
-import "pkg:/components/nativePlayerCollector/nativePlayerEnums.brs"
-
 namespace tests
 
+  @SGNode("nativePlayerCollector")
   @suite
-  class NativePlayerCollectorTests extends tests.BaseTestSuite
+  class NativePlayerCollectorTests extends rooibos.BaseTestSuite
 
     @describe("Test for the Native Player Collector")
 
+    protected override function beforeEach()
+      'bs:disable-next-line
+      initializeAnalytics()
+    end function
+
     @it("setAnalyticsConfig with valid params - returns true")
-    @Params({"customDataTest": "customData"})
-    function NPCT__setAnalyticsConfig_valid_params(analyticsConfig)
+    @Params({ "customDataTest": "customData" })
+    function _(analyticsConfig)
+      'bs:disable-next-line
       isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
       m.AssertTrue(isAnalyticsConfigSet)
     end function
@@ -20,7 +22,8 @@ namespace tests
 
     @it("setAnalyticsConfig with invalid params - returns invalid")
     @Params(invalid)
-    function NPCT__setAnalyticsConfig_invalid_params(analyticsConfig)
+    function _(analyticsConfig)
+      'bs:disable-next-line
       isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
       m.AssertInvalid(isAnalyticsConfigSet)
     end function
