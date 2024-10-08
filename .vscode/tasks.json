@@ -6,7 +6,7 @@
     {
       "label": "build-tests",
       "type": "shell",
-      "command": "npm run build-tests",
+      "command": "npm run refresh-collectors && npm run build-tests",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
