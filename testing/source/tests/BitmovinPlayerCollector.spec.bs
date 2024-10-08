@@ -8,6 +8,11 @@ namespace tests
     @describe("BitmovinPlayerCollector")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    protected override function beforeEach()
+      'bs:disable-next-line
+      initializeAnalytics()
+    end function
+
     @it("should extract the player key from the channel manifest with valid parameters")
     function _()
       manifestData = { "bitmovin_player_license_key": "dummyKeyValue" }
@@ -33,8 +38,6 @@ namespace tests
     @it("should be able to set the analytics config with valid parameters")
     function _()
       analyticsConfig = { "customDataTest": "customData" }
-      'bs:disable-next-line
-      initializeAnalytics()
 
       'bs:disable-next-line
       isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
