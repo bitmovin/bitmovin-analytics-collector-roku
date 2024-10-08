@@ -9,6 +9,7 @@
     "**/demo/components/nativePlayerCollector/": true,
     "**/demo/components/bitmovinPlayerCollector/": true,
    },
-  "brightscript.format.keywordCase": "upper",
-  "brightscript.output.hyperlinkFormat": "Filename"
+  "brightscript.format.keywordCase": "lower",
+  "brightscript.output.hyperlinkFormat": "Filename",
+  "brightscript.bsdk": "node_modules/brighterscript"
 }
