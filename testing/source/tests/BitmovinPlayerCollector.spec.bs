@@ -1,68 +1,77 @@
-IMPORT "../../components/bitmovinPlayerCollector/bitmovinPlayerCollector.brs"
-IMPORT "../../components/collectorCore/collectorConstants.brs"
-IMPORT "../../components/collectorCore/collectorUtils.brs"
-IMPORT "../../components/collectorCore/collectorUtils.brs"
-IMPORT "../../components/bitmovinPlayerCollector/bitmovinPlayerEnums.brs"
+namespace tests
 
-NAMESPACE tests
-
+  @SGNode("bitmovinPlayerCollector")
   @suite
-  CLASS BitmovinPlayerCollectorTests extends tests.BaseTestSuite
+  class BitmovinPlayerCollectorTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("BitmovinPlayerCollector")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("should extract the player key from the channel manifest with valid parameters")
-    FUNCTION BPCT__getPlayerKeyFromManifest_valid_params()
-      manifestData = {"bitmovin_player_license_key": "dummyKeyValue"}
+    function _()
+      manifestData = { "bitmovin_player_license_key": "dummyKeyValue" }
       appInfo = getMockedAppInfoWithPlayerKeyData(manifestData)
       expectedPlayerKey = manifestData.bitmovin_player_license_key
 
-      m.AssertEqual(getPlayerKeyFromManifest(appInfo), expectedPlayerKey)
-    END FUNCTION
+      'bs:disable-next-line
+      extractedPlayerKey = getPlayerKeyFromManifest(appInfo)
+
+      m.AssertEqual(extractedPlayerKey, expectedPlayerKey)
+    end function
 
     @it("should extract the player key from the channel manifest with invalid parameters")
-    FUNCTION BPCT__getPlayerKeyFromManifest_invalid_params()
+    function _()
       appInfo = invalid
+
+      'bs:disable-next-line
       bitmovinPlayerKey = getPlayerKeyFromManifest(appInfo)
+
       m.AssertInvalid(bitmovinPlayerKey)
-    END FUNCTION
+    end function
 
-    @it("foo")
-    FUNCTION BPCT__setAnalyticsConfig_valid_params()
-      analyticsConfig = {"customDataTest": "customData"}
+    @it("should be able to set the analytics config with valid parameters")
+    function _()
+      analyticsConfig = { "customDataTest": "customData" }
+      'bs:disable-next-line
+      initializeAnalytics()
+
+      'bs:disable-next-line
       isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
+
       m.AssertTrue(isAnalyticsConfigSet)
-    END FUNCTION
+    end function
 
-    @it("bla")
-    FUNCTION BPCT__setAnalyticsConfig_invalid_params()
+    @it("should return invalid when setting the analytics config to 'invalid'")
+    function _()
       analyticsConfig = invalid
+
+      'bs:disable-next-line
       isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
+
       m.AssertInvalid(isAnalyticsConfigSet)
-    END FUNCTION
-  END CLASS
-END NAMESPACE
+    end function
+  end class
+end namespace
 
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 'Mock Data
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-FUNCTION getMockedAppInfoWithPlayerKeyData(manifestData)
+function getMockedAppInfoWithPlayerKeyData(manifestData)
   mockAppInfo = {}
   'mimic behaviour of roAppInfo's getValue() function
   mockAppInfo.mockManifestData = manifestData
-  mockAppInfo.getValue = FUNCTION(key)
-    IF m.mockManifestData[key] <> INVALID
+  mockAppInfo.getValue = function(key)
+    if m.mockManifestData[key] <> invalid
       value = m.mockManifestData[key]
-    ELSE
+    else
       value = ""
-    END IF
+    end if
 
-    RETURN value
-  END FUNCTION
+    return value
+  end function
 
-  RETURN mockAppInfo
-END FUNCTION
+  return mockAppInfo
+end function
