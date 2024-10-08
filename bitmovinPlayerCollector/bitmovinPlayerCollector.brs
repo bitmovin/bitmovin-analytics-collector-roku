@@ -356,11 +356,11 @@ sub setCustomDataOnce(customData)
   createTempMetadataSampleAndSendAnalyticsRequest(customData, duration)
 end sub
 
-sub setAnalyticsConfig(config)
-  if config = invalid then return
+function setAnalyticsConfig(config)
+  if config = invalid then return invalid
 
-  m.collectorcore.callFunc("updateAnalyticsConfig", config)
-end sub
+  return m.collectorcore.callFunc("updateAnalyticsConfig", config)
+end function
 
 function getImpressionIdForSample()
   return m.collectorCore.callFunc("getRandomImpressionId")

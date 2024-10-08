@@ -354,7 +354,7 @@ sub guardAgainstMissingIsLive(config)
   print m.tag; "The new analytics configuration does not contain the field `isLive`. It will default to `false` which might be unintended? Once stream playback information is available the type will be populated."
 end sub
 
-sub updateAnalyticsConfig(unsanitizedConfig)
+function updateAnalyticsConfig(unsanitizedConfig)
   ' First check for missing fields and then extract metadata (renaming of fields happens here)
   guardAgainstMissingVideoTitle(unsanitizedConfig)
   guardAgainstMissingIsLive(unsanitizedConfig)
@@ -366,5 +366,5 @@ sub updateAnalyticsConfig(unsanitizedConfig)
   mergedConfig.Append(config)
   m.analyticsConfig = mergedConfig
 
-  updateSample(m.analyticsConfig)
-end sub
+  return updateSample(m.analyticsConfig)
+end function
