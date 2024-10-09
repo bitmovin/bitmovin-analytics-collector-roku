@@ -1,0 +1,48 @@
+namespace tests
+
+  @SGNode("analyticsDataTask")
+  @suite
+  class AnalyticsDataTaskTests extends rooibos.BaseTestSuite
+
+    @describe("Test for the analytics data tasks")
+
+    @it("pushToAnalyticsEventsQueue - valid params - returns true")
+    @Params({"customDataTest": "customData"})
+    function _(sampleEvent)
+      'bs:disable-next-line
+      pushToQueueResult = pushToAnalyticsEventsQueue(sampleEvent)
+
+      m.AssertTrue(pushToQueueResult)
+    end function
+
+    @it("pushToAnalyticsEventsQueue - invalid params - returns false")
+    @Params(invalid)
+    function _(sampleEvent)
+      'bs:disable-next-line
+      pushToQueueResult = pushToAnalyticsEventsQueue(sampleEvent)
+
+      m.AssertFalse(pushToQueueResult)
+    end function
+
+    @it("clearAnalyticsEventsQueue - not empty analyticsEventsQueue - returns true")
+    @Params({"customDataTest": "customData"})
+    function _(sampleEvent)
+      'bs:disable-next-line
+      pushToAnalyticsEventsQueue(sampleEvent)
+      'bs:disable-next-line
+      hasBeenCleared = clearAnalyticsEventsQueue()
+
+      m.AssertTrue(hasBeenCleared)
+    end function
+
+    @it("clearAnalyticsEventsQueue - empty analyticsEventsQueue - returns false")
+    function _()
+      'bs:disable-next-line
+      hasBeenCleared = clearAnalyticsEventsQueue()
+
+      m.AssertFalse(hasBeenCleared)
+    end function
+
+  end class
+
+end namespace

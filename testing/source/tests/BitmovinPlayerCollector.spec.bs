@@ -1,0 +1,86 @@
+namespace tests
+
+  @SGNode("bitmovinPlayerCollector")
+  @suite
+  class BitmovinPlayerCollectorTests extends rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("BitmovinPlayerCollector")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function beforeEach()
+      ' NOTE: Cannot mock license calls right now because the components in this project are not
+      ' based on Brighterscript classes. Citation from the official Rooibos docs:
+      ' "You cannot stub node methods. If there is no . reference to a method (via an
+      ' associated array style object), then Rooibos cannot mock it."
+      ' https://github.com/rokucommunity/rooibos/blob/master/docs/index.md#nuances-of-testing-nodes
+
+      'bs:disable-next-line
+      initializeAnalytics()
+    end function
+
+    @it("should extract the player key from the channel manifest with valid parameters")
+    function _()
+      manifestData = { "bitmovin_player_license_key": "dummyKeyValue" }
+      appInfo = getMockedAppInfoWithPlayerKeyData(manifestData)
+      expectedPlayerKey = manifestData.bitmovin_player_license_key
+
+      'bs:disable-next-line
+      extractedPlayerKey = getPlayerKeyFromManifest(appInfo)
+
+      m.AssertEqual(extractedPlayerKey, expectedPlayerKey)
+    end function
+
+    @it("should extract the player key from the channel manifest with invalid parameters")
+    function _()
+      appInfo = invalid
+
+      'bs:disable-next-line
+      bitmovinPlayerKey = getPlayerKeyFromManifest(appInfo)
+
+      m.AssertInvalid(bitmovinPlayerKey)
+    end function
+
+    @it("should be able to set the analytics config with valid parameters")
+    function _()
+      analyticsConfig = { "customDataTest": "customData" }
+
+      'bs:disable-next-line
+      isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
+
+      m.AssertTrue(isAnalyticsConfigSet)
+    end function
+
+    @it("should return invalid when setting the analytics config to 'invalid'")
+    function _()
+      analyticsConfig = invalid
+
+      'bs:disable-next-line
+      isAnalyticsConfigSet = setAnalyticsConfig(analyticsConfig)
+
+      m.AssertInvalid(isAnalyticsConfigSet)
+    end function
+  end class
+end namespace
+
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'Mock Data
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function getMockedAppInfoWithPlayerKeyData(manifestData)
+  mockAppInfo = {}
+  'mimic behaviour of roAppInfo's getValue() function
+  mockAppInfo.mockManifestData = manifestData
+  mockAppInfo.getValue = function(key)
+    if m.mockManifestData[key] <> invalid
+      value = m.mockManifestData[key]
+    else
+      value = ""
+    end if
+
+    return value
+  end function
+
+  return mockAppInfo
+end function

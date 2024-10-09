@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="analyticsDataTask" extends="Task">
-  <script type="text/brightscript" uri="./analyticsDataTask.brs"/>
   <script type="text/brightscript" uri="./analyticsDataTaskControlValues.brs"/>
   <script type="text/brightscript" uri="./analyticsDataTaskFieldNames.brs"/>
   <script type="text/brightscript" uri="./collectorCoreConfig.brs"/>
