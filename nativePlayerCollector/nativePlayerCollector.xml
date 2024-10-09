@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="nativePlayerCollector" extends="baseCollector">
   <script type="text/brightscript" uri="./nativePlayerEnums.brs"/>
+  <script type="text/brightscript" uri="./nativePlayerCollector.brs"/>
   <children>
     <Timer id="videoStartTimeoutTimer" repeat="false" duration="60" />
     <collectorCore id="collectorCore"/>

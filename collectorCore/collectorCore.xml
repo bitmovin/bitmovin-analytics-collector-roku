@@ -4,6 +4,7 @@
   <script type="text/brightscript" uri="./ssaiService.brs"/>
   <script type="text/brightscript" uri="./analyticsSample.brs"/>
   <script type="text/brightscript" uri="./collectorCoreConstants.brs"/>
+  <script type="text/brightscript" uri="./collectorCore.brs"/>
   <children>
     <analyticsDataTask id="analyticsDataTask"/>
   </children>
