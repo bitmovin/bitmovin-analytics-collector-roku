@@ -9,6 +9,12 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function beforeEach()
+      ' NOTE: Cannot mock license calls right now because the components in this project are not
+      ' based on Brighterscript classes. Citation from the official Rooibos docs:
+      ' "You cannot stub node methods. If there is no . reference to a method (via an
+      ' associated array style object), then Rooibos cannot mock it."
+      ' https://github.com/rokucommunity/rooibos/blob/master/docs/index.md#nuances-of-testing-nodes
+
       'bs:disable-next-line
       initializeAnalytics()
     end function
