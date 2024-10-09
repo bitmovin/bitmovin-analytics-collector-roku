@@ -1,0 +1,19 @@
+namespace tests
+
+  @SGNode("collectorCore")
+  @suite
+  class SsaiServiceTests extends rooibos.BaseTestSuite
+
+    @describe("SsaiService")
+
+    protected override function beforeEach()
+    end function
+
+    @it("does what it should")
+    function _()
+      m.AssertTrue(true)
+    end function
+
+  end class
+
+end namespace
