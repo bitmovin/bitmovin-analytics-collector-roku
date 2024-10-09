@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "test",
+      "name": "Unit-tests",
       "type": "brightscript",
       "request": "launch",
       "consoleOutput": "full",
