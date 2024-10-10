@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - collector crashes for certain SSAI workflows
+  https://bitmovin.atlassian.net/browse/PW-20529
 
 ## v2.8.0
 
