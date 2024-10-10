@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.9.0
+
+### Fixed
+- collector crashes for certain SSAI workflows
+
 ## v2.8.0
 
 ### Added
