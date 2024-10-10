@@ -23,6 +23,7 @@ namespace tests
 
     @it("should set the elapsed time since adStart if an ad is in progress")
     function _()
+      m.enterFakeSsaiAd()
 
       'bs:disable-next-line
       sample = getSsaiAdSample()
