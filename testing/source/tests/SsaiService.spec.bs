@@ -34,6 +34,32 @@ namespace tests
       m.assertTrue(sample.timeSinceAdStartedInMs >= 0)
     end function
 
+    @describe("adQuartileFinished")
+    @it("returns invalid if a quartile has already been reported")
+    function _()
+      m.asserTrue(false)
+    end function
+
+    @it("returns invalid if no ad is in progress")
+    function _()
+      m.asserTrue(false)
+    end function
+
+    @it("sets the correct prop on the sample for each adQuartile type")
+    function _()
+      m.asserTrue(false)
+    end function
+
+    @it("sets the correct prop on the sample for failedBeaconUrls")
+    function _()
+      m.asserTrue(false)
+    end function
+
+    @it("does not set flags on sample if a quartile is reported twice during an ad")
+    function _()
+      m.asserTrue(false)
+    end function
+
   end class
 
 end namespace
