@@ -23,10 +23,6 @@ namespace tests
 
     @it("should set the elapsed time since adStart if an ad is in progress")
     function _()
-      'bs:disable-next-line
-      adBreakStart()
-      'bs:disable-next-line
-      adStart()
 
       'bs:disable-next-line
       sample = getSsaiAdSample()
@@ -35,11 +31,6 @@ namespace tests
     end function
 
     @describe("adQuartileFinished")
-    @it("returns invalid if a quartile has already been reported")
-    function _()
-      m.asserTrue(false)
-    end function
-
     @it("returns invalid if no ad is in progress")
     function _()
       m.asserTrue(false)
@@ -58,6 +49,14 @@ namespace tests
     @it("does not set flags on sample if a quartile is reported twice during an ad")
     function _()
       m.asserTrue(false)
+    end function
+
+    ' UTILITY FUNCTIONS
+    function enterFakeSsaiAd()
+      'bs:disable-next-line
+      adBreakStart()
+      'bs:disable-next-line
+      adStart()
     end function
 
   end class
