@@ -21,7 +21,7 @@ sub resetSsaiHelpers()
   m.currentAdMetadata = {}
   m.isFirstSampleOfAd = false
   m.adCustomData = {}
-  m.lastAdStartTimer = m.AD_TIMER_INIT_VALUE
+  m.lastAdStartTimer = invalid
   m.hasErrorBeenReportedForCurrentAd = false
 
   resetAdValues = {
@@ -40,7 +40,7 @@ function getSsaiAdSample()
 
   adSample.adType = m.AD_TYPE.SSAI
 
-  if m.lastAdStartTimer = m.AD_TIMER_INIT_VALUE
+  if m.lastAdStartTimer = invalid
     adSample.timeSinceAdStartedInMs = m.AD_TIMER_INIT_VALUE
   else
     adSample.timeSinceAdStartedInMs = m.lastAdStartTimer.TotalMilliseconds()
