@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Internal
+- updated Rooibos & added unit-tests for `adQuartileFinished`
+  https://bitmovin.atlassian.net/browse/PR-851
+
 ## v2.9.0
 
 ### Fixed
