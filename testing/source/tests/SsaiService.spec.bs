@@ -1,17 +1,37 @@
 namespace tests
 
   @SGNode("collectorCore")
-  @suite
+  @suite("SsaiService")
   class SsaiServiceTests extends rooibos.BaseTestSuite
-
-    @describe("SsaiService")
-
     protected override function beforeEach()
+      'bs:disable-next-line
+      initializeAnalytics()
+      'bs:disable-next-line
+      setupSsaiService()
     end function
 
-    @it("does what it should")
+    @describe("getSsaiAdSample")
+    @it("should set the elapsed time to -1 if no timer is active")
     function _()
-      m.AssertTrue(true)
+      expectedTime = -1
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.timeSinceAdStartedInMs, expectedTime)
+    end function
+
+    @it("should set the elapsed time since adStart if an ad is in progress")
+    function _()
+      'bs:disable-next-line
+      adBreakStart()
+      'bs:disable-next-line
+      adStart()
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertTrue(sample.timeSinceAdStartedInMs >= 0)
     end function
 
   end class
