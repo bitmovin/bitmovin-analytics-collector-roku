@@ -160,8 +160,8 @@ function getFailedAdQuartileProp(adQuartile, adQuartileMetadata)
   end if
 end function
 
-sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
-  if m.ssaiState <> m.SSAI_STATES.ACTIVE or hasQuartileAlreadyBeenReported(adQuartile) then return
+function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
+  if m.ssaiState <> m.SSAI_STATES.ACTIVE or hasQuartileAlreadyBeenReported(adQuartile) then return invalid
 
   adSample = getSsaiAdSample()
 
@@ -172,7 +172,9 @@ sub adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
 
   sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
   markQuartileAsReported(adQuartile)
-end sub
+
+  return adSample
+end function
 
 function isCurrentSampleSsaiRelated()
   return m.ssaiState = m.SSAI_STATES.ACTIVE or m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
