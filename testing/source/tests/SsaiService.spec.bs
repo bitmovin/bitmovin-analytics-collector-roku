@@ -23,15 +23,73 @@ namespace tests
 
     @it("should set the elapsed time since adStart if an ad is in progress")
     function _()
-      'bs:disable-next-line
-      adBreakStart()
-      'bs:disable-next-line
-      adStart()
+      m.enterFakeSsaiAd()
 
       'bs:disable-next-line
       sample = getSsaiAdSample()
 
       m.assertTrue(sample.timeSinceAdStartedInMs >= 0)
+    end function
+
+    @describe("adQuartileFinished")
+    @it("returns invalid if no ad is in progress")
+    function _()
+      'bs:disable-next-line
+      m.assertInvalid(adQuartileFinished(m.node.AD_QUARTILES.FIRST))
+    end function
+
+    @it("sets the correct prop on the sample for each adQuartile type")
+    @params("first", "quartile1")
+    @params("midpoint", "midpoint")
+    @params("third", "quartile3")
+    @params("completed", "completed")
+    function _(reportedQuartile, expectedProp)
+      m.enterFakeSsaiAd()
+
+      'bs:disable-next-line
+      generatedSsaiSample = adQuartileFinished(reportedQuartile)
+
+      m.assertEqual(generatedSsaiSample[expectedProp], 1)
+    end function
+
+    @it("sets the correct prop on the sample for failedBeaconUrls")
+    @params("first", "quartile1FailedBeaconUrl")
+    @params("midpoint", "midpointFailedBeaconUrl")
+    @params("third", "quartile3FailedBeaconUrl")
+    @params("completed", "completedFailedBeaconUrl")
+    function _(reportedQuartile, expectedFailedBeaconUrlProp)
+      m.enterFakeSsaiAd()
+      adQuartileMetadata = {
+        failedBeaconUrl: "https://i-am-not-reachable-1447.404"
+      }
+
+      'bs:disable-next-line
+      generatedSsaiSample = adQuartileFinished(reportedQuartile, adQuartileMetadata)
+
+      m.assertEqual(generatedSsaiSample[expectedFailedBeaconUrlProp], adQuartileMetadata.failedBeaconUrl)
+    end function
+
+    @it("does not set flags on sample if a quartile is reported twice during an ad")
+    @params("first")
+    @params("midpoint")
+    @params("third")
+    @params("completed")
+    function _(reportedQuartile)
+      m.enterFakeSsaiAd()
+
+      'bs:disable-next-line
+      adQuartileFinished(reportedQuartile)'bs:disable-next-line
+      generatedSsaiSample = adQuartileFinished(reportedQuartile)
+
+      m.assertInvalid(generatedSsaiSample)
+    end function
+
+    ' UTILITY FUNCTIONS
+    function enterFakeSsaiAd()
+      'bs:disable-next-line
+      adBreakStart()
+      'bs:disable-next-line
+      adStart()
     end function
 
   end class
