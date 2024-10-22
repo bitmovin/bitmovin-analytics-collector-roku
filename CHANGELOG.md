@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
-## v2.9.0
+## v2.9.1
 
 ### Fixed
 - incorrect version being reported (untracked)
