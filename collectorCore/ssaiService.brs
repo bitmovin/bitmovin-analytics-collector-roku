@@ -84,7 +84,7 @@ sub adStart(adMetadata = invalid)
 
   adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
 
-  if adEngagementEnabled <> invald and adEngagementEnabled = true
+  if adEngagementEnabled <> invalid and adEngagementEnabled = true
     adStartedEngagementSample = getSsaiAdSample()
     adStartedEngagementSample.append({ started: 1 })
     sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
