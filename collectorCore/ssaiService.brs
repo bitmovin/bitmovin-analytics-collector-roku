@@ -82,9 +82,13 @@ sub adStart(adMetadata = invalid)
     }
   end if
 
-  adStartedEngagementSample = getSsaiAdSample()
-  adStartedEngagementSample.append({ started: 1 })
-  sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
+
+  if adEngagementEnabled <> invald and adEngagementEnabled = "true"
+    adStartedEngagementSample = getSsaiAdSample()
+    adStartedEngagementSample.append({ started: 1 })
+    sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  end if
 end sub
 
 sub adBreakEnd()
