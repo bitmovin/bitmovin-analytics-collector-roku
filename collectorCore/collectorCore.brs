@@ -341,6 +341,9 @@ function getMetadataFromAnalyticsConfig(config)
   if config.DoesExist("isLive")
     metadata.isLive = config.isLive
   end if
+  if config.DoesExist("ssaiEngagementTrackingEnabled")
+    metadata.ssaiEngagementTrackingEnabled = config.ssaiEngagementTrackingEnabled
+  end if
   return metadata
 end function
 
