@@ -82,9 +82,12 @@ sub adStart(adMetadata = invalid)
     }
   end if
 
-  adStartedEngagementSample = getSsaiAdSample()
-  adStartedEngagementSample.append({ started: 1 })
-  sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
+  if adEngagementEnabled <> invalid and adEngagementEnabled = true
+    adStartedEngagementSample = getSsaiAdSample()
+    adStartedEngagementSample.append({ started: 1 })
+    sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  end if
 end sub
 
 sub adBreakEnd()
@@ -170,7 +173,11 @@ function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   adSample.append(quartileFlag)
   adSample.append(failedBeaconFlag)
 
-  sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
+  if adEngagementEnabled <> invalid and adEngagementEnabled = true
+    sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  end if
+
   markQuartileAsReported(adQuartile)
 
   return adSample
@@ -195,6 +202,10 @@ sub onError(errorCode, errorMessage)
   adSample.errorCode = errorCode
   adSample.errorMessage = errorMessage
 
-  sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
+  if adEngagementEnabled <> invalid and adEngagementEnabled = true
+    sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  end if
+
   m.hasErrorBeenReportedForCurrentAd = true
 end sub
