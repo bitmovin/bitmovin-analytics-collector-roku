@@ -52,7 +52,7 @@ end function
 sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
   if not checkAdPositionValidity(adBreakMetadata.adPosition)
-    print m.tag; "Warning: adBreakMetadata.adPosition must be a String with value 'preroll', 'midroll' or 'postroll'"
+    print "Warning: adBreakMetadata.adPosition must be a String with value 'preroll', 'midroll' or 'postroll'"
     return
   end if
 
