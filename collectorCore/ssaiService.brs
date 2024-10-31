@@ -51,10 +51,17 @@ end function
 
 sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
+  if not checkAdPositionValidity(adBreakMetadata.adPosition) then return
 
   m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
   m.currentAdMetadata = adBreakMetadata
 end sub
+
+function checkAdPositionValidity(adPosition)
+  if type(adPosition) <> "roString" then return false
+  if adPosition = "preroll" or adPosition = "midroll" or adPosition = "postroll" then return true
+  return false
+end function
 
 sub adStart(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
