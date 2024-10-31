@@ -40,7 +40,7 @@
       "name": "Demo: Bitmovin",
       "stopOnEntry": false,
       "host": "${promptForHost}",
-      "password": "${promptForPassword}",
+      "password": "rokudev",
       "rootDir": "${workspaceFolder}/DemoBitmovinPlayerCollector/",
       "sourceDirs": [
         "${workspaceFolder}/DemoBitmovinPlayerCollector"
