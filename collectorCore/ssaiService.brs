@@ -176,6 +176,7 @@ end function
 
 function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.ACTIVE or hasQuartileAlreadyBeenReported(adQuartile) then return invalid
+  if not checkAdQuartileMetadataValidity(adQuartileMetadata) then return
 
   adSample = getSsaiAdSample()
 
@@ -192,6 +193,12 @@ function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   markQuartileAsReported(adQuartile)
 
   return adSample
+end function
+
+function checkAdQuartileMetadataValidity(adQuartileMetadata)
+  if type(adQuartileMetadata.failedBeaconUrl) <> "roString" then return false
+  if Len(adQuartileMetadata.failedBeaconUrl) > 500 then return false
+  return true
 end function
 
 function isCurrentSampleSsaiRelated()
