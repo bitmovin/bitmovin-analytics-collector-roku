@@ -152,6 +152,7 @@ function getFlagForAdQuartile(adQuartile)
   else if adQuartile = m.AD_QUARTILES.COMPLETED then
     return { completed: 1 }
   else
+    print "Warning: adQuartile must be a String with value 'first', 'midpoint', 'third', 'completed'"
     return {}
   end if
 end function
