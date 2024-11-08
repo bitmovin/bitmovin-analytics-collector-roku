@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
+### Changed
+- When calling `adBreakStart` the `AdPosition` property of the `adBreakMetadata` parameter now has to be one of the following values: "preroll", "midroll", "postroll". Otherwise API call is ignored and warning is issued
+  https://bitmovin.atlassian.net/browse/PR-869
 
 ### Added
 - Add `ssaiEngagementTrackingEnabled` flag to bitmovin analytics config to enable ad engagement tracking
