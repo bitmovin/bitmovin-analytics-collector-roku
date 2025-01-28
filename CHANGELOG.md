@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Add `ssaiEngagementTrackingEnabled` flag to bitmovin analytics config to enable ad engagement tracking
+- Add 20 additional `CustomData` fields
 
 ### Changed
 - Ad engagement is no longer tracked by default
