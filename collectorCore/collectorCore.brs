@@ -323,7 +323,7 @@ function getMetadataFromAnalyticsConfig(config)
   end if
 
   ' Check `customDataX` fields
-  for i = 1 to 30
+  for i = 1 to 50
     customDataField = "customData" + i.ToStr()
     if config.DoesExist(customDataField)
       metadata[customDataField] = config[customDataField]

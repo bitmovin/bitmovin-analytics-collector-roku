@@ -51,10 +51,20 @@ end function
 
 sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
+  if not checkAdPositionValidity(adBreakMetadata.adPosition)
+    print "Warning: adBreakMetadata.adPosition must be a String with value 'preroll', 'midroll' or 'postroll'"
+    return
+  end if
 
   m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
   m.currentAdMetadata = adBreakMetadata
 end sub
+
+function checkAdPositionValidity(adPosition)
+  if type(adPosition) <> "roString" then return false
+  if adPosition = "preroll" or adPosition = "midroll" or adPosition = "postroll" then return true
+  return false
+end function
 
 sub adStart(adMetadata = invalid)
   if m.ssaiState = m.SSAI_STATES.IDLE then return
@@ -142,6 +152,7 @@ function getFlagForAdQuartile(adQuartile)
   else if adQuartile = m.AD_QUARTILES.COMPLETED then
     return { completed: 1 }
   else
+    print "Warning: adQuartile must be a String with value 'first', 'midpoint', 'third', 'completed'"
     return {}
   end if
 end function
@@ -165,6 +176,7 @@ end function
 
 function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.ACTIVE or hasQuartileAlreadyBeenReported(adQuartile) then return invalid
+  if type(adQuartileMetadata.failedBeaconUrl) = "roString" then adQuartileMetadata.failedBeaconUrl = adQuartileMetadata.failedBeaconUrl.Left(500)
 
   adSample = getSsaiAdSample()
 
