@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
+
+## v2.11.0
+
+### Added
+- Add 20 additional `CustomData` fields
+
 ### Changed
 - When calling `adBreakStart` the `AdPosition` property of the `adBreakMetadata` parameter now has to be one of the following values: "preroll", "midroll", "postroll". Otherwise API call is ignored and warning is issued
   https://bitmovin.atlassian.net/browse/PR-869
@@ -14,7 +20,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Add `ssaiEngagementTrackingEnabled` flag to bitmovin analytics config to enable ad engagement tracking
-- Add 20 additional `CustomData` fields
 
 ### Changed
 - Ad engagement is no longer tracked by default
