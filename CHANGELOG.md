@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.11.1
+
 ### Fixed
 - crashes when calling `adQuartileFinished` when there is no `adQuartileMetadata`
 
