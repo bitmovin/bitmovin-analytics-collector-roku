@@ -84,6 +84,19 @@ namespace tests
       m.assertInvalid(generatedSsaiSample)
     end function
 
+    @it("does not crash when there is no adQuartileMetadata")
+    @params("first")
+    function _(reportedQuartile)
+      m.enterFakeSsaiAd()
+
+      try
+      'bs:disable-next-line
+      adQuartileFinished(reportedQuartile, invalid)
+      catch e
+        m.fail("adQuartileFinished unexpectedly crashed")
+      end try
+    end function
+
     ' UTILITY FUNCTIONS
     function enterFakeSsaiAd()
       'bs:disable-next-line
