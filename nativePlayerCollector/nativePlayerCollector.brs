@@ -410,6 +410,8 @@ sub onError()
     errorMessage: m.player.errorMsg
   }
 
+  m.top.currentError = errorSample
+
   duration = getDuration(m.playerStateTimer)
   resetSeekHelperVariables()
   resetBufferingTimer()

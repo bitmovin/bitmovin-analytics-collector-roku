@@ -6,4 +6,7 @@
     <Timer id="videoStartTimeoutTimer" repeat="false" duration="60" />
     <collectorCore id="collectorCore"/>
   </children>
+  <interface>
+    <field id="currentError" type="assocarray" alwaysnotify="true"/>
+  </interface>
 </component>
