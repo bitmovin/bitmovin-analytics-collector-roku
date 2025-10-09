@@ -318,11 +318,12 @@ sub onError()
   resetSeekHelperVariables()
   resetBufferingTimer()
 
+  transformedErrorSample = m.top.currentError
   if m.didAttemptPlay = true and m.didVideoPlay = false
-    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, errorSample)
+    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, transformedErrorSample)
   else
     ' Previous sample is already sent, no duration needed
-    sendAnalyticsRequestAndClearValues(errorSample, 0, m.player.playerState)
+    sendAnalyticsRequestAndClearValues(transformedErrorSample, 0, m.player.playerState)
   end if
 
   ' Stop collecting data
