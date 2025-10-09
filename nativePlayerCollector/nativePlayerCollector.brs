@@ -426,6 +426,8 @@ sub onError()
 
   ' Stop collecting data
   unobserveFields()
+
+  m.collectorCore.callFunc("onError", m.player.errorCode, m.player.errorMessage)
 end sub
 
 sub startVideoStartTimeoutTimer()
