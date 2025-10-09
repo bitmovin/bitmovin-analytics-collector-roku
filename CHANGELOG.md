@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Added
+- `currentError` field on collectors for dynamic error mapping
+
 ## v2.11.1
 
 ### Fixed
