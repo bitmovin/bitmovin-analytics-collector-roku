@@ -2,7 +2,6 @@
 <component name="nativePlayerCollector" extends="baseCollector">
   <script type="text/brightscript" uri="./nativePlayerEnums.brs" />
   <script type="text/brightscript" uri="./nativePlayerCollector.brs" />
-  <field id="currentError" type="assocarray" alwaysnotify="true" />
   <children>
     <Timer id="videoStartTimeoutTimer" repeat="false" duration="60" />
     <collectorCore id="collectorCore" />
