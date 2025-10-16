@@ -17,6 +17,30 @@ namespace tests
 
       'bs:disable-next-line
       initializeAnalytics()
+
+      m.mockPlayer = {
+        currentTime: 1447
+        FindNode: function(nodeName as string)
+          print "FindNode stub: tried to find node '";nodeName; "' on mockPlayer"
+
+          if nodeName = "MainVideo" then return {
+            height: 1080
+            width: 1920
+          }
+
+          print "No mock for node in place - returning invalid"
+          return invalid
+        end function
+        callFunc: function(functionName as string, arg as dynamic)
+          print "callFunc stub: tried to invoke function '"; functionName; "' with arg '";arg;"' on mockPlayer"
+          return invalid
+        end function
+        unobserveFieldScoped: function(fieldName as string)
+          print "unobserveFieldScoped stub: tried to unobserve field '";fieldName;"' on mockPlayer"
+        end function
+      }
+
+      m.node.player = m.mockPlayer
     end function
 
     @it("should extract the player key from the channel manifest with valid parameters")
@@ -60,9 +84,59 @@ namespace tests
 
       m.AssertInvalid(isAnalyticsConfigSet)
     end function
+
+    @it("should expose the error data to the user")
+    function _()
+      expectedErrorCode = 1447
+      expectedErrorMessage = "Test error message"
+
+      m.mockPlayer.error = {
+        code: expectedErrorCode,
+        message: expectedErrorMessage
+      }
+
+      m.stubCall(m.node.collectorCore.callFunc, invalid)
+      m.stubCall(m.node.collectorCore.unobserveFieldScoped, invalid)
+
+      'bs:disable-next-line
+      onError()
+
+      m.AssertNotInvalid(m.node.top.currentError)
+      m.AssertEqual(m.node.top.currentError.errorCode, expectedErrorCode)
+      m.AssertEqual(m.node.top.currentError.errorMessage, expectedErrorMessage)
+    end function
+
+    @only
+    @it("should apply user modifications when sending an error sample")
+    function _()
+      originalPlayerMockError = {
+        code: 1000
+        message: "ORIGINAL_PLAYER_ERROR"
+      }
+
+      m.mockPlayer.error = originalPlayerMockError
+      m.node.top.observeField("currentError", m.modifyErrorData)
+
+      'bs:disable-next-line
+      onError()
+
+      m.assertEqual(m.node.top.currentError.errorCode, 1001)
+      m.assertEqual(m.node.top.currentError.errorMessage, "ORIGINAL_PLAYER_ERROR-MODIFIED")
+    end function
+
+    function modifyErrorData(errorEvent)
+      errorData = errorEvent.getData()
+      print "SWAG> modifying error data: ";errorData
+
+      modifiedError = {
+        code: errorData.errorCode + 1
+        message: errorData.message + "-MODIFIED"
+      }
+
+      m.top.currentError = modifiedError
+    end function
   end class
 end namespace
-
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 'Mock Data
