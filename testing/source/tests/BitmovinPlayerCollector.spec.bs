@@ -106,7 +106,6 @@ namespace tests
       m.AssertEqual(m.node.top.currentError.errorMessage, expectedErrorMessage)
     end function
 
-    @only
     @it("should apply user modifications when sending an error sample")
     function _()
       originalPlayerMockError = {
@@ -115,7 +114,7 @@ namespace tests
       }
 
       m.mockPlayer.error = originalPlayerMockError
-      m.node.top.observeField("currentError", m.modifyErrorData)
+      m.node.top.observeField("currentError", "modifyErrorData")
 
       'bs:disable-next-line
       onError()
@@ -124,19 +123,19 @@ namespace tests
       m.assertEqual(m.node.top.currentError.errorMessage, "ORIGINAL_PLAYER_ERROR-MODIFIED")
     end function
 
-    function modifyErrorData(errorEvent)
-      errorData = errorEvent.getData()
-      print "SWAG> modifying error data: ";errorData
-
-      modifiedError = {
-        code: errorData.errorCode + 1
-        message: errorData.message + "-MODIFIED"
-      }
-
-      m.top.currentError = modifiedError
-    end function
   end class
 end namespace
+
+function modifyErrorData(errorEvent)
+  errorData = errorEvent.getData()
+
+  modifiedError = {
+    errorcode: errorData.errorcode + 1
+    errormessage: errorData.errormessage + "-MODIFIED"
+  }
+
+  m.top.currentError = modifiedError
+end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 'Mock Data
