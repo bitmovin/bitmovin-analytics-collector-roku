@@ -43,6 +43,11 @@ namespace tests
       m.node.player = m.mockPlayer
     end function
 
+    protected override function afterEach()
+      m.cleanStubs()
+      m.cleanMocks()
+    end function
+
     @it("should extract the player key from the channel manifest with valid parameters")
     function _()
       manifestData = { "bitmovin_player_license_key": "dummyKeyValue" }
@@ -95,6 +100,8 @@ namespace tests
         message: expectedErrorMessage
       }
 
+      originalCollectorCore = m.node.collectorCore
+
       m.stubCall(m.node.collectorCore.callFunc, invalid)
       m.stubCall(m.node.collectorCore.unobserveFieldScoped, invalid)
 
@@ -104,6 +111,9 @@ namespace tests
       m.AssertNotInvalid(m.node.top.currentError)
       m.AssertEqual(m.node.top.currentError.errorCode, expectedErrorCode)
       m.AssertEqual(m.node.top.currentError.errorMessage, expectedErrorMessage)
+
+      ' NOTE: cleanStubs does not seem to properly restore stubbed objects/methods, so we are doing it manually here
+      m.node.collectorCore = originalCollectorCore
     end function
 
     @it("should apply user modifications when sending an error sample")
