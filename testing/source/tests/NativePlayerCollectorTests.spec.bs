@@ -45,7 +45,6 @@ namespace tests
       m.AssertInvalid(isAnalyticsConfigSet)
     end function
 
-    @only()
     @it("should expose the error data to the user")
     function _()
       expectedErrorCode = 1447
@@ -76,7 +75,7 @@ namespace tests
 
       m.mockPlayer.errorCode = originalPlayerMockErrorCode
       m.mockPlayer.errorMsg = originalPlayerMockErrorMessage
-      m.node.top.observeField("currentError", "modifyErrorData")
+      m.node.top.observeField("currentError", "modifyNativeErrorData")
 
       'bs:disable-next-line
       onError()
@@ -88,3 +87,14 @@ namespace tests
   end class
 
 end namespace
+
+function modifyNativeErrorData(errorEvent)
+  errorData = errorEvent.getData()
+
+  modifiedError = {
+    errorcode: errorData.errorcode + 1
+    errormessage: errorData.errormessage + "-MODIFIED"
+  }
+
+  m.top.currentError = modifiedError
+end function
