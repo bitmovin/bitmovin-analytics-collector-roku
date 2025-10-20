@@ -36,7 +36,7 @@ namespace tests
           return invalid
         end function
         unobserveFieldScoped: function(fieldName as string)
-          print "unobserveFieldScoped stub: tried to unobserve field '";fieldName;"' on mockPlayer"
+          print "unobserveFieldScoped stub: tried to unobserve field '";fieldName;"' on Bitmovin mockPlayer"
         end function
       }
 
