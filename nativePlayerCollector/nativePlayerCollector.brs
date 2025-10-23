@@ -428,7 +428,7 @@ sub onError()
   resetSeekHelperVariables()
   resetBufferingTimer()
 
-  transformedErrorSample = m.top.currentError.error
+  transformedErrorSample = m.top.error.error
   if m.didAttemptPlay = true and m.didVideoPlay = false
     videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.state, transformedErrorSample)
   else
