@@ -4,3 +4,10 @@ function getVideoStartFailedEvents()
     Timeout: "TIMEOUT"
   }
 end function
+
+function getErrorSeverities()
+  return {
+    critical: "CRITICAL",
+    info: "INFO"
+  }
+end function

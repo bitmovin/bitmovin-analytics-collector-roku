@@ -3,6 +3,7 @@ sub init()
   m.collectorCore = m.top.FindNode("collectorCore")
   m.videoStartTimeoutTimer = m.top.FindNode("videoStartTimeoutTimer")
   m.videoStartFailedEvents = getVideoStartFailedEvents()
+  m.errorSeverities = getErrorSeverities()
   m.playerStateTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
@@ -309,16 +310,22 @@ sub onError()
 
   errorSample = {
     errorCode: m.player.error.code,
-    errorMessage: m.player.error.message
+    errorMessage: m.player.error.message,
+    errorSeverity: m.errorSeverities.critical
   }
 
-  m.top.currentError = errorSample
+  m.top.currentError = {
+    error: errorSample
+    context: {
+      originalError: m.player.error
+    }
+  }
 
   duration = getDuration(m.playerStateTimer)
   resetSeekHelperVariables()
   resetBufferingTimer()
 
-  transformedErrorSample = m.top.currentError
+  transformedErrorSample = m.top.currentError.error
   if m.didAttemptPlay = true and m.didVideoPlay = false
     videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, transformedErrorSample)
   else
@@ -329,7 +336,7 @@ sub onError()
   ' Stop collecting data
   unobserveFields()
 
-  m.collectorCore.callFunc("onError", transformedErrorSample.errorCode, transformedErrorSample.errorMessage)
+  m.collectorCore.callFunc("onError", transformedErrorSample)
 end sub
 
 ' Handler for player's onDestroy callback.

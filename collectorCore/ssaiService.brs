@@ -211,12 +211,13 @@ sub markQuartileAsReported(adQuartile)
   m.reportedQuartilesForCurrentAd[adQuartile] = true
 end sub
 
-sub onError(errorCode, errorMessage)
+sub onError(errorSample)
   if m.ssaiState = m.SSAI_STATES.IDLE or m.hasErrorBeenReportedForCurrentAd then return
 
   adSample = getSsaiAdSample()
-  adSample.errorCode = errorCode
-  adSample.errorMessage = errorMessage
+  adSample.errorCode = errorSample.errorCode
+  adSample.errorMessage = errorSample.errorMessage
+  adSample.errorSeverity = errorSample.errorSeverity
 
   adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
   if adEngagementEnabled <> invalid and adEngagementEnabled = true
