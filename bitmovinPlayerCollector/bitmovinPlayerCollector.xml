@@ -7,6 +7,6 @@
     <collectorCore id="collectorCore"/>
   </children>
   <interface>
-    <field id="currentError" type="assocarray" alwaysnotify="true"/>
+    <field id="error" type="assocarray" alwaysnotify="true"/>
   </interface>
 </component>

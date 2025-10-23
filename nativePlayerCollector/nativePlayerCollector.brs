@@ -412,7 +412,7 @@ sub onError()
     errorSeverity: m.errorSeverities.critical
   }
 
-  m.top.currentError = {
+  m.top.error = {
     error: errorSample,
     context: {
       originalError: {
