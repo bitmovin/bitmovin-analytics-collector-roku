@@ -308,14 +308,12 @@ end sub
 sub onError()
   setVideoTimeEnd()
 
-  errorSample = {
-    errorCode: m.player.error.code,
-    errorMessage: m.player.error.message,
-    errorSeverity: m.errorSeverities.critical
-  }
-
   m.top.error = {
-    error: errorSample
+    error: {
+      code: m.player.error.code,
+      message: m.player.error.message,
+      severity: m.errorSeverities.critical
+    }
     context: {
       originalError: m.player.error
     }
@@ -325,7 +323,13 @@ sub onError()
   resetSeekHelperVariables()
   resetBufferingTimer()
 
-  transformedErrorSample = m.top.error.error
+  transformedError = m.top.error.error
+  transformedErrorSample = {
+    errorCode: transformedError.code
+    errorMessage: transformedError.message
+    errorSeverity: transformedError.severity
+  }
+
   if m.didAttemptPlay = true and m.didVideoPlay = false
     videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, transformedErrorSample)
   else
