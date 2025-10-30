@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - `currentError` field on collectors for dynamic error mapping
 
+### Fixed
+- potential crashes if metadata is not set during SSAI ad breaks
+
 ## v2.11.1
 
 ### Fixed
