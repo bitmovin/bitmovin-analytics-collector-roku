@@ -17,6 +17,35 @@ namespace tests
 
       'bs:disable-next-line
       initializeAnalytics()
+
+      m.mockPlayer = {
+        currentTime: 1447
+        FindNode: function(nodeName as string)
+          print "FindNode stub: tried to find node '";nodeName; "' on mockPlayer"
+
+          if nodeName = "MainVideo" then return {
+            height: 1080
+            width: 1920
+          }
+
+          print "No mock for node in place - returning invalid"
+          return invalid
+        end function
+        callFunc: function(functionName as string, arg as dynamic)
+          print "callFunc stub: tried to invoke function '"; functionName; "' with arg '";arg;"' on mockPlayer"
+          return invalid
+        end function
+        unobserveFieldScoped: function(fieldName as string)
+          print "unobserveFieldScoped stub: tried to unobserve field '";fieldName;"' on Bitmovin mockPlayer"
+        end function
+      }
+
+      m.node.player = m.mockPlayer
+    end function
+
+    protected override function afterEach()
+      m.cleanStubs()
+      m.cleanMocks()
     end function
 
     @it("should extract the player key from the channel manifest with valid parameters")
@@ -60,9 +89,95 @@ namespace tests
 
       m.AssertInvalid(isAnalyticsConfigSet)
     end function
+
+    @it("should expose the error data to the user")
+    function _()
+      expectedErrorCode = 1447
+      expectedErrorMessage = "Test error message"
+
+      m.mockPlayer.error = {
+        code: expectedErrorCode,
+        message: expectedErrorMessage
+      }
+
+      originalCollectorCore = m.node.collectorCore
+
+      m.stubCall(m.node.collectorCore.callFunc, invalid)
+      m.stubCall(m.node.collectorCore.unobserveFieldScoped, invalid)
+
+      'bs:disable-next-line
+      onError()
+      errorEventData = m.node.top.error
+
+      m.AssertNotInvalid(errorEventData)
+      m.AssertEqual(errorEventData.error.code, expectedErrorCode)
+      m.AssertEqual(errorEventData.error.message, expectedErrorMessage)
+
+      ' NOTE: cleanStubs does not seem to properly restore stubbed objects/methods, so we are doing it manually here
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("should apply user modifications when sending an error sample")
+    function _()
+      originalPlayerMockError = {
+        code: 1000
+        message: "ORIGINAL_PLAYER_ERROR"
+      }
+
+      m.mockPlayer.error = originalPlayerMockError
+      m.node.top.observeFieldScoped("error", "modifyErrorData")
+
+      'bs:disable-next-line
+      onError()
+      errorEventData = m.node.top.error
+
+      m.assertEqual(errorEventData.error.code, 1001)
+      m.assertEqual(errorEventData.error.message, "ORIGINAL_PLAYER_ERROR-MODIFIED")
+      m.assertEqual(errorEventData.error.severity, "INFO")
+
+      m.node.top.unobserveFieldScoped("error")
+    end function
+
+    @it("uses 'CRITICAL' as default level when submitting player errors")
+    function _()
+      originalPlayerMockError = {
+        code: 1000
+        message: "ORIGINAL_PLAYER_ERROR"
+      }
+
+      m.mockPlayer.error = originalPlayerMockError
+
+      'bs:disable-next-line
+      onError()
+      errorEventData = m.node.top.error
+
+      m.assertEqual(errorEventData.error.severity, "CRITICAL")
+    end function
+
   end class
 end namespace
 
+function modifyErrorData(errorEvent)
+  errorData = errorEvent.getData()
+
+  ' Event data looks like this:
+  ' {
+  '   error: {
+  '     message: ...
+  '     code: ...
+  '     severity: "CRITICAL" ' (by default, can be changed to "INFO")
+  '   },
+  '   errorContext: {
+  '     originalError: { ...original error reported by player }
+  '   }
+  ' }
+
+  errorData.error.message = errorData.error.message + "-MODIFIED"
+  errorData.error.code = errorData.error.code + 1
+  errorData.error.severity = "INFO"
+
+  m.top.error = errorData
+end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 'Mock Data

@@ -3,6 +3,7 @@ sub init()
   m.collectorCore = m.top.FindNode("collectorCore")
   m.videoStartTimeoutTimer = m.top.FindNode("videoStartTimeoutTimer")
   m.videoStartFailedEvents = getVideoStartFailedEvents()
+  m.errorSeverities = getErrorSeverities()
   m.playerStateTimer = CreateObject("roTimespan")
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
@@ -307,26 +308,39 @@ end sub
 sub onError()
   setVideoTimeEnd()
 
-  errorSample = {
-    errorCode: m.player.error.code,
-    errorMessage: m.player.error.message
+  m.top.error = {
+    error: {
+      code: m.player.error.code,
+      message: m.player.error.message,
+      severity: m.errorSeverities.critical
+    }
+    errorContext: {
+      originalError: m.player.error
+    }
   }
 
   duration = getDuration(m.playerStateTimer)
   resetSeekHelperVariables()
   resetBufferingTimer()
 
+  transformedError = m.top.error.error
+  transformedErrorSample = {
+    errorCode: transformedError.code
+    errorMessage: transformedError.message
+    errorSeverity: transformedError.severity
+  }
+
   if m.didAttemptPlay = true and m.didVideoPlay = false
-    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, errorSample)
+    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, transformedErrorSample)
   else
     ' Previous sample is already sent, no duration needed
-    sendAnalyticsRequestAndClearValues(errorSample, 0, m.player.playerState)
+    sendAnalyticsRequestAndClearValues(transformedErrorSample, 0, m.player.playerState)
   end if
 
   ' Stop collecting data
   unobserveFields()
 
-  m.collectorCore.callFunc("onError", m.player.error.code, m.player.error.message)
+  m.collectorCore.callFunc("onError", transformedErrorSample)
 end sub
 
 ' Handler for player's onDestroy callback.

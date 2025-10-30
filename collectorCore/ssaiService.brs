@@ -51,7 +51,7 @@ end function
 
 sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
-  if not checkAdPositionValidity(adBreakMetadata.adPosition)
+  if not checkAdPositionValidity(adBreakMetadata)
     print "Warning: adBreakMetadata.adPosition must be a String with value 'preroll', 'midroll' or 'postroll'"
     return
   end if
@@ -60,7 +60,11 @@ sub adBreakStart(adBreakMetadata = invalid)
   m.currentAdMetadata = adBreakMetadata
 end sub
 
-function checkAdPositionValidity(adPosition)
+function checkAdPositionValidity(adBreakMetadata)
+  if isInvalid(adBreakMetadata) then return true
+
+  adPosition = adBreakMetadata.adPosition
+
   if type(adPosition) <> "roString" then return false
   if adPosition = "preroll" or adPosition = "midroll" or adPosition = "postroll" then return true
   return false
@@ -207,12 +211,13 @@ sub markQuartileAsReported(adQuartile)
   m.reportedQuartilesForCurrentAd[adQuartile] = true
 end sub
 
-sub onError(errorCode, errorMessage)
+sub onError(errorSample)
   if m.ssaiState = m.SSAI_STATES.IDLE or m.hasErrorBeenReportedForCurrentAd then return
 
   adSample = getSsaiAdSample()
-  adSample.errorCode = errorCode
-  adSample.errorMessage = errorMessage
+  adSample.errorCode = errorSample.errorCode
+  adSample.errorMessage = errorSample.errorMessage
+  adSample.errorSeverity = errorSample.errorSeverity
 
   adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
   if adEngagementEnabled <> invalid and adEngagementEnabled = true
