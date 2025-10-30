@@ -60,10 +60,11 @@ namespace tests
 
       'bs:disable-next-line
       onError()
+      errorEventData = m.node.top.error
 
-      m.AssertNotInvalid(m.node.top.currentError)
-      m.AssertEqual(m.node.top.currentError.errorCode, expectedErrorCode)
-      m.AssertEqual(m.node.top.currentError.errorMessage, expectedErrorMessage)
+      m.AssertNotInvalid(errorEventData)
+      m.AssertEqual(errorEventData.error.code, expectedErrorCode)
+      m.AssertEqual(errorEventData.error.message, expectedErrorMessage)
 
       m.node.collectorCore = originalCollectorCore
     end function
@@ -75,13 +76,15 @@ namespace tests
 
       m.mockPlayer.errorCode = originalPlayerMockErrorCode
       m.mockPlayer.errorMsg = originalPlayerMockErrorMessage
-      m.node.top.observeField("currentError", "modifyNativeErrorData")
+      m.node.top.observeField("error", "modifyNativeErrorData")
 
       'bs:disable-next-line
       onError()
+      errorEventData = m.node.top.error
 
-      m.assertEqual(m.node.top.currentError.errorCode, 1001)
-      m.assertEqual(m.node.top.currentError.errorMessage, "ORIGINAL_PLAYER_ERROR-MODIFIED")
+      m.assertEqual(errorEventData.error.code, 1001)
+      m.assertEqual(errorEventData.error.message, "ORIGINAL_PLAYER_ERROR-MODIFIED")
+      m.assertEqual(errorEventData.error.severity, "INFO")
     end function
 
   end class
@@ -91,10 +94,9 @@ end namespace
 function modifyNativeErrorData(errorEvent)
   errorData = errorEvent.getData()
 
-  modifiedError = {
-    errorcode: errorData.errorcode + 1
-    errormessage: errorData.errormessage + "-MODIFIED"
-  }
+  errorData.error.message = errorData.error.message + "-MODIFIED"
+  errorData.error.code = errorData.error.code + 1
+  errorData.error.severity = "INFO"
 
-  m.top.currentError = modifiedError
+  m.top.error = errorData
 end function

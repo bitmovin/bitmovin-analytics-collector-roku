@@ -107,10 +107,11 @@ namespace tests
 
       'bs:disable-next-line
       onError()
+      errorEventData = m.node.top.error
 
-      m.AssertNotInvalid(m.node.top.currentError)
-      m.AssertEqual(m.node.top.currentError.errorCode, expectedErrorCode)
-      m.AssertEqual(m.node.top.currentError.errorMessage, expectedErrorMessage)
+      m.AssertNotInvalid(errorEventData)
+      m.AssertEqual(errorEventData.error.code, expectedErrorCode)
+      m.AssertEqual(errorEventData.error.message, expectedErrorMessage)
 
       ' NOTE: cleanStubs does not seem to properly restore stubbed objects/methods, so we are doing it manually here
       m.node.collectorCore = originalCollectorCore
@@ -124,13 +125,15 @@ namespace tests
       }
 
       m.mockPlayer.error = originalPlayerMockError
-      m.node.top.observeField("currentError", "modifyErrorData")
+      m.node.top.observeField("error", "modifyErrorData")
 
       'bs:disable-next-line
       onError()
+      errorEventData = m.node.top.error
 
-      m.assertEqual(m.node.top.currentError.errorCode, 1001)
-      m.assertEqual(m.node.top.currentError.errorMessage, "ORIGINAL_PLAYER_ERROR-MODIFIED")
+      m.assertEqual(errorEventData.error.code, 1001)
+      m.assertEqual(errorEventData.error.message, "ORIGINAL_PLAYER_ERROR-MODIFIED")
+      m.assertEqual(errorEventData.error.severity, "INFO")
     end function
 
   end class
@@ -139,12 +142,23 @@ end namespace
 function modifyErrorData(errorEvent)
   errorData = errorEvent.getData()
 
-  modifiedError = {
-    errorcode: errorData.errorcode + 1
-    errormessage: errorData.errormessage + "-MODIFIED"
-  }
+  ' Event data looks like this:
+  ' {
+  '   error: {
+  '     message: ...
+  '     code: ...
+  '     severity: "CRITICAL" ' (by default, can be changed to "INFO")
+  '   },
+  '   errorContext: {
+  '     originalError: { ...original error reported by player }
+  '   }
+  ' }
 
-  m.top.currentError = modifiedError
+  errorData.error.message = errorData.error.message + "-MODIFIED"
+  errorData.error.code = errorData.error.code + 1
+  errorData.error.severity = "INFO"
+
+  m.top.error = errorData
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
