@@ -76,7 +76,7 @@ namespace tests
 
       m.mockPlayer.errorCode = originalPlayerMockErrorCode
       m.mockPlayer.errorMsg = originalPlayerMockErrorMessage
-      m.node.top.observeField("error", "modifyNativeErrorData")
+      m.node.top.observeFieldScoped("error", "modifyNativeErrorData")
 
       'bs:disable-next-line
       onError()
@@ -85,6 +85,23 @@ namespace tests
       m.assertEqual(errorEventData.error.code, 1001)
       m.assertEqual(errorEventData.error.message, "ORIGINAL_PLAYER_ERROR-MODIFIED")
       m.assertEqual(errorEventData.error.severity, "INFO")
+
+      m.node.top.unobserveFieldScoped("error")
+    end function
+
+    @it("uses 'CRITICAL' as default level when submitting player errors (native)")
+    function _()
+      originalPlayerMockErrorCode = 1000
+      originalPlayerMockErrorMessage = "ORIGINAL_PLAYER_ERROR"
+
+      m.mockPlayer.errorCode = originalPlayerMockErrorCode
+      m.mockPlayer.errorMsg = originalPlayerMockErrorMessage
+
+      'bs:disable-next-line
+      onError()
+      errorEventData = m.node.top.error
+
+      m.assertEqual(errorEventData.error.severity, "CRITICAL")
     end function
 
   end class
