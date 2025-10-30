@@ -314,7 +314,7 @@ sub onError()
       message: m.player.error.message,
       severity: m.errorSeverities.critical
     }
-    context: {
+    errorContext: {
       originalError: m.player.error
     }
   }
