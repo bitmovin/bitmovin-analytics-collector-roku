@@ -154,6 +154,30 @@ namespace tests
       m.assertEqual(errorEventData.error.severity, "CRITICAL")
     end function
 
+    @it("should gracefully handle 'player.getCurrentTime' returning 'invalid'")
+    function _()
+      m.mockPlayer.callFunc = function(functionName)
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      currentPlayerTime = getCurrentPlayerTimeInMs()
+
+      m.assertEqual(currentPlayerTime, 0)
+    end function
+
+    @it("should return the actual player time in milliseconds if valid")
+    function _()
+      m.mockPlayer.callFunc = function(functionName)
+        return 1.447
+      end function
+
+      'bs:disable-next-line
+      currentPlayerTime = getCurrentPlayerTimeInMs()
+
+      m.assertEqual(currentPlayerTime, 1447)
+    end function
+
   end class
 end namespace
 
