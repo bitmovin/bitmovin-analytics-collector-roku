@@ -31,7 +31,7 @@ namespace tests
           print "No mock for node in place - returning invalid"
           return invalid
         end function
-        callFunc: function(functionName as string, arg as dynamic)
+        callFunc: function(functionName as string, arg = invalid)
           print "callFunc stub: tried to invoke function '"; functionName; "' with arg '";arg;"' on mockPlayer"
           return invalid
         end function
