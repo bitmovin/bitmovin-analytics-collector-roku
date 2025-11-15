@@ -513,7 +513,13 @@ sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state =
 end sub
 
 function getCurrentPlayerTimeInMs()
-  time% = m.player.currentTime * 1000
+  playerCurrentTime = m.player.callFunc("getCurrentTime")
+
+  if playerCurrentTime = invalid
+    return 0
+  end if
+
+  time% = m.player.callFunc("getCurrentTime") * 1000
   return Cint(time%)
 end function
 
