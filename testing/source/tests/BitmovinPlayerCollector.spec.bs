@@ -157,6 +157,11 @@ namespace tests
   end class
 end namespace
 
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+' Utility functions
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 function modifyErrorData(errorEvent)
   errorData = errorEvent.getData()
 
@@ -180,7 +185,7 @@ function modifyErrorData(errorEvent)
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'Mock Data
+' Mock Data
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function getMockedAppInfoWithPlayerKeyData(manifestData)
