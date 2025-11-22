@@ -519,7 +519,7 @@ function getCurrentPlayerTimeInMs()
     return 0
   end if
 
-  time% = m.player.callFunc("getCurrentTime") * 1000
+  time% = playerCurrentTime * 1000
   return Cint(time%)
 end function
 
