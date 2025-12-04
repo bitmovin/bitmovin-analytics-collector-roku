@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.13.0
+
 ### Fixed
 - collector crashing when the player license request gets rejected
 
