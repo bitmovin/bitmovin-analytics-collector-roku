@@ -14,4 +14,6 @@ DemoBitmovinPlayerCollector/components/bitmovinPlayerCollector
 DemoBitmovinPlayerCollector/components/collectorCore
 DemoNativePlayerCollector/components/nativePlayerCollector
 DemoNativePlayerCollector/components/collectorCore
+DemoTHEOPlayerCollector/components/theoPlayerCollector
+DemoTHEOPlayerCollector/components/collectorCore
 build
