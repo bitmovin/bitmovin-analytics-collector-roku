@@ -30,9 +30,9 @@
       "sourceDirs": ["${workspaceFolder}/testing"],
       "enableDebuggerAutoRecovery": true,
       "stopDebuggerOnAppExit": true,
-      "enableVariablesPanel": true,
+      "deferScopeLoading": true,
       "injectRaleTrackerTask": false,
-      "enableDebugProtocol": false
+      "enableDebugProtocol": true
     },
     {
       "type": "brightscript",
@@ -40,7 +40,7 @@
       "name": "Demo: Bitmovin",
       "stopOnEntry": false,
       "host": "${promptForHost}",
-      "password": "${promptForPassword}",
+      "password": "rokudev",
       "rootDir": "${workspaceFolder}/DemoBitmovinPlayerCollector/",
       "sourceDirs": [
         "${workspaceFolder}/DemoBitmovinPlayerCollector"
@@ -88,7 +88,7 @@
       "name": "Demo: THEO",
       "stopOnEntry": false,
       "host": "${promptForHost}",
-      "password": "${promptForPassword}",
+      "password": "rokudev",
       "rootDir": "${workspaceFolder}/DemoTHEOPlayerCollector/",
       "sourceDirs": [
         "${workspaceFolder}/DemoTHEOPlayerCollector"
