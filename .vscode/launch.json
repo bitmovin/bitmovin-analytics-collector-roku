@@ -58,7 +58,6 @@
         "config/**/*.*"
       ]
     },
-
     {
       "type": "brightscript",
       "request": "launch",
@@ -71,6 +70,30 @@
         "${workspaceFolder}/DemoNativePlayerCollector"
       ],
       "preLaunchTask": "copy-components-to-demo-native",
+      // "preLaunchTask": "debug-roku",
+      // "postDebugTask": "clean-roku",
+      "enableDebuggerAutoRecovery": true,
+      "stopDebuggerOnAppExit": true,
+      "outDir": "${workspaceFolder}/out",
+      "files": [
+        "manifest",
+        "source/**/*.*",
+        "components/**/*.*",
+        "config/**/*.*"
+      ]
+    },
+    {
+      "type": "brightscript",
+      "request": "launch",
+      "name": "Demo: THEO",
+      "stopOnEntry": false,
+      "host": "${promptForHost}",
+      "password": "${promptForPassword}",
+      "rootDir": "${workspaceFolder}/DemoTHEOPlayerCollector/",
+      "sourceDirs": [
+        "${workspaceFolder}/DemoTHEOPlayerCollector"
+      ],
+      "preLaunchTask": "copy-components-to-demo-theo",
       // "preLaunchTask": "debug-roku",
       // "postDebugTask": "clean-roku",
       "enableDebuggerAutoRecovery": true,

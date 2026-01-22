@@ -51,5 +51,10 @@
       "type": "shell",
       "command": "rm -rf ${workspaceFolder}/DemoNativePlayerCollector/components/{collectorCore,nativePlayerCollector} && cp -r ${workspaceFolder}/{collectorCore,nativePlayerCollector} ${workspaceFolder}/DemoNativePlayerCollector/components/"
     },
+    {
+      "label": "copy-components-to-demo-theo",
+      "type": "shell",
+      "command": "rm -rf ${workspaceFolder}/DemoTHEOPlayerCollector/components/{collectorCore,theoPlayerCollector} && cp -r ${workspaceFolder}/{collectorCore,theoPlayerCollector} ${workspaceFolder}/DemoTHEOPlayerCollector/components/"
+    },
   ]
 }
