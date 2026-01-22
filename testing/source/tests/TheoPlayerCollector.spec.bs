@@ -1,0 +1,26 @@
+namespace tests
+  ' TODO: uncomment once implemented
+  ' @SGNode("theoPlayerCollector")
+  @suite
+  class TheoPlayerCollectorTests extends rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("TheoPlayerCollector")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function beforeEach()
+    end function
+
+    protected override function afterEach()
+      m.cleanStubs()
+      m.cleanMocks()
+    end function
+
+    @it("should pass this dummy test")
+    function _()
+      m.assertTrue(true)
+    end function
+
+  end class
+
+end namespace
