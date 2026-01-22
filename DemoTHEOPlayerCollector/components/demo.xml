@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="demo" extends="Scene">
+  <interface>
+    <function name="onPlaying" />
+    <function name="onError" />
+  </interface>
+  <children>
+    <ComponentLibrary id="THEOsdk" uri="path-to-theo-player.pkg"/>
+    <Group id="THEOplayerContainer"></Group>
+  </children>
+
+  <script type="text/brightscript" uri="pkg:/components/demo.brs"/>
+  <script type="text/brightscript" uri="pkg:/config/playerConfig.brs"/>
+</component>
