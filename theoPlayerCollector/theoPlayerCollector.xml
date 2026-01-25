@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="theoPlayerCollector" extends="baseCollector">
+    <script type="text/brightscript" uri="./theoPlayerEnums.brs"/>
+    <script type="text/brightscript" uri="./theoPlayerCollector.brs"/>
+  <children>
+    <collectorCore id="collectorCore"/>
+  </children>
+  <interface>
+    <field id="error" type="assocarray" alwaysnotify="true"/>
+  </interface>
+</component>
