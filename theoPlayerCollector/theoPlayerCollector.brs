@@ -17,7 +17,7 @@ sub destroy(param = invalid)
 end sub
 
 function getPlayerVersion()
-  ' TODO: Implement
+  return "theo-" + m.player.version
 end function
 
 function setAnalyticsConfig(config)
