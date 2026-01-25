@@ -1,6 +1,5 @@
 namespace tests
-  ' TODO: uncomment once implemented
-  ' @SGNode("theoPlayerCollector")
+  @SGNode("theoPlayerCollector")
   @suite
   class TheoPlayerCollectorTests extends rooibos.BaseTestSuite
 
@@ -9,6 +8,12 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function beforeEach()
+      'bs:disable-next-line
+      initializeAnalytics()
+
+      m.mockPlayer = { }
+
+      m.node.player = m.mockPlayer
     end function
 
     protected override function afterEach()
@@ -16,9 +21,14 @@ namespace tests
       m.cleanMocks()
     end function
 
-    @it("should pass this dummy test")
+    @it("should correctly return the player version")
     function _()
-      m.assertTrue(true)
+      m.mockPlayer.version = "0.0.0"
+
+      'bs:disable-next-line
+      returnedPlayerVersion = getPlayerVersion()
+
+      m.assertEqual(returnedPlayerVersion, "theo-0.0.0")
     end function
 
   end class
