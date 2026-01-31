@@ -205,6 +205,35 @@ namespace tests
       m.assertNotInvalid(sampleData.size)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getPlayerKeyFromManifest")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when appInfo is invalid")
+    function _()
+      'bs:disable-next-line
+      result = getPlayerKeyFromManifest(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns the player key from manifest")
+    function _()
+      mockAppInfo = {
+        getValue: function(key as string)
+          if key = "theo_player_license_key"
+            return "test-license-key-123"
+          end if
+          return invalid
+        end function
+      }
+
+      'bs:disable-next-line
+      result = getPlayerKeyFromManifest(mockAppInfo)
+
+      m.assertEqual(result, "test-license-key-123")
+    end function
+
   end class
 
 end namespace
