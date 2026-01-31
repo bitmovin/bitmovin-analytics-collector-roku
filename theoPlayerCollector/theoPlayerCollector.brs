@@ -47,19 +47,21 @@ function getPlayerVersion()
 end function
 
 function setAnalyticsConfig(config)
-  ' TODO: Most likely implement in baseCollector
+  if config = invalid then return invalid
+
+  return m.collectorCore.callFunc("updateAnalyticsConfig", config)
 end function
 
 sub setNewMetadata(metadata = invalid)
-  ' TODO: Most likely implement in baseCollector
+  ' TODO: Implement (possibly extract into `baseCollector`)
 end sub
 
 function setCustomData(customData)
-  ' TODO: Most likely implement in baseCollector
+  ' TODO: Implement (possibly extract into `baseCollector`)
 end function
 
 sub setCustomDataOnce(customData)
-  ' TODO: Most likely implement in baseCollector
+  ' TODO: Implement (possibly extract into `baseCollector`)
 end sub
 
 ' ===== HELPER METHODS =====
