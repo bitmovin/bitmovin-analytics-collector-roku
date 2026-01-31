@@ -80,6 +80,80 @@ namespace tests
       m.assertInvalid(result)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getCurrentSubtitleLanguage")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when textTracks is invalid")
+    function _()
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns invalid when textTracks is empty")
+    function _()
+      textTracks = []
+
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(textTracks)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns the language of the text track with mode 'showing'")
+    function _()
+      textTracks = [
+        { mode: "disabled", language: "de" },
+        { mode: "showing", language: "en" },
+        { mode: "hidden", language: "fr" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(textTracks)
+
+      m.assertEqual(result, "en")
+    end function
+
+    @it("returns invalid when no text track has mode 'showing'")
+    function _()
+      textTracks = [
+        { mode: "disabled", language: "de" },
+        { mode: "hidden", language: "en" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(textTracks)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns the first 'showing' track language when multiple are showing")
+    function _()
+      textTracks = [
+        { mode: "showing", language: "de" },
+        { mode: "showing", language: "en" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(textTracks)
+
+      m.assertEqual(result, "de")
+    end function
+
+    @it("returns the language when only one text track exists and is showing")
+    function _()
+      textTracks = [
+        { mode: "showing", language: "es" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(textTracks)
+
+      m.assertEqual(result, "es")
+    end function
+
   end class
 
 end namespace
