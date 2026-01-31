@@ -142,6 +142,30 @@ namespace tests
       m.assertEqual(result, "de")
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getVideoDuration")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when player duration is invalid")
+    function _()
+      m.mockPlayer.duration = invalid
+
+      'bs:disable-next-line
+      result = getVideoDuration()
+
+      m.assertInvalid(result)
+    end function
+
+    @it("converts duration from seconds to milliseconds")
+    function _()
+      m.mockPlayer.duration = 1
+
+      'bs:disable-next-line
+      result = getVideoDuration()
+
+      m.assertEqual(result, 1000)
+    end function
+
   end class
 
 end namespace
