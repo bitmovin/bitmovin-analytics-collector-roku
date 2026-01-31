@@ -2,6 +2,7 @@ sub init()
   m.tag = "[theoPlayerCollector] "
   m.collectorCore = m.top.FindNode("collectorCore")
   m.collectorStates = getCollectorStates()
+  m.appInfo = CreateObject("roAppInfo")
 end sub
 
 ' ===== PUBLIC METHODS =====
@@ -17,15 +18,21 @@ sub initializePlayer(player)
   setUpObservers()
 
   eventData = {
-    playerTech: "theo" ' TODO: refactor into some enum
+    playerTech: "theo"
     version: getPlayerVersion()
     player: "theo"
-    playerKey: "foobar" ' TODO: Implement properly
+    playerKey: getPlayerKeyFromManifest(m.appInfo)
     playerStartupTime: 1
   }
 
   sendAnalyticsRequestAndClearValues(eventData, 0, m.collectorStates.SETUP)
 end sub
+
+function getPlayerKeyFromManifest(appInfo)
+  if appInfo = invalid then return invalid
+
+  return appInfo.getValue("theo_player_license_key")
+end function
 
 sub destroy(param = invalid)
   unobserveFields(true)

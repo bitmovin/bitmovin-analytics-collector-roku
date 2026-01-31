@@ -5,7 +5,7 @@ function init()
   m.theoPlayerCollector = CreateObject("roSgNode", "theoPlayerCollector")
 
   m.playerConfig = {
-    license: "INSERT-LICENSE-HERE"
+    license: m.appInfo.getValue("theo_player_license_key")
   }
   m.THEOsdk = m.top.findNode("THEOsdk")
   m.THEOsdk.observeField("loadStatus", "onLoadStatusChanged")
