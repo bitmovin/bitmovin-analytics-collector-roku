@@ -81,7 +81,7 @@ NOTE: THEO player collector is under active development and may still be limited
 
 ### Basic use
 
-NOTE: Make sure to include your THEO player `.pkg` file in `DemoTHEOPlayerCollector/demo.xml` and set your license key in `DemoTHEOPlayerCollector/demo.brs`.
+NOTE: Make sure to include your THEO player `.pkg` file in `DemoTHEOPlayerCollector/demo.xml` and set your license key in `DemoTHEOPlayerCollector/manifest`.
 
 Copy `collectorCore` and `theoPlayerCollector` folders into Your project.
 
