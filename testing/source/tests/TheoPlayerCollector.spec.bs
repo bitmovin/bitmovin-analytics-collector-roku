@@ -31,6 +31,55 @@ namespace tests
       m.assertEqual(returnedPlayerVersion, "theo-0.0.0")
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getCurrentAudioLanguage")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when audioTracks is invalid")
+    function _()
+      'bs:disable-next-line
+      result = getCurrentAudioLanguage(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns invalid when audioTracks is empty")
+    function _()
+      audioTracks = []
+
+      'bs:disable-next-line
+      result = getCurrentAudioLanguage(audioTracks)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns the language of the enabled audio track")
+    function _()
+      audioTracks = [
+        { enabled: false, language: "de" },
+        { enabled: true, language: "en" },
+        { enabled: false, language: "fr" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentAudioLanguage(audioTracks)
+
+      m.assertEqual(result, "en")
+    end function
+
+    @it("returns invalid when no audio track is enabled")
+    function _()
+      audioTracks = [
+        { enabled: false, language: "de" },
+        { enabled: false, language: "en" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentAudioLanguage(audioTracks)
+
+      m.assertInvalid(result)
+    end function
+
   end class
 
 end namespace
