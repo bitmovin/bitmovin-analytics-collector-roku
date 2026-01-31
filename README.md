@@ -73,6 +73,32 @@ m.nativePlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
 m.nativePlayerCollector.callFunc("initializePlayer", m.nativePlayer)
 ```
 
+## THEO player collector
+
+Bitmovin analytics collector for the THEO player Roku SDK.
+
+NOTE: THEO player collector is under active development and may still be limited in its feature set.
+
+### Basic use
+
+NOTE: Make sure to include your THEO player `.pkg` file in `DemoTHEOPlayerCollector/demo.xml` and set your license key in `DemoTHEOPlayerCollector/demo.brs`.
+
+Copy `collectorCore` and `theoPlayerCollector` folders into Your project.
+
+In order to use the collector, first create a native player collector object:
+
+```javascript
+m.theoPlayerCollector = CreateObject("roSgNode", "theoPlayerCollector")
+```
+
+To set up Bitmovin Analytics and start monitoring the player, call `initializeAnalytics` with the analytics configuration, and then the `initializePlayer` with the native player object as an argument.
+This must happen before any content is set on the THEO player:
+
+```javascript
+m.theoPlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
+m.theoPlayerCollector.callFunc("initializePlayer", m.nativePlayer)
+```
+
 ## Optional configuration parameters for Bitmovin Analytics
 
 Several other fields can be added to the Bitmovin Analytics configuration in order to improve data collection:

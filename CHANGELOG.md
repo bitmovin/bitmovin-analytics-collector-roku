@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Internal
+- added demo channel and testing setup for THEO player
+
 ## v2.13.0
 
 ### Fixed

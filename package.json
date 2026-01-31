@@ -12,9 +12,9 @@
   },
   "scripts": {
     "clean-demos": "rm -rf DemoBitmovinPlayerCollector/components/bitmovinPlayerCollector & rm -rf DemoBitmovinPlayerCollector/components/collectorCore & rm -rf DemoNativePlayerCollector/components/nativePlayerCollector & rm -rf DemoNativePlayerCollector/components/collectorCore",
-    "remove-test-collectors": "rm -rf testing/components/collectorCore & rm -rf testing/components/nativePlayerCollector & rm -rf testing/components/bitmovinPlayerCollector",
+    "remove-test-collectors": "rm -rf testing/components/collectorCore & rm -rf testing/components/nativePlayerCollector & rm -rf testing/components/bitmovinPlayerCollector & rm -rf testing/components/theoPlayerCollector",
     "refresh-collectors": "npm run remove-test-collectors && npm run copy-test-collectors",
-    "copy-test-collectors": "cp -R collectorCore testing/components & cp -R nativePlayerCollector testing/components & cp -R bitmovinPlayerCollector testing/components",
+    "copy-test-collectors": "cp -R collectorCore testing/components & cp -R nativePlayerCollector testing/components & cp -R bitmovinPlayerCollector testing/components & cp -R theoPlayerCollector testing/components",
     "run-tests": "rooibos-cli r testing/source/tests/rooibos/testConfig.json && cd testing && make test -e ROKU_DEV_TARGET=YOUR_DEVICE_IP_HERE DEVPASSWORD=YOUR_DEV_PASSWORD_HERE",
     "build-tests": "npx bsc"
   },
