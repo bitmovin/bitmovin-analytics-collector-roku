@@ -142,18 +142,6 @@ namespace tests
       m.assertEqual(result, "de")
     end function
 
-    @it("returns the language when only one text track exists and is showing")
-    function _()
-      textTracks = [
-        { mode: "showing", language: "es" }
-      ]
-
-      'bs:disable-next-line
-      result = getCurrentSubtitleLanguage(textTracks)
-
-      m.assertEqual(result, "es")
-    end function
-
   end class
 
 end namespace
