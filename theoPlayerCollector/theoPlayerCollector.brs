@@ -72,16 +72,24 @@ sub decorateSampleWithPlaybackData(sampleData)
 
   videoNode = m.player.callFunc("getVideoNode")
   sampleData.Append(getVideoWindowSize(videoNode))
-  sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
+  sampleData.Append({ size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth) })
 
   ' Set audio language
-  currentAudioLanguage = getAudioLanguage(m.player.audioTracks)
-  if currentAudioLanguage <> invalid then sampleData.Append({audioLanguage: currentAudioLanguage})
+  currentAudioLanguage = getCurrentAudioLanguage(m.player.audioTracks)
+  if currentAudioLanguage <> invalid then sampleData.Append({ audioLanguage: currentAudioLanguage })
 
-  ' TODO: Implement rest
+  ' Set subtitle language
+  currentSubtitleTrack = getCurrentSubtitleLanguage(m.player.textTracks)
+  if currentSubtitleTrack <> invalid then sampleData.Append({ subtitleLanguage: currentSubtitleTrack })
+
+  ' Set subtitle enabled
+  sampleData.Append({subtitleEnabled: getDeviceSubtitlesEnabled()})
+
+  ' Set video duration
+  sampleData.Append({videoDuration: getVideoDuration()})
 end sub
 
-function getAudioLanguage(audioTracks)
+function getCurrentAudioLanguage(audioTracks)
   if audioTracks = invalid or audioTracks.Count() = 0 then return invalid
 
   for each audioTrack in audioTracks
@@ -89,6 +97,27 @@ function getAudioLanguage(audioTracks)
   end for
 
   return invalid
+end function
+
+function getCurrentSubtitleLanguage(textTracks)
+  if textTracks = invalid or textTracks.Count() = 0 then return invalid
+
+  for each textTrack in textTracks
+    if textTrack.mode = "showing" then return textTrack.language
+  end for
+
+  return invalid
+end function
+
+function getDeviceSubtitlesEnabled()
+  return m.deviceInfo.GetCaptionsMode() = "On"
+end function
+
+function getVideoDuration()
+  duration = m.player.duration
+  if duration <> invalid then duration = duration * 1000
+
+  return duration
 end function
 
 function updateSample(sampleData)
