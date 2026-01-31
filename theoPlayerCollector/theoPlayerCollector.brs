@@ -3,6 +3,7 @@ sub init()
   m.collectorCore = m.top.FindNode("collectorCore")
   m.collectorStates = getCollectorStates()
   m.appInfo = CreateObject("roAppInfo")
+  m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
 
 ' ===== PUBLIC METHODS =====
@@ -67,17 +68,35 @@ end sub
 ' ===== HELPER METHODS =====
 
 sub decorateSampleWithPlaybackData(sampleData)
-  ' TODO: Implement
+  if sampleData = invalid then return
+
+  videoNode = m.player.callFunc("getVideoNode")
+  sampleData.Append(getVideoWindowSize(videoNode))
+  sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
+
+  ' Set audio language
+  currentAudioLanguage = getAudioLanguage(m.player.audioTracks)
+  if currentAudioLanguage <> invalid then sampleData.Append({audioLanguage: currentAudioLanguage})
+
+  ' TODO: Implement rest
 end sub
 
-' TODO: This is a copy of `bitmovinPlayerCollector`s implementation - maybe extract
+function getAudioLanguage(audioTracks)
+  if audioTracks = invalid or audioTracks.Count() = 0 then return invalid
+
+  for each audioTrack in audioTracks
+    if audioTrack.enabled then return audioTrack.language
+  end for
+
+  return invalid
+end function
+
 function updateSample(sampleData)
   if sampleData = invalid return false
 
   return m.collectorCore.callFunc("updateSample", sampleData)
 end function
 
-' TODO: This is a copy of `bitmovinPlayerCollector`s implementation - maybe extract
 sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
   sampleData = eventData
   sampleData.Append({
@@ -94,7 +113,8 @@ end sub
 sub setUpObservers()
   ' TODO: observe
 
-  m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat") ' TODO: Implement `onHeartbeat`
+  ' TODO: Implement `onHeartbeat`
+  m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
 
 sub unobserveFields(isDestroy = false)
