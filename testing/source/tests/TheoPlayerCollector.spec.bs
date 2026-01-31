@@ -234,6 +234,58 @@ namespace tests
       m.assertEqual(result, "test-license-key-123")
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("initializePlayer")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sends a setup sample when initializing the player")
+    function _()
+      ' Store reference to test context for use in mock
+      testContext = { capturedSampleData: invalid }
+
+      ' Save original collectorCore to restore later
+      originalCollectorCore = m.node.collectorCore
+
+      ' Create a mock collectorCore that captures the sampleData
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        observeFieldScoped: function(field as string, callback as string)
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      ' Set up mock player with required fields
+      m.mockPlayer.version = "1.0.0"
+      m.mockPlayer.callFunc = function(funcName as string)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+      m.mockPlayer.observeFieldScoped = function(field as string, callback as string)
+      end function
+
+      'bs:disable-next-line
+      initializePlayer(m.mockPlayer)
+
+      ' Verify the sample was sent with state = "setup"
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "setup")
+
+      ' Restore original collectorCore
+      m.node.collectorCore = originalCollectorCore
+    end function
+
   end class
 
 end namespace
