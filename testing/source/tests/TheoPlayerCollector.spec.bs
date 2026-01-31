@@ -166,6 +166,45 @@ namespace tests
       m.assertEqual(result, 1000)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("decorateSampleWithPlaybackData")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns early when sampleData is invalid")
+    function _()
+      ' Should not crash when called with invalid
+      'bs:disable-next-line
+      decorateSampleWithPlaybackData(invalid)
+
+      m.assertTrue(true)
+    end function
+
+    @it("decorates sample with playback data")
+    function _()
+      m.mockPlayer.callFunc = function(funcName as string)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = [{ enabled: true, language: "en" }]
+      m.mockPlayer.textTracks = [{ mode: "showing", language: "de" }]
+      m.mockPlayer.duration = 120
+
+      sampleData = {}
+
+      'bs:disable-next-line
+      decorateSampleWithPlaybackData(sampleData)
+
+      m.assertEqual(sampleData.audioLanguage, "en")
+      m.assertEqual(sampleData.subtitleLanguage, "de")
+      m.assertEqual(sampleData.videoDuration, 120000)
+      m.assertNotInvalid(sampleData.subtitleEnabled)
+      m.assertNotInvalid(sampleData.videoWindowHeight)
+      m.assertNotInvalid(sampleData.videoWindowWidth)
+      m.assertNotInvalid(sampleData.size)
+    end function
+
   end class
 
 end namespace
