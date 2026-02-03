@@ -1,10 +1,12 @@
 function init()
   m.tag = "[demo] "
   m.PlayerSourceType = getPlayerSourceType()
+
+  m.theoPlayerCollector = CreateObject("roSgNode", "theoPlayerCollector")
+
   m.playerConfig = {
     license: "INSERT-LICENSE-HERE"
   }
-
   m.THEOsdk = m.top.findNode("THEOsdk")
   m.THEOsdk.observeField("loadStatus", "onLoadStatusChanged")
 end function
@@ -13,6 +15,18 @@ sub onLoadStatusChanged(sourceType = invalid)
   m.THEOplayer = CreateObject("RoSGNode", "THEOsdk:THEOplayer")
   m.playerContainer = m.top.findNode("THEOPlayerContainer")
   m.playerContainer.appendChild(m.THEOplayer)
+
+  analyticsConfig = {
+    key: "YOUR_ANALYTICS_KEY",
+    isLive: false,
+    title: "Art of Motion",
+    videoId: "ArtOfMotion",
+    customUserId: "John Smith",
+    experimentName: "local-development-theo"
+  }
+
+  m.theoPlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
+  m.theoPlayerCollector.callFunc("initializePlayer", m.THEOplayer)
 
   preparePlayer(m.PlayerSourceType.AOM)
 
