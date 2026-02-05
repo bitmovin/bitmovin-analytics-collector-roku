@@ -31,6 +31,261 @@ namespace tests
       m.assertEqual(returnedPlayerVersion, "theo-0.0.0")
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getCurrentAudioLanguage")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when audioTracks is invalid")
+    function _()
+      'bs:disable-next-line
+      result = getCurrentAudioLanguage(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns invalid when audioTracks is empty")
+    function _()
+      audioTracks = []
+
+      'bs:disable-next-line
+      result = getCurrentAudioLanguage(audioTracks)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns the language of the enabled audio track")
+    function _()
+      audioTracks = [
+        { enabled: false, language: "de" },
+        { enabled: true, language: "en" },
+        { enabled: false, language: "fr" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentAudioLanguage(audioTracks)
+
+      m.assertEqual(result, "en")
+    end function
+
+    @it("returns invalid when no audio track is enabled")
+    function _()
+      audioTracks = [
+        { enabled: false, language: "de" },
+        { enabled: false, language: "en" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentAudioLanguage(audioTracks)
+
+      m.assertInvalid(result)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getCurrentSubtitleLanguage")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when textTracks is invalid")
+    function _()
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns invalid when textTracks is empty")
+    function _()
+      textTracks = []
+
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(textTracks)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns the language of the text track with mode 'showing'")
+    function _()
+      textTracks = [
+        { mode: "disabled", language: "de" },
+        { mode: "showing", language: "en" },
+        { mode: "hidden", language: "fr" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(textTracks)
+
+      m.assertEqual(result, "en")
+    end function
+
+    @it("returns invalid when no text track has mode 'showing'")
+    function _()
+      textTracks = [
+        { mode: "disabled", language: "de" },
+        { mode: "hidden", language: "en" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(textTracks)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns the first 'showing' track language when multiple are showing")
+    function _()
+      textTracks = [
+        { mode: "showing", language: "de" },
+        { mode: "showing", language: "en" }
+      ]
+
+      'bs:disable-next-line
+      result = getCurrentSubtitleLanguage(textTracks)
+
+      m.assertEqual(result, "de")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getVideoDuration")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when player duration is invalid")
+    function _()
+      m.mockPlayer.duration = invalid
+
+      'bs:disable-next-line
+      result = getVideoDuration()
+
+      m.assertInvalid(result)
+    end function
+
+    @it("converts duration from seconds to milliseconds")
+    function _()
+      m.mockPlayer.duration = 1
+
+      'bs:disable-next-line
+      result = getVideoDuration()
+
+      m.assertEqual(result, 1000)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("decorateSampleWithPlaybackData")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns early when sampleData is invalid")
+    function _()
+      ' Should not crash when called with invalid
+      'bs:disable-next-line
+      decorateSampleWithPlaybackData(invalid)
+
+      m.assertTrue(true)
+    end function
+
+    @it("decorates sample with playback data")
+    function _()
+      m.mockPlayer.callFunc = function(funcName as string)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = [{ enabled: true, language: "en" }]
+      m.mockPlayer.textTracks = [{ mode: "showing", language: "de" }]
+      m.mockPlayer.duration = 120
+
+      sampleData = {}
+
+      'bs:disable-next-line
+      decorateSampleWithPlaybackData(sampleData)
+
+      m.assertEqual(sampleData.audioLanguage, "en")
+      m.assertEqual(sampleData.subtitleLanguage, "de")
+      m.assertEqual(sampleData.videoDuration, 120000)
+      m.assertNotInvalid(sampleData.subtitleEnabled)
+      m.assertNotInvalid(sampleData.videoWindowHeight)
+      m.assertNotInvalid(sampleData.videoWindowWidth)
+      m.assertNotInvalid(sampleData.size)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getPlayerKeyFromManifest")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when appInfo is invalid")
+    function _()
+      'bs:disable-next-line
+      result = getPlayerKeyFromManifest(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns the player key from manifest")
+    function _()
+      mockAppInfo = {
+        getValue: function(key as string)
+          if key = "theo_player_license_key"
+            return "test-license-key-123"
+          end if
+          return invalid
+        end function
+      }
+
+      'bs:disable-next-line
+      result = getPlayerKeyFromManifest(mockAppInfo)
+
+      m.assertEqual(result, "test-license-key-123")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("initializePlayer")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sends a setup sample when initializing the player")
+    function _()
+      ' Store reference to test context for use in mock
+      testContext = { capturedSampleData: invalid }
+
+      ' Save original collectorCore to restore later
+      originalCollectorCore = m.node.collectorCore
+
+      ' Create a mock collectorCore that captures the sampleData
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        observeFieldScoped: function(field as string, callback as string)
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      ' Set up mock player with required fields
+      m.mockPlayer.version = "1.0.0"
+      m.mockPlayer.callFunc = function(funcName as string)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+      m.mockPlayer.observeFieldScoped = function(field as string, callback as string)
+      end function
+
+      'bs:disable-next-line
+      initializePlayer(m.mockPlayer)
+
+      ' Verify the sample was sent with state = "setup"
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "setup")
+
+      ' Restore original collectorCore
+      m.node.collectorCore = originalCollectorCore
+    end function
+
   end class
 
 end namespace

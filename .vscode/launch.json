@@ -11,7 +11,7 @@
       "consoleOutput": "full",
       "internalConsoleOptions": "neverOpen",
       "preLaunchTask": "build-tests",
-      "host": "",
+      "host": "${promptForHost}",
       "password": "rokudev",
       "retainStagingFolder": true,
       "stopOnEntry": false,
