@@ -145,6 +145,7 @@ end sub
 sub setUpObservers()
   m.player.callFunc("addEventListener", "playing", m.top, "onPlaying")
   m.player.callFunc("addEventListener", "pause", m.top, "onPause")
+  m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
@@ -153,6 +154,7 @@ sub unobserveFields(isDestroy = false)
   if m.player <> invalid
     m.player.callFunc("removeEventListener", "playing", m.top, "onPlaying")
     m.player.callFunc("removeEventListener", "pause", m.top, "onPause")
+    m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
   end if
 
   if m.collectorCore <> invalid
@@ -194,6 +196,10 @@ sub onPause(eventData = invalid)
   handlePreviousState()
   m.playerStateTimer.Mark()
   setVideoTimeStart()
+end sub
+
+sub onDestroy(eventData = invalid)
+  destroy()
 end sub
 
 sub transitionToState(nextState)
