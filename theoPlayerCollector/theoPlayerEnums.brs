@@ -3,5 +3,6 @@ function getCollectorStates()
   return {
     SETUP: "setup"
     PLAYING: "playing"
+    PAUSED: "paused"
   }
 end function

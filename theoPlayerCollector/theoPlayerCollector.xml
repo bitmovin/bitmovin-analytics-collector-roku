@@ -8,5 +8,6 @@
   <interface>
     <field id="error" type="assocarray" alwaysnotify="true"/>
     <function name="onPlaying" />
+    <function name="onPause" />
   </interface>
 </component>
