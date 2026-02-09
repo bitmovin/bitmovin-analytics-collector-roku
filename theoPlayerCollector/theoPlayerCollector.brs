@@ -15,6 +15,9 @@ end sub
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
+  m.playerStateTimer = CreateObject("roTimespan")
+  m.previousState = ""
+  m.currentState = m.collectorStates.SETUP
 
   setUpObservers()
 
@@ -140,15 +143,14 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
 end sub
 
 sub setUpObservers()
-  ' TODO: observe
+  m.player.callFunc("addEventListener", "playing", m.top, "onPlaying")
 
-  ' TODO: Implement `onHeartbeat`
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
 
 sub unobserveFields(isDestroy = false)
   if m.player <> invalid
-    ' TODO: unobserve
+    m.player.callFunc("removeEventListener", "playing", m.top, "onPlaying")
   end if
 
   if m.collectorCore <> invalid
@@ -156,8 +158,57 @@ sub unobserveFields(isDestroy = false)
   end if
 end sub
 
+sub onHeartbeat()
+  setVideoTimeEnd()
+
+  duration = getDuration(m.playerStateTimer)
+  m.playerStateTimer.Mark()
+
+  eventData = {
+    played: duration
+  }
+
+  sendAnalyticsRequestAndClearValues(eventData, duration, m.currentState)
+  setVideoTimeStart()
+end sub
+
 ' ===== Player event callbacks =====
 
+sub onPlaying(eventData = invalid)
+  transitionToState(m.collectorStates.PLAYING)
+  m.collectorCore.playerState = m.currentState
+
+  setVideoTimeEnd()
+
+  if m.previousState = m.collectorStates.PLAYING
+    played = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues({ played: played }, played, m.previousState)
+  end if
+
+  m.playerStateTimer.Mark()
+  setVideoTimeStart()
+end sub
+
+sub transitionToState(nextState)
+  m.previousState = m.currentState
+  m.currentState = nextState
+end sub
+
+function getCurrentPlayerTimeInMs()
+  currentTime = m.player.currentTime
+  if currentTime = invalid then return 0
+
+  time% = currentTime * 1000
+  return Cint(time%)
+end function
+
+sub setVideoTimeStart()
+  m.collectorCore.callFunc("setVideoTimeStart", getCurrentPlayerTimeInMs())
+end sub
+
+sub setVideoTimeEnd()
+  m.collectorCore.callFunc("setVideoTimeEnd", getCurrentPlayerTimeInMs())
+end sub
 
 ' ====== SSAI related ad callbacks ======
 

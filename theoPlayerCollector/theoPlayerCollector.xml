@@ -7,5 +7,6 @@
   </children>
   <interface>
     <field id="error" type="assocarray" alwaysnotify="true"/>
+    <function name="onPlaying" />
   </interface>
 </component>

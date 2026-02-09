@@ -2,5 +2,6 @@
 function getCollectorStates()
   return {
     SETUP: "setup"
+    PLAYING: "playing"
   }
 end function
