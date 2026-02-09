@@ -179,12 +179,6 @@ sub onPlaying(eventData = invalid)
   m.collectorCore.playerState = m.currentState
 
   setVideoTimeEnd()
-
-  if m.previousState = m.collectorStates.PLAYING
-    played = m.playerStateTimer.TotalMilliseconds()
-    sendAnalyticsRequestAndClearValues({ played: played }, played, m.previousState)
-  end if
-
   m.playerStateTimer.Mark()
   setVideoTimeStart()
 end sub
