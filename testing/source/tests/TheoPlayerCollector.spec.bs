@@ -417,6 +417,100 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onPause")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("transitions to paused state and propagates to collectorCore")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.previousState = ""
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      onPause()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "paused")
+      m.assertEqual(m.node.collectorCore.playerState, "paused")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends played sample when pausing from playing state")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.previousState = ""
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      'bs:disable-next-line
+      onPause()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "playing")
+      m.assertNotInvalid(testContext.capturedSampleData.played)
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "paused")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
   end class
 
 end namespace
