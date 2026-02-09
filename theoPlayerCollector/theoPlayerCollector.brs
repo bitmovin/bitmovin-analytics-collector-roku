@@ -181,15 +181,7 @@ sub onPlaying(eventData = invalid)
   m.collectorCore.playerState = m.currentState
 
   setVideoTimeEnd()
-
-  if m.previousState = m.collectorStates.PLAYING
-    played = m.playerStateTimer.TotalMilliseconds()
-    sendAnalyticsRequestAndClearValues({ played: played }, played, m.previousState)
-  else if m.previousState = m.collectorStates.PAUSED
-    paused = m.playerStateTimer.TotalMilliseconds()
-    sendAnalyticsRequestAndClearValues({ paused: paused }, paused, m.previousState)
-  end if
-
+  handlePreviousState()
   m.playerStateTimer.Mark()
   setVideoTimeStart()
 end sub
@@ -199,12 +191,7 @@ sub onPause(eventData = invalid)
   m.collectorCore.playerState = m.currentState
 
   setVideoTimeEnd()
-
-  if m.previousState = m.collectorStates.PLAYING
-    played = m.playerStateTimer.TotalMilliseconds()
-    sendAnalyticsRequestAndClearValues({ played: played }, played, m.previousState)
-  end if
-
+  handlePreviousState()
   m.playerStateTimer.Mark()
   setVideoTimeStart()
 end sub
@@ -212,6 +199,16 @@ end sub
 sub transitionToState(nextState)
   m.previousState = m.currentState
   m.currentState = nextState
+end sub
+
+sub handlePreviousState()
+  if m.previousState = m.collectorStates.PLAYING
+    played = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues({ played: played }, played, m.previousState)
+  else if m.previousState = m.collectorStates.PAUSED
+    paused = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues({ paused: paused }, paused, m.previousState)
+  end if
 end sub
 
 function getCurrentPlayerTimeInMs()
