@@ -205,7 +205,7 @@ sub handlePreviousState()
   if m.previousState = m.collectorStates.PLAYING
     played = m.playerStateTimer.TotalMilliseconds()
     sendAnalyticsRequestAndClearValues({ played: played }, played, m.previousState)
-  else if m.previousState = m.collectorStates.PAUSED
+  else if m.previousState = m.collectorStates.PAUSED and m.currentState = m.collectorStates.PLAYING
     paused = m.playerStateTimer.TotalMilliseconds()
     sendAnalyticsRequestAndClearValues({ paused: paused }, paused, m.previousState)
   end if
