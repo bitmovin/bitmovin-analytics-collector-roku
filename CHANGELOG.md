@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Internal
 - added demo channel and testing setup for THEO player
 - added THEO player collector skeleton that adheres to the `baseCollector` structure
-- implemented THEO player collector setup event
+- implemented THEO player collector `setup` event
+- implemented THEO player collector `playing` event
 
 ## v2.13.0
 
