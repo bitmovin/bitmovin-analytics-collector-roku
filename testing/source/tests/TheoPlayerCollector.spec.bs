@@ -467,6 +467,39 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onDestroy")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("calls destroy when player emits destroy event")
+    function _()
+      testContext = { destroyCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, param = invalid)
+          if funcName = "internalDestroy"
+            m.testContext.destroyCalled = true
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      onDestroy()
+
+      m.assertTrue(testContext.destroyCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
   end class
 
 end namespace
