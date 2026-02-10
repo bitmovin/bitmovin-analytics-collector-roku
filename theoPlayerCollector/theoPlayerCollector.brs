@@ -179,27 +179,25 @@ end sub
 ' ===== Player event callbacks =====
 
 sub onPlaying(eventData = invalid)
-  transitionToState(m.collectorStates.PLAYING)
-  m.collectorCore.playerState = m.currentState
-
-  setVideoTimeEnd()
-  handlePreviousState()
-  m.playerStateTimer.Mark()
-  setVideoTimeStart()
+  onPlayerStateChanged(m.collectorStates.PLAYING)
 end sub
 
 sub onPause(eventData = invalid)
-  transitionToState(m.collectorStates.PAUSED)
-  m.collectorCore.playerState = m.currentState
-
-  setVideoTimeEnd()
-  handlePreviousState()
-  m.playerStateTimer.Mark()
-  setVideoTimeStart()
+  onPlayerStateChanged(m.collectorStates.PAUSED)
 end sub
 
 sub onDestroy(eventData = invalid)
   destroy()
+end sub
+
+sub onPlayerStateChanged(newState)
+  transitionToState(newState)
+  m.collectorCore.playerState = m.currentState
+
+  setVideoTimeEnd()
+  handlePreviousState()
+  m.playerStateTimer.Mark()
+  setVideoTimeStart()
 end sub
 
 sub transitionToState(nextState)
