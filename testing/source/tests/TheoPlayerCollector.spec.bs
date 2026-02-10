@@ -263,7 +263,7 @@ namespace tests
 
       ' Set up mock player with required fields
       m.mockPlayer.version = "1.0.0"
-      m.mockPlayer.callFunc = function(funcName as string)
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
         if funcName = "getVideoNode"
           return { height: 1080, width: 1920 }
         end if
@@ -272,6 +272,7 @@ namespace tests
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
+      m.mockPlayer.currentTime = 0
       m.mockPlayer.observeFieldScoped = function(field as string, callback as string)
       end function
 
@@ -283,6 +284,92 @@ namespace tests
       m.assertEqual(testContext.capturedSampleData.state, "setup")
 
       ' Restore original collectorCore
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("transitionToState")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets previousState to currentState and currentState to nextState")
+    function _()
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.previousState = ""
+
+      'bs:disable-next-line
+      transitionToState("playing")
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.previousState, "setup")
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "playing")
+    end function
+
+    @it("updates previousState on consecutive transitions")
+    function _()
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.previousState = ""
+
+      'bs:disable-next-line
+      transitionToState("playing")
+      'bs:disable-next-line
+      transitionToState("playing")
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.previousState, "playing")
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "playing")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onPlaying")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("transitions to playing state and propagates to collectorCore")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.previousState = ""
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      onPlaying()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "playing")
+      m.assertEqual(m.node.collectorCore.playerState, "playing")
+
       m.node.collectorCore = originalCollectorCore
     end function
 
