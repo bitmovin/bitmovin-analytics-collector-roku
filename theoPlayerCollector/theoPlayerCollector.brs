@@ -176,12 +176,6 @@ sub onHeartbeat()
   setVideoTimeStart()
 end sub
 
-' ===== Player event callbacks =====
-
-sub onPlay(eventData = invalid)
-  startVideoStartUpTimer()
-end sub
-
 sub startVideoStartUpTimer()
   m.videoStartupTimer = CreateObject("roTimeSpan")
 end sub
@@ -199,6 +193,12 @@ sub stopVideoStartUpTimer()
   }
 
   sendAnalyticsRequestAndClearValues(startupEventData, m.videoStartUpTime, "startup")
+end sub
+
+' ===== Player event callbacks =====
+
+sub onPlay(eventData = invalid)
+  startVideoStartUpTimer()
 end sub
 
 sub onPlaying(eventData = invalid)
