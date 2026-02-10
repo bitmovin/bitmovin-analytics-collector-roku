@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - added THEO player collector skeleton that adheres to the `baseCollector` structure
 - implemented THEO player collector `setup` event
 - implemented THEO player collector `playing` event
+- implemented THEO player collector `startup` event
 
 ## v2.13.0
 
