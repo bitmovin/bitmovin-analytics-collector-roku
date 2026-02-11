@@ -149,6 +149,7 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "playing", m.top, "onPlaying")
   m.player.callFunc("addEventListener", "pause", m.top, "onPause")
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
+  m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
@@ -159,6 +160,7 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", "playing", m.top, "onPlaying")
     m.player.callFunc("removeEventListener", "pause", m.top, "onPause")
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
+    m.player.callFunc("removeEventListener", "bitratechange", m.top, "onBitrateChange")
   end if
 
   if m.collectorCore <> invalid
@@ -210,6 +212,12 @@ end sub
 
 sub onPause(eventData = invalid)
   onPlayerStateChanged(m.collectorStates.PAUSED)
+end sub
+
+sub onBitrateChange(eventData = invalid)
+  if eventData = invalid then return
+
+  updateSample({ videoBitrate: eventData.bitrate })
 end sub
 
 sub onDestroy(eventData = invalid)
