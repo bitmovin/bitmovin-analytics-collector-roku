@@ -7,6 +7,7 @@
   </children>
   <interface>
     <field id="error" type="assocarray" alwaysnotify="true"/>
+    <function name="onPlay" />
     <function name="onPlaying" />
     <function name="onPause" />
     <function name="onDestroy" />

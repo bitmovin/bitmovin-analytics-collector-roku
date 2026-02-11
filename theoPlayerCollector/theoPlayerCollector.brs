@@ -16,6 +16,8 @@ sub initializePlayer(player)
   unobserveFields()
   m.player = player
   m.playerStateTimer = CreateObject("roTimespan")
+  m.videoStartupTimer = invalid
+  m.videoStartUpTime = -1
   m.previousState = ""
   m.currentState = m.collectorStates.SETUP
 
@@ -143,6 +145,7 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
 end sub
 
 sub setUpObservers()
+  m.player.callFunc("addEventListener", "play", m.top, "onPlay")
   m.player.callFunc("addEventListener", "playing", m.top, "onPlaying")
   m.player.callFunc("addEventListener", "pause", m.top, "onPause")
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
@@ -152,6 +155,7 @@ end sub
 
 sub unobserveFields(isDestroy = false)
   if m.player <> invalid
+    m.player.callFunc("removeEventListener", "play", m.top, "onPlay")
     m.player.callFunc("removeEventListener", "playing", m.top, "onPlaying")
     m.player.callFunc("removeEventListener", "pause", m.top, "onPause")
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
@@ -176,9 +180,31 @@ sub onHeartbeat()
   setVideoTimeStart()
 end sub
 
+sub startVideoStartUpTimer()
+  m.videoStartupTimer = CreateObject("roTimeSpan")
+end sub
+
+sub stopVideoStartUpTimer()
+  if m.videoStartupTimer = invalid or m.videoStartUpTime >= 0 then return
+
+  m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
+
+  startupEventData = {
+    videoStartupTime: m.videoStartUpTime,
+    startupTime: m.videoStartUpTime
+  }
+
+  sendAnalyticsRequestAndClearValues(startupEventData, m.videoStartUpTime, "startup")
+end sub
+
 ' ===== Player event callbacks =====
 
+sub onPlay(eventData = invalid)
+  startVideoStartUpTimer()
+end sub
+
 sub onPlaying(eventData = invalid)
+  stopVideoStartUpTimer()
   onPlayerStateChanged(m.collectorStates.PLAYING)
 end sub
 
