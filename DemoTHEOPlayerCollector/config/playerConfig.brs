@@ -1,6 +1,7 @@
 function getPlayerSourceType()
   return {
     AOM: "AOM",
+    BBB: "BBB",
     LIVE_SAMPLE: "LIVE_SAMPLE",
     TOS: "TOS",
     SINTEL: "SINTEL",
@@ -22,6 +23,12 @@ function getPlayerSource(sourceType)
       src: getBaseUrl() + "/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
       type: "application/x-mpegURL"
       description: "Art of Motion"
+    }
+  else if sourceType = PlayerSourceType.BBB
+    content = {
+      src: "https://storage.googleapis.com/shaka-demo-assets/bbb-dark-truths-hls/hls.m3u8"
+      type: "application/x-mpegURL"
+      description: "BBB"
     }
   else if sourceType = PlayerSourceType.LIVE_SAMPLE
     content = {
