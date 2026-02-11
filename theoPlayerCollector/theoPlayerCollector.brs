@@ -15,11 +15,13 @@ end sub
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
+
   m.playerStateTimer = CreateObject("roTimespan")
-  m.videoStartupTimer = invalid
-  m.videoStartUpTime = -1
   m.previousState = ""
   m.currentState = m.collectorStates.SETUP
+
+  m.videoStartupTimer = invalid
+  m.videoStartUpTime = -1
 
   setUpObservers()
 
