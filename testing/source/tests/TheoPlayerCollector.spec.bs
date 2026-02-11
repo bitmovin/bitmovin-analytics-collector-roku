@@ -278,7 +278,18 @@ namespace tests
       m.assertEqual(result.mpdUrl, "http://example.com/stream.mpd")
     end function
 
-    @it("maps unknown type to progressive stream format")
+    @it("maps theolive type to hls stream format")
+    function _()
+      source = { src: "http://example.com/theolive-channel", type: "theolive" }
+
+      'bs:disable-next-line
+      result = mapSource(source)
+
+      m.assertEqual(result.streamFormat, "hls")
+      m.assertEqual(result.m3u8Url, "http://example.com/theolive-channel")
+    end function
+
+    @it("falls back to progressive for unknown type")
     function _()
       source = { src: "http://example.com/video.mp4", type: "video/mp4" }
 

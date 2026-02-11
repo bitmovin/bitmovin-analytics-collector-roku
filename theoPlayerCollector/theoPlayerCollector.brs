@@ -98,6 +98,8 @@ function mapSource(source)
     return { streamFormat: "hls", m3u8Url: source.src }
   else if source.type = "application/dash+xml"
     return { streamFormat: "dash", mpdUrl: source.src }
+  else if source.type = "theolive"
+    return { streamFormat: "hls", m3u8Url: source.src }
   else
     return { streamFormat: "progressive", progUrl: source.src }
   end if
