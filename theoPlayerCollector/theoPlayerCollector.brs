@@ -234,6 +234,12 @@ end sub
 
 sub onSourceChange(eventData = invalid)
   detectSourceFormat()
+
+  if m.currentState <> m.collectorStates.SETUP
+    ' source changed to different one, start new analytics impression
+    m.collectorCore.callFunc("setupSample")
+    m.videoStartUpTime = -1
+  end if
 end sub
 
 sub onPlay(eventData = invalid)

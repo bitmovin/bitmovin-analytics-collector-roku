@@ -408,6 +408,9 @@ namespace tests
         testContext: testContext
       }
 
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
       m.mockPlayer.source = {
         sources: [{ src: "http://example.com/stream.mpd", type: "application/dash+xml" }]
       }
@@ -436,12 +439,100 @@ namespace tests
         testContext: testContext
       }
 
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
       m.mockPlayer.source = invalid
 
       'bs:disable-next-line
       onSourceChange()
 
       m.assertFalse(testContext.updateSampleCalled)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not call setupSample during initial source load")
+    function _()
+      testContext = { setupSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "setupSample"
+            m.testContext.setupSampleCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      m.mockPlayer.source = {
+        sources: [{ src: "http://example.com/stream.m3u8", type: "application/x-mpegURL" }]
+      }
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      m.assertFalse(testContext.setupSampleCalled)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("calls setupSample for a new impression when source changes after initial setup")
+    function _()
+      testContext = { setupSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "setupSample"
+            m.testContext.setupSampleCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      m.mockPlayer.source = {
+        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
+      }
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      m.assertTrue(testContext.setupSampleCalled)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("resets videoStartUpTime when source changes after initial setup")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.videoStartUpTime = 500
+
+      m.mockPlayer.source = {
+        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
+      }
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.videoStartUpTime, -1)
       m.node.collectorCore = originalCollectorCore
     end function
 

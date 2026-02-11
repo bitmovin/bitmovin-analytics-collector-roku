@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - made sure THEO player collector is cleaned up on `destroy` event
 - implemented THEO player collector `startup` event
 - implemented THEO player collector source and format detection
+- implemented THEO player collector source change handling
 
 ## v2.13.0
 
