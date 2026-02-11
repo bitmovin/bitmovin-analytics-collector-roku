@@ -147,6 +147,8 @@ end sub
 sub setUpObservers()
   m.player.callFunc("addEventListener", "play", m.top, "onPlay")
   m.player.callFunc("addEventListener", "playing", m.top, "onPlaying")
+  m.player.callFunc("addEventListener", "pause", m.top, "onPause")
+  m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
@@ -155,6 +157,8 @@ sub unobserveFields(isDestroy = false)
   if m.player <> invalid
     m.player.callFunc("removeEventListener", "play", m.top, "onPlay")
     m.player.callFunc("removeEventListener", "playing", m.top, "onPlaying")
+    m.player.callFunc("removeEventListener", "pause", m.top, "onPause")
+    m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
   end if
 
   if m.collectorCore <> invalid
@@ -203,10 +207,23 @@ end sub
 
 sub onPlaying(eventData = invalid)
   stopVideoStartUpTimer()
-  transitionToState(m.collectorStates.PLAYING)
+  onPlayerStateChanged(m.collectorStates.PLAYING)
+end sub
+
+sub onPause(eventData = invalid)
+  onPlayerStateChanged(m.collectorStates.PAUSED)
+end sub
+
+sub onDestroy(eventData = invalid)
+  destroy()
+end sub
+
+sub onPlayerStateChanged(newState)
+  transitionToState(newState)
   m.collectorCore.playerState = m.currentState
 
   setVideoTimeEnd()
+  handlePreviousState()
   m.playerStateTimer.Mark()
   setVideoTimeStart()
 end sub
@@ -214,6 +231,16 @@ end sub
 sub transitionToState(nextState)
   m.previousState = m.currentState
   m.currentState = nextState
+end sub
+
+sub handlePreviousState()
+  if m.previousState = m.collectorStates.PLAYING
+    played = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues({ played: played }, played, m.previousState)
+  else if m.previousState = m.collectorStates.PAUSED and m.currentState = m.collectorStates.PLAYING
+    paused = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues({ paused: paused }, paused, m.previousState)
+  end if
 end sub
 
 function getCurrentPlayerTimeInMs()
