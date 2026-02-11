@@ -453,8 +453,6 @@ namespace tests
       m.assertEqual(testContext.capturedSampleData.state, "startup")
       m.assertNotInvalid(testContext.capturedSampleData.videoStartupTime)
       m.assertNotInvalid(testContext.capturedSampleData.startupTime)
-      m.assertEqual(testContext.capturedSampleData.videoTimeStart, 0)
-      m.assertEqual(testContext.capturedSampleData.videoTimeEnd, 0)
 
       'bs:disable-next-line
       m.assertTrue(m.node.videoStartUpTime >= 0)
