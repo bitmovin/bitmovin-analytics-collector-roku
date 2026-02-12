@@ -190,6 +190,7 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
   m.player.callFunc("addEventListener", "seeking", m.top, "onSeeking")
   m.player.callFunc("addEventListener", "seeked", m.top, "onSeeked")
+  m.player.callFunc("addEventListener", "timeupdate", m.top, "onTimeUpdate")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
@@ -271,6 +272,12 @@ sub onDestroy(eventData = invalid)
   destroy()
 end sub
 
+sub onTimeUpdate(eventData = invalid)
+  if m.player.seeking then return
+
+  m.lastKnownCurrentTime = eventData.currentTime
+end sub
+
 sub onPlayerStateChanged(newState)
   transitionToState(newState)
   m.collectorCore.playerState = m.currentState
@@ -316,7 +323,9 @@ sub onSeeking(eventData = invalid)
   if m.alreadySeeking = true or m.currentState = m.collectorStates.SETUP then return
 
   m.alreadySeeking = true
-  m.seekStartPosition = getCurrentPlayerTimeInMs()
+  ' At the time when we receive the seeking event, the player has already updated the `currentTime` to the
+  ' seek-target. Thus we need to rely on our last tracked `currentTime` to get an approximate starting position.
+  m.seekStartPosition = m.lastKnownCurrentTime
   m.seekTimer = createObject("roTimeSpan")
 end sub
 
