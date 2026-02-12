@@ -204,6 +204,7 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
     m.player.callFunc("removeEventListener", "seeking", m.top, "onSeeking")
     m.player.callFunc("removeEventListener", "seeked", m.top, "onSeeked")
+    m.player.callFunc("removeEventListener", "timeupdate", m.top, "onTimeUpdate")
   end if
 
   if m.collectorCore <> invalid
@@ -212,6 +213,8 @@ sub unobserveFields(isDestroy = false)
 end sub
 
 sub onHeartbeat()
+  if m.alreadySeeking = true then return
+
   setVideoTimeEnd()
 
   duration = getDuration(m.playerStateTimer)
@@ -261,6 +264,8 @@ end sub
 
 sub onPlaying(eventData = invalid)
   stopVideoStartUpTimer()
+  if m.currentState = m.collectorStates.PLAYING then return
+
   onPlayerStateChanged(m.collectorStates.PLAYING)
 end sub
 
@@ -329,6 +334,14 @@ sub onSeeking(eventData = invalid)
   ' seek-target. Thus we need to rely on our last tracked `currentTime` to get an approximate starting position.
   m.seekStartPosition = m.lastKnownCurrentTime
   m.seekTimer = createObject("roTimeSpan")
+
+  if m.currentState = m.collectorStates.PLAYING
+    m.collectorCore.callFunc("setVideoTimeEnd", Cint(m.lastKnownCurrentTime * 1000))
+    played = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues({ played: played }, played, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+  end if
 end sub
 
 sub onSeeked(eventData = invalid)
@@ -340,6 +353,7 @@ sub onSeeked(eventData = invalid)
     seeked: duration
   }
 
+  setVideoTimeEnd()
   sendAnalyticsRequestAndClearValues(seekedEventData, duration, "seeked")
   setVideoTimeStart() ' Finished seeking does not trigger a state change, need to manually set videoTimeStart
   resetSeekHelperVariables()
