@@ -4,7 +4,7 @@ sub init()
   m.collectorStates = getCollectorStates()
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
-  m.hasStartedPlaying = false
+  m.lastKnownCurrentTime = -1
 end sub
 
 ' ===== PUBLIC METHODS =====
@@ -259,7 +259,6 @@ sub onPlay(eventData = invalid)
 end sub
 
 sub onPlaying(eventData = invalid)
-  m.hasStartedPlaying = true
   stopVideoStartUpTimer()
   onPlayerStateChanged(m.collectorStates.PLAYING)
 end sub
@@ -314,7 +313,7 @@ sub setVideoTimeEnd()
 end sub
 
 sub onSeeking(eventData = invalid)
-  if m.alreadySeeking = true or m.hasStartedPlaying = false then return
+  if m.alreadySeeking = true or m.currentState = m.collectorStates.SETUP then return
 
   m.alreadySeeking = true
   m.seekStartPosition = getCurrentPlayerTimeInMs()
