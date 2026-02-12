@@ -23,6 +23,10 @@ sub initializePlayer(player)
   m.videoStartupTimer = invalid
   m.videoStartUpTime = -1
 
+  m.alreadySeeking = false
+  m.seekStartPosition = invalid
+  m.seekTimer = invalid
+
   setUpObservers()
   detectSourceFormat()
 
@@ -121,10 +125,10 @@ sub decorateSampleWithPlaybackData(sampleData)
   if currentSubtitleTrack <> invalid then sampleData.Append({ subtitleLanguage: currentSubtitleTrack })
 
   ' Set subtitle enabled
-  sampleData.Append({subtitleEnabled: getDeviceSubtitlesEnabled()})
+  sampleData.Append({ subtitleEnabled: getDeviceSubtitlesEnabled() })
 
   ' Set video duration
-  sampleData.Append({videoDuration: getVideoDuration()})
+  sampleData.Append({ videoDuration: getVideoDuration() })
 end sub
 
 function getCurrentAudioLanguage(audioTracks)
@@ -183,6 +187,8 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "pause", m.top, "onPause")
   m.player.callFunc("addEventListener", "sourcechange", m.top, "onSourceChange")
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
+  m.player.callFunc("addEventListener", "seeking", m.top, "onSeeking")
+  m.player.callFunc("addEventListener", "seeked", m.top, "onSeeked")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
@@ -194,6 +200,8 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", "pause", m.top, "onPause")
     m.player.callFunc("removeEventListener", "sourcechange", m.top, "onSourceChange")
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
+    m.player.callFunc("removeEventListener", "seeking", m.top, "onSeeking")
+    m.player.callFunc("removeEventListener", "seeked", m.top, "onSeeked")
   end if
 
   if m.collectorCore <> invalid
@@ -301,6 +309,34 @@ end sub
 
 sub setVideoTimeEnd()
   m.collectorCore.callFunc("setVideoTimeEnd", getCurrentPlayerTimeInMs())
+end sub
+
+sub onSeeking(eventData = invalid)
+  if m.alreadySeeking = true then return
+
+  m.alreadySeeking = true
+  m.seekStartPosition = getCurrentPlayerTimeInMs()
+  m.seekTimer = createObject("roTimeSpan")
+end sub
+
+sub onSeeked(eventData = invalid)
+  if m.seekTimer = invalid then return
+
+  duration = m.seekTimer.TotalMilliseconds()
+  seekedEventData = {
+    videoTimeStart: m.seekStartPosition,
+    seeked: duration
+  }
+
+  sendAnalyticsRequestAndClearValues(seekedEventData, duration, "seeked")
+  setVideoTimeStart() ' Finished seeking does not trigger a state change, need to manually set videoTimeStart
+  resetSeekHelperVariables()
+end sub
+
+sub resetSeekHelperVariables()
+  m.alreadySeeking = false
+  m.seekStartPosition = invalid
+  m.seekTimer = invalid
 end sub
 
 ' ====== SSAI related ad callbacks ======
