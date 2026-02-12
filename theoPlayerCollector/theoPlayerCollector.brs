@@ -235,13 +235,14 @@ end sub
 ' ===== Player event callbacks =====
 
 sub onSourceChange(eventData = invalid)
-  detectSourceFormat()
+  sourceChangedFromInitialOne = m.currentState <> m.collectorStates.SETUP
 
-  if m.currentState <> m.collectorStates.SETUP
-    ' source changed to different one, start new analytics impression
-    m.collectorCore.callFunc("setupSample")
+  if sourceChangedFromInitialOne
+    m.collectorCore.callFunc("setupSample") ' new analytics impression
     m.videoStartUpTime = -1
   end if
+
+  detectSourceFormat()
 end sub
 
 sub onPlay(eventData = invalid)

@@ -491,16 +491,14 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("calls setupSample for a new impression when source changes after initial setup")
+    @it("calls setupSample before detectSourceFormat when source changes after initial setup")
     function _()
-      testContext = { setupSampleCalled: false }
+      testContext = { callOrder: [] }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "setupSample"
-            m.testContext.setupSampleCalled = true
-          end if
+          m.testContext.callOrder.Push(funcName)
           return true
         end function,
         testContext: testContext
@@ -516,7 +514,16 @@ namespace tests
       'bs:disable-next-line
       onSourceChange()
 
-      m.assertTrue(testContext.setupSampleCalled)
+      setupIndex = -1
+      updateIndex = -1
+      for i = 0 to testContext.callOrder.Count() - 1
+        if testContext.callOrder[i] = "setupSample" then setupIndex = i
+        if testContext.callOrder[i] = "updateSample" then updateIndex = i
+      end for
+
+      m.assertTrue(setupIndex >= 0, "setupSample should have been called")
+      m.assertTrue(updateIndex >= 0, "updateSample should have been called")
+      m.assertTrue(setupIndex < updateIndex, "setupSample should be called before updateSample")
       m.node.collectorCore = originalCollectorCore
     end function
 
