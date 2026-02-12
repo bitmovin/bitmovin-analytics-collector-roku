@@ -1059,6 +1059,442 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onError")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("extracts error code and message from errorObject")
+    function _()
+      testContext = { onErrorSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "onError"
+            m.testContext.onErrorSample = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      eventData = { errorObject: { code: 42, cause: "playback error" } }
+
+      'bs:disable-next-line
+      onError(eventData)
+
+      m.assertNotInvalid(testContext.onErrorSample)
+      m.assertEqual(testContext.onErrorSample.errorCode, 42)
+      m.assertEqual(testContext.onErrorSample.errorMessage, "playback error")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends analytics sample with error code and message")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 5
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      eventData = { errorObject: { code: 100, cause: "source not found" } }
+
+      'bs:disable-next-line
+      onError(eventData)
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.errorCode, 100)
+      m.assertEqual(testContext.capturedSampleData.errorMessage, "source not found")
+      m.assertEqual(testContext.capturedSampleData.state, "error")
+      m.assertEqual(testContext.capturedSampleData.duration, 0)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("uses CRITICAL severity by default")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 0
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      eventData = { errorObject: { code: 1, cause: "error" } }
+
+      'bs:disable-next-line
+      onError(eventData)
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.errorSeverity, "CRITICAL")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("delegates to collectorCore onError")
+    function _()
+      testContext = { onErrorSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "onError"
+            m.testContext.onErrorSample = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 0
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      eventData = { errorObject: { code: 500, cause: "server error" } }
+
+      'bs:disable-next-line
+      onError(eventData)
+
+      m.assertNotInvalid(testContext.onErrorSample)
+      m.assertEqual(testContext.onErrorSample.errorCode, 500)
+      m.assertEqual(testContext.onErrorSample.errorMessage, "server error")
+      m.assertEqual(testContext.onErrorSample.errorSeverity, "CRITICAL")
+      m.assertNotInvalid(testContext.onErrorSample.errorData)
+      parsedErrorData = ParseJson(testContext.onErrorSample.errorData)
+      m.assertEqual(parsedErrorData.errorObject.code, 500)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("handles invalid eventData gracefully")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 0
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      'bs:disable-next-line
+      onError(invalid)
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertInvalid(testContext.capturedSampleData.errorCode)
+      m.assertInvalid(testContext.capturedSampleData.errorMessage)
+      m.assertEqual(testContext.capturedSampleData.errorSeverity, "CRITICAL")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("handleVideoStartError")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sends videoStartFailed when error occurs after play but before playing")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 0
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = true
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      eventData = { errorObject: { code: 42, cause: "load failed" } }
+
+      'bs:disable-next-line
+      onError(eventData)
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertTrue(testContext.capturedSampleData.videoStartFailed)
+      m.assertEqual(testContext.capturedSampleData.videoStartFailedReason, "PLAYER_ERROR")
+      m.assertEqual(testContext.capturedSampleData.errorCode, 42)
+      m.assertEqual(testContext.capturedSampleData.errorMessage, "load failed")
+      m.assertEqual(testContext.capturedSampleData.state, "error")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not send videoStartFailed when video already played")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = true
+      'bs:disable-next-line
+      m.node.didVideoPlay = true
+
+      eventData = { errorObject: { code: 99, cause: "mid-stream error" } }
+
+      'bs:disable-next-line
+      onError(eventData)
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertInvalid(testContext.capturedSampleData.videoStartFailed)
+      m.assertEqual(testContext.capturedSampleData.errorCode, 99)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("is a no-op when reason is invalid")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 0
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      handleVideoStartError(invalid, 0, "setup")
+
+      m.assertInvalid(testContext.capturedSampleData)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("trackVideoStart")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets didVideoPlay to true on first call")
+    function _()
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      'bs:disable-next-line
+      trackVideoStart()
+
+      'bs:disable-next-line
+      m.assertTrue(m.node.didVideoPlay)
+    end function
+
+    @it("does not reset didVideoPlay on subsequent calls")
+    function _()
+      'bs:disable-next-line
+      m.node.didVideoPlay = true
+
+      'bs:disable-next-line
+      trackVideoStart()
+
+      'bs:disable-next-line
+      m.assertTrue(m.node.didVideoPlay)
+    end function
+
+    @it("onPlay sets didAttemptPlay to true")
+    function _()
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+
+      'bs:disable-next-line
+      onPlay()
+
+      'bs:disable-next-line
+      m.assertTrue(m.node.didAttemptPlay)
+    end function
+
   end class
 
 end namespace

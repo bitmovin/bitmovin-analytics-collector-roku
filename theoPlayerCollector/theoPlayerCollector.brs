@@ -1,7 +1,10 @@
 sub init()
   m.tag = "[theoPlayerCollector] "
   m.collectorCore = m.top.FindNode("collectorCore")
+  m.videoStartTimeoutTimer = m.top.FindNode("videoStartTimeoutTimer")
   m.collectorStates = getCollectorStates()
+  m.videoStartFailedEvents = getVideoStartFailedEvents()
+  m.errorSeverities = getErrorSeverities()
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
 end sub
@@ -22,6 +25,8 @@ sub initializePlayer(player)
 
   m.videoStartupTimer = invalid
   m.videoStartUpTime = -1
+  m.didAttemptPlay = false
+  m.didVideoPlay = false
 
   setUpObservers()
   detectSourceFormat()
@@ -183,6 +188,7 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "pause", m.top, "onPause")
   m.player.callFunc("addEventListener", "sourcechange", m.top, "onSourceChange")
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
+  m.player.callFunc("addEventListener", "error", m.top, "onError")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
@@ -194,6 +200,7 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", "pause", m.top, "onPause")
     m.player.callFunc("removeEventListener", "sourcechange", m.top, "onSourceChange")
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
+    m.player.callFunc("removeEventListener", "error", m.top, "onError")
   end if
 
   if m.collectorCore <> invalid
@@ -232,6 +239,43 @@ sub stopVideoStartUpTimer()
   sendAnalyticsRequestAndClearValues(startupEventData, m.videoStartUpTime, "startup")
 end sub
 
+sub trackVideoStart()
+  if m.didVideoPlay = false
+    m.didVideoPlay = true
+    clearVideoStartTimeout()
+  end if
+end sub
+
+sub startVideoStartTimeout()
+  m.videoStartTimeoutTimer.observeFieldScoped("fire", "onVideoStartTimeout")
+  m.videoStartTimeoutTimer.control = "start"
+end sub
+
+sub clearVideoStartTimeout()
+  m.videoStartTimeoutTimer.unobserveFieldScoped("fire")
+  m.videoStartTimeoutTimer.control = "stop"
+end sub
+
+sub onVideoStartTimeout()
+  durationMilliseconds = m.videoStartTimeoutTimer.duration * 1000
+  clearVideoStartTimeout()
+  handleVideoStartError(m.videoStartFailedEvents.Timeout, durationMilliseconds, "error")
+end sub
+
+sub handleVideoStartError(reason, duration, state, additionalEventData = invalid)
+  if reason = invalid return
+
+  eventData = {}
+  if additionalEventData <> invalid then eventData.Append(additionalEventData)
+
+  eventData.Append({
+    videoStartFailed: true,
+    videoStartFailedReason: reason
+  })
+
+  sendAnalyticsRequestAndClearValues(eventData, duration, state)
+end sub
+
 ' ===== Player event callbacks =====
 
 sub onSourceChange(eventData = invalid)
@@ -247,15 +291,61 @@ end sub
 
 sub onPlay(eventData = invalid)
   startVideoStartUpTimer()
+
+  if m.didAttemptPlay = false and m.didVideoPlay = false then startVideoStartTimeout()
+  m.didAttemptPlay = true
 end sub
 
 sub onPlaying(eventData = invalid)
   stopVideoStartUpTimer()
+  trackVideoStart()
   onPlayerStateChanged(m.collectorStates.PLAYING)
 end sub
 
 sub onPause(eventData = invalid)
   onPlayerStateChanged(m.collectorStates.PAUSED)
+end sub
+
+sub onError(eventData = invalid)
+  setVideoTimeEnd()
+
+  errorCode = invalid
+  errorMessage = invalid
+
+  if eventData <> invalid and eventData.errorObject <> invalid
+    errorCode = eventData.errorObject.code
+    errorMessage = eventData.errorObject.cause
+  end if
+
+  m.top.error = {
+    error: {
+      code: errorCode,
+      message: errorMessage,
+      severity: m.errorSeverities.critical
+    },
+    errorContext: {
+      originalError: eventData
+    }
+  }
+
+  transformedError = m.top.error.error
+  errorSample = {
+    errorCode: transformedError.code,
+    errorMessage: transformedError.message,
+    errorSeverity: transformedError.severity,
+    errorData: FormatJson(eventData)
+  }
+
+  if m.didAttemptPlay = true and m.didVideoPlay = false
+    duration = getDuration(m.playerStateTimer)
+    handleVideoStartError(m.videoStartFailedEvents.PlayerError, duration, "error", errorSample)
+  else
+    sendAnalyticsRequestAndClearValues(errorSample, 0, "error")
+  end if
+
+  unobserveFields()
+
+  m.collectorCore.callFunc("onError", errorSample)
 end sub
 
 sub onDestroy(eventData = invalid)
