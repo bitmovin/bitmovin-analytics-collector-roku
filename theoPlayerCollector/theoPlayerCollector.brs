@@ -265,6 +265,8 @@ sub onPlaying(eventData = invalid)
 end sub
 
 sub onPause(eventData = invalid)
+  if m.player.seeking then return
+
   onPlayerStateChanged(m.collectorStates.PAUSED)
 end sub
 
