@@ -15,13 +15,16 @@ end sub
 sub initializePlayer(player)
   unobserveFields()
   m.player = player
+
   m.playerStateTimer = CreateObject("roTimespan")
-  m.videoStartupTimer = invalid
-  m.videoStartUpTime = -1
   m.previousState = ""
   m.currentState = m.collectorStates.SETUP
 
+  m.videoStartupTimer = invalid
+  m.videoStartUpTime = -1
+
   setUpObservers()
+  detectSourceFormat()
 
   eventData = {
     playerTech: "theo"
@@ -71,6 +74,36 @@ sub setCustomDataOnce(customData)
 end sub
 
 ' ===== HELPER METHODS =====
+
+sub detectSourceFormat()
+  source = getActiveSource(m.player)
+  if source = invalid then return
+
+  updateSample(mapSource(source))
+end sub
+
+function getActiveSource(player)
+  if player = invalid or player.source = invalid then return invalid
+
+  sources = player.source.sources
+  if sources = invalid or sources.Count() = 0 then return invalid
+
+  return sources[0]
+end function
+
+function mapSource(source)
+  if source = invalid or source.type = invalid then return {}
+
+  if source.type = "application/x-mpegURL"
+    return { streamFormat: "hls", m3u8Url: source.src }
+  else if source.type = "application/dash+xml"
+    return { streamFormat: "dash", mpdUrl: source.src }
+  else if source.type = "theolive"
+    return { streamFormat: "hls", m3u8Url: source.src }
+  else
+    return { streamFormat: "progressive", progUrl: source.src }
+  end if
+end function
 
 sub decorateSampleWithPlaybackData(sampleData)
   if sampleData = invalid then return
@@ -148,6 +181,7 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "play", m.top, "onPlay")
   m.player.callFunc("addEventListener", "playing", m.top, "onPlaying")
   m.player.callFunc("addEventListener", "pause", m.top, "onPause")
+  m.player.callFunc("addEventListener", "sourcechange", m.top, "onSourceChange")
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
@@ -158,6 +192,7 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", "play", m.top, "onPlay")
     m.player.callFunc("removeEventListener", "playing", m.top, "onPlaying")
     m.player.callFunc("removeEventListener", "pause", m.top, "onPause")
+    m.player.callFunc("removeEventListener", "sourcechange", m.top, "onSourceChange")
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
   end if
 
@@ -198,6 +233,17 @@ sub stopVideoStartUpTimer()
 end sub
 
 ' ===== Player event callbacks =====
+
+sub onSourceChange(eventData = invalid)
+  sourceChangedFromInitialOne = m.currentState <> m.collectorStates.SETUP
+
+  if sourceChangedFromInitialOne
+    m.collectorCore.callFunc("setupSample") ' new analytics impression
+    m.videoStartUpTime = -1
+  end if
+
+  detectSourceFormat()
+end sub
 
 sub onPlay(eventData = invalid)
   startVideoStartUpTimer()

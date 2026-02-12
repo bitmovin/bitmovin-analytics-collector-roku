@@ -11,5 +11,6 @@
     <function name="onPlaying" />
     <function name="onPause" />
     <function name="onDestroy" />
+    <function name="onSourceChange" />
   </interface>
 </component>
