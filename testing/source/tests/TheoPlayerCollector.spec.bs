@@ -1211,6 +1211,59 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("applies user modifications to error severity")
+    function _()
+      testContext = { onErrorSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "onError"
+            m.testContext.onErrorSample = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      m.node.top.observeFieldScoped("error", "modifyTheoErrorData")
+
+      eventData = { errorObject: { code: 42, cause: "playback error" } }
+
+      'bs:disable-next-line
+      onError(eventData)
+
+      m.assertNotInvalid(testContext.onErrorSample)
+      m.assertEqual(testContext.onErrorSample.errorCode, 43)
+      m.assertEqual(testContext.onErrorSample.errorMessage, "playback error-MODIFIED")
+      m.assertEqual(testContext.onErrorSample.errorSeverity, "INFO")
+
+      m.node.top.unobserveFieldScoped("error")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("delegates to collectorCore onError")
     function _()
       testContext = { onErrorSample: invalid }
@@ -1498,3 +1551,13 @@ namespace tests
   end class
 
 end namespace
+
+function modifyTheoErrorData(errorEvent)
+  errorData = errorEvent.getData()
+
+  errorData.error.message = errorData.error.message + "-MODIFIED"
+  errorData.error.code = errorData.error.code + 1
+  errorData.error.severity = "INFO"
+
+  m.top.error = errorData
+end function
