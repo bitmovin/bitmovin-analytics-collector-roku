@@ -20,6 +20,7 @@ sub initializePlayer(player)
   m.videoStartUpTime = -1
   m.previousState = ""
   m.currentState = m.collectorStates.SETUP
+  m.currentVideoBitrate = invalid
 
   setUpObservers()
 
@@ -217,7 +218,30 @@ end sub
 sub onBitrateChange(eventData = invalid)
   if eventData = invalid then return
 
-  updateSample({ videoBitrate: eventData.bitrate })
+  m.currentVideoBitrate = eventData.bitrate
+
+  ' Send qualityChange sample only if the player is currently playing, otherwise only update the bitrate in the sample
+  ' Note: on the initial bitratechange event the player is not playing yet
+
+  if m.currentState = m.collectorStates.PLAYING
+    ' send playing state sample for the previous bitrate
+    setVideoTimeEnd()
+    stateDuration = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+
+    ' send qualityChange change sample
+    sample = {
+      videoBitrate: m.currentVideoBitrate,
+      videoTimeStart: getCurrentPlayerTimeInMs(),
+      videoTimeEnd: getCurrentPlayerTimeInMs()
+    }
+    sendAnalyticsRequestAndClearValues(sample, 0, "qualityChange")
+  end if
+
+  updateSample({ videoBitrate: m.currentVideoBitrate })
+
 end sub
 
 sub onDestroy(eventData = invalid)
