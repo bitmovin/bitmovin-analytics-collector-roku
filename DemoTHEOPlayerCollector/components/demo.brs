@@ -27,6 +27,7 @@ sub onLoadStatusChanged(sourceType = invalid)
 
   m.theoPlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
   m.theoPlayerCollector.callFunc("initializePlayer", m.THEOplayer)
+  m.theoPlayerCollector.observeFieldScoped("error", "onCollectorError")
 
   preparePlayer(m.PlayerSourceType.AOM)
 
@@ -59,6 +60,16 @@ end function
 function onPlaying(eventData)
   print "-> PLAYING: "; eventData
 end function
+
+sub onCollectorError(event)
+  errorData = event.getData()
+  print "-> COLLECTOR ERROR: "; FormatJson(errorData)
+
+  ' It's possible to override the error severity here before it gets sent to the analytics backend
+  ' errorData.error.severity = "INFO"
+  ' m.theoPlayerCollector.error = errorData
+
+end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
   handled = false
