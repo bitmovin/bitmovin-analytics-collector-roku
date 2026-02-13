@@ -12,5 +12,6 @@
     <function name="onPause" />
     <function name="onBitrateChange" />
     <function name="onDestroy" />
+    <function name="onSourceChange" />
   </interface>
 </component>

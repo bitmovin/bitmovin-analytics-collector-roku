@@ -235,6 +235,326 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("mapSource")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns empty object when source is invalid")
+    function _()
+      'bs:disable-next-line
+      result = mapSource(invalid)
+
+      m.assertEqual(result.Count(), 0)
+    end function
+
+    @it("returns empty object when source type is invalid")
+    function _()
+      source = { src: "http://example.com/stream.m3u8", type: invalid }
+
+      'bs:disable-next-line
+      result = mapSource(source)
+
+      m.assertEqual(result.Count(), 0)
+    end function
+
+    @it("maps application/x-mpegURL to hls stream format")
+    function _()
+      source = { src: "http://example.com/stream.m3u8", type: "application/x-mpegURL" }
+
+      'bs:disable-next-line
+      result = mapSource(source)
+
+      m.assertEqual(result.streamFormat, "hls")
+      m.assertEqual(result.m3u8Url, "http://example.com/stream.m3u8")
+    end function
+
+    @it("maps application/dash+xml to dash stream format")
+    function _()
+      source = { src: "http://example.com/stream.mpd", type: "application/dash+xml" }
+
+      'bs:disable-next-line
+      result = mapSource(source)
+
+      m.assertEqual(result.streamFormat, "dash")
+      m.assertEqual(result.mpdUrl, "http://example.com/stream.mpd")
+    end function
+
+    @it("maps theolive type to hls stream format")
+    function _()
+      source = { src: "http://example.com/theolive-channel", type: "theolive" }
+
+      'bs:disable-next-line
+      result = mapSource(source)
+
+      m.assertEqual(result.streamFormat, "hls")
+      m.assertEqual(result.m3u8Url, "http://example.com/theolive-channel")
+    end function
+
+    @it("falls back to progressive for unknown type")
+    function _()
+      source = { src: "http://example.com/video.mp4", type: "video/mp4" }
+
+      'bs:disable-next-line
+      result = mapSource(source)
+
+      m.assertEqual(result.streamFormat, "progressive")
+      m.assertEqual(result.progUrl, "http://example.com/video.mp4")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getActiveSource")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when player is invalid")
+    function _()
+      'bs:disable-next-line
+      result = getActiveSource(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns invalid when player source is invalid")
+    function _()
+      m.mockPlayer.source = invalid
+
+      'bs:disable-next-line
+      result = getActiveSource(m.mockPlayer)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns invalid when sources array is empty")
+    function _()
+      m.mockPlayer.source = { sources: [] }
+
+      'bs:disable-next-line
+      result = getActiveSource(m.mockPlayer)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns the first source from the sources array")
+    function _()
+      firstSource = { src: "http://example.com/stream.m3u8", type: "application/x-mpegURL" }
+      m.mockPlayer.source = { sources: [firstSource, { src: "http://example.com/backup.m3u8", type: "application/x-mpegURL" }] }
+
+      'bs:disable-next-line
+      result = getActiveSource(m.mockPlayer)
+
+      m.assertEqual(result.src, firstSource.src)
+      m.assertEqual(result.type, firstSource.type)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("detectSourceFormat")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does not call updateSample when player has no source")
+    function _()
+      testContext = { updateSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.updateSampleCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.source = invalid
+
+      'bs:disable-next-line
+      detectSourceFormat()
+
+      m.assertFalse(testContext.updateSampleCalled)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("calls updateSample with mapped source when source is available")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.source = {
+        sources: [{ src: "http://example.com/stream.m3u8", type: "application/x-mpegURL" }]
+      }
+
+      'bs:disable-next-line
+      detectSourceFormat()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.streamFormat, "hls")
+      m.assertEqual(testContext.capturedSampleData.m3u8Url, "http://example.com/stream.m3u8")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onSourceChange")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("updates sample with source metadata when source changes")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      m.mockPlayer.source = {
+        sources: [{ src: "http://example.com/stream.mpd", type: "application/dash+xml" }]
+      }
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.streamFormat, "dash")
+      m.assertEqual(testContext.capturedSampleData.mpdUrl, "http://example.com/stream.mpd")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not update sample when source is not yet available")
+    function _()
+      testContext = { updateSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.updateSampleCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      m.mockPlayer.source = invalid
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      m.assertFalse(testContext.updateSampleCalled)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not call setupSample during initial source load")
+    function _()
+      testContext = { setupSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "setupSample"
+            m.testContext.setupSampleCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      m.mockPlayer.source = {
+        sources: [{ src: "http://example.com/stream.m3u8", type: "application/x-mpegURL" }]
+      }
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      m.assertFalse(testContext.setupSampleCalled)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("calls setupSample before detectSourceFormat when source changes after initial setup")
+    function _()
+      testContext = { callOrder: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          m.testContext.callOrder.Push(funcName)
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      m.mockPlayer.source = {
+        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
+      }
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      setupIndex = -1
+      updateIndex = -1
+      for i = 0 to testContext.callOrder.Count() - 1
+        if testContext.callOrder[i] = "setupSample" then setupIndex = i
+        if testContext.callOrder[i] = "updateSample" then updateIndex = i
+      end for
+
+      m.assertTrue(setupIndex >= 0, "setupSample should have been called")
+      m.assertTrue(updateIndex >= 0, "updateSample should have been called")
+      m.assertTrue(setupIndex < updateIndex, "setupSample should be called before updateSample")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("resets videoStartUpTime when source changes after initial setup")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.videoStartUpTime = 500
+
+      m.mockPlayer.source = {
+        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
+      }
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.videoStartUpTime, -1)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("initializePlayer")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
