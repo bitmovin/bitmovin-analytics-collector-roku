@@ -259,10 +259,10 @@ end sub
 sub onVideoStartTimeout()
   durationMilliseconds = m.videoStartTimeoutTimer.duration * 1000
   clearVideoStartTimeout()
-  handleVideoStartError(m.videoStartFailedEvents.Timeout, durationMilliseconds, "error")
+  sendVideoStartError(m.videoStartFailedEvents.Timeout, durationMilliseconds, "error")
 end sub
 
-sub handleVideoStartError(reason, duration, state, additionalEventData = invalid)
+sub sendVideoStartError(reason, duration, state, additionalEventData = invalid)
   if reason = invalid return
 
   eventData = {}
@@ -338,7 +338,7 @@ sub onError(eventData = invalid)
 
   if m.didAttemptPlay = true and m.didVideoPlay = false
     duration = getDuration(m.playerStateTimer)
-    handleVideoStartError(m.videoStartFailedEvents.PlayerError, duration, "error", errorSample)
+    sendVideoStartError(m.videoStartFailedEvents.PlayerError, duration, "error", errorSample)
   else
     sendAnalyticsRequestAndClearValues(errorSample, 0, "error")
   end if

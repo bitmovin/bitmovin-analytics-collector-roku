@@ -1366,7 +1366,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("handleVideoStartError")
+    @describe("sendVideoStartError")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("sends videoStartFailed when error occurs after play but before playing")
@@ -1497,7 +1497,7 @@ namespace tests
       m.mockPlayer.duration = 60
 
       'bs:disable-next-line
-      handleVideoStartError(invalid, 0, "setup")
+      sendVideoStartError(invalid, 0, "setup")
 
       m.assertInvalid(testContext.capturedSampleData)
 
