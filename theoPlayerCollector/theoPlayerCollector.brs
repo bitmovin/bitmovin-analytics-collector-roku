@@ -7,6 +7,7 @@ sub init()
   m.errorSeverities = getErrorSeverities()
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
+  m.lastKnownCurrentTime = -1
 end sub
 
 ' ===== PUBLIC METHODS =====
@@ -22,11 +23,16 @@ sub initializePlayer(player)
   m.playerStateTimer = CreateObject("roTimespan")
   m.previousState = ""
   m.currentState = m.collectorStates.SETUP
+  m.currentVideoBitrate = invalid
 
   m.videoStartupTimer = invalid
   m.videoStartUpTime = -1
   m.didAttemptPlay = false
   m.didVideoPlay = false
+
+  m.alreadySeeking = false
+  m.seekStartPosition = invalid
+  m.seekTimer = invalid
 
   setUpObservers()
   detectSourceFormat()
@@ -126,10 +132,10 @@ sub decorateSampleWithPlaybackData(sampleData)
   if currentSubtitleTrack <> invalid then sampleData.Append({ subtitleLanguage: currentSubtitleTrack })
 
   ' Set subtitle enabled
-  sampleData.Append({subtitleEnabled: getDeviceSubtitlesEnabled()})
+  sampleData.Append({ subtitleEnabled: getDeviceSubtitlesEnabled() })
 
   ' Set video duration
-  sampleData.Append({videoDuration: getVideoDuration()})
+  sampleData.Append({ videoDuration: getVideoDuration() })
 end sub
 
 function getCurrentAudioLanguage(audioTracks)
@@ -188,6 +194,10 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "pause", m.top, "onPause")
   m.player.callFunc("addEventListener", "sourcechange", m.top, "onSourceChange")
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
+  m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
+  m.player.callFunc("addEventListener", "seeking", m.top, "onSeeking")
+  m.player.callFunc("addEventListener", "seeked", m.top, "onSeeked")
+  m.player.callFunc("addEventListener", "timeupdate", m.top, "onTimeUpdate")
   m.player.callFunc("addEventListener", "error", m.top, "onError")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
@@ -200,6 +210,10 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", "pause", m.top, "onPause")
     m.player.callFunc("removeEventListener", "sourcechange", m.top, "onSourceChange")
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
+    m.player.callFunc("removeEventListener", "bitratechange", m.top, "onBitrateChange")
+    m.player.callFunc("removeEventListener", "seeking", m.top, "onSeeking")
+    m.player.callFunc("removeEventListener", "seeked", m.top, "onSeeked")
+    m.player.callFunc("removeEventListener", "timeupdate", m.top, "onTimeUpdate")
     m.player.callFunc("removeEventListener", "error", m.top, "onError")
   end if
 
@@ -209,6 +223,8 @@ sub unobserveFields(isDestroy = false)
 end sub
 
 sub onHeartbeat()
+  if m.alreadySeeking = true then return
+
   setVideoTimeEnd()
 
   duration = getDuration(m.playerStateTimer)
@@ -299,11 +315,45 @@ end sub
 sub onPlaying(eventData = invalid)
   stopVideoStartUpTimer()
   trackVideoStart()
+
+  if m.currentState = m.collectorStates.PLAYING then return
+
   onPlayerStateChanged(m.collectorStates.PLAYING)
 end sub
 
 sub onPause(eventData = invalid)
+  if m.player.seeking then return
+
   onPlayerStateChanged(m.collectorStates.PAUSED)
+end sub
+
+sub onBitrateChange(eventData = invalid)
+  if eventData = invalid then return
+
+  m.currentVideoBitrate = eventData.bitrate
+
+  ' Send qualityChange sample only if the player is currently playing, otherwise only update the bitrate in the sample
+  ' Note: on the initial bitratechange event the player is not playing yet
+
+  if m.currentState = m.collectorStates.PLAYING
+    ' send playing state sample for the previous bitrate
+    setVideoTimeEnd()
+    stateDuration = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+
+    ' send qualityChange change sample
+    sample = {
+      videoBitrate: m.currentVideoBitrate,
+      videoTimeStart: getCurrentPlayerTimeInMs(),
+      videoTimeEnd: getCurrentPlayerTimeInMs()
+    }
+    sendAnalyticsRequestAndClearValues(sample, 0, "qualityChange")
+  end if
+
+  updateSample({ videoBitrate: m.currentVideoBitrate })
+
 end sub
 
 sub onError(eventData = invalid)
@@ -352,6 +402,12 @@ sub onDestroy(eventData = invalid)
   destroy()
 end sub
 
+sub onTimeUpdate(eventData = invalid)
+  if m.player.seeking then return
+
+  m.lastKnownCurrentTime = eventData.currentTime
+end sub
+
 sub onPlayerStateChanged(newState)
   transitionToState(newState)
   m.collectorCore.playerState = m.currentState
@@ -391,6 +447,45 @@ end sub
 
 sub setVideoTimeEnd()
   m.collectorCore.callFunc("setVideoTimeEnd", getCurrentPlayerTimeInMs())
+end sub
+
+sub onSeeking(eventData = invalid)
+  if m.alreadySeeking = true or m.currentState = m.collectorStates.SETUP then return
+
+  m.alreadySeeking = true
+  ' At the time when we receive the seeking event, the player has already updated the `currentTime` to the
+  ' seek-target. Thus we need to rely on our last tracked `currentTime` to get an approximate starting position.
+  m.seekStartPosition = m.lastKnownCurrentTime
+  m.seekTimer = createObject("roTimeSpan")
+
+  if m.currentState = m.collectorStates.PLAYING
+    m.collectorCore.callFunc("setVideoTimeEnd", Cint(m.lastKnownCurrentTime * 1000))
+    played = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues({ played: played }, played, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+  end if
+end sub
+
+sub onSeeked(eventData = invalid)
+  if m.seekTimer = invalid then return
+
+  duration = m.seekTimer.TotalMilliseconds()
+  seekedEventData = {
+    videoTimeStart: m.seekStartPosition,
+    seeked: duration
+  }
+
+  setVideoTimeEnd()
+  sendAnalyticsRequestAndClearValues(seekedEventData, duration, "seeked")
+  setVideoTimeStart() ' Finished seeking does not trigger a state change, need to manually set videoTimeStart
+  resetSeekHelperVariables()
+end sub
+
+sub resetSeekHelperVariables()
+  m.alreadySeeking = false
+  m.seekStartPosition = invalid
+  m.seekTimer = invalid
 end sub
 
 ' ====== SSAI related ad callbacks ======

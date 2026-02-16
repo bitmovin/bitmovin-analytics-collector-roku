@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - made sure THEO player collector is cleaned up on `destroy` event
 - implemented THEO player collector `startup` event
 - implemented THEO player collector source format detection
+- implemented THEO player collector `seeking` event
+- implemented THEO player collector video quality change tracking
 - implemented THEO player collector error handling with application-level severity override
 
 ## v2.13.0
