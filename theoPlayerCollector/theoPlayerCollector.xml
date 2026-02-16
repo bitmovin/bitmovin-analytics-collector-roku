@@ -3,6 +3,7 @@
     <script type="text/brightscript" uri="./theoPlayerEnums.brs"/>
     <script type="text/brightscript" uri="./theoPlayerCollector.brs"/>
   <children>
+    <Timer id="videoStartTimeoutTimer" repeat="false" duration="60" />
     <collectorCore id="collectorCore"/>
   </children>
   <interface>
@@ -16,5 +17,6 @@
     <function name="onSeeking" />
     <function name="onSeeked" />
     <function name="onTimeUpdate" />
+    <function name="onError" />
   </interface>
 </component>
