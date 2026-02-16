@@ -20,6 +20,7 @@ sub initializePlayer(player)
   m.playerStateTimer = CreateObject("roTimespan")
   m.previousState = ""
   m.currentState = m.collectorStates.SETUP
+  m.currentVideoBitrate = invalid
 
   m.videoStartupTimer = invalid
   m.videoStartUpTime = -1
@@ -188,6 +189,7 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "pause", m.top, "onPause")
   m.player.callFunc("addEventListener", "sourcechange", m.top, "onSourceChange")
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
+  m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
   m.player.callFunc("addEventListener", "seeking", m.top, "onSeeking")
   m.player.callFunc("addEventListener", "seeked", m.top, "onSeeked")
   m.player.callFunc("addEventListener", "timeupdate", m.top, "onTimeUpdate")
@@ -202,6 +204,7 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", "pause", m.top, "onPause")
     m.player.callFunc("removeEventListener", "sourcechange", m.top, "onSourceChange")
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
+    m.player.callFunc("removeEventListener", "bitratechange", m.top, "onBitrateChange")
     m.player.callFunc("removeEventListener", "seeking", m.top, "onSeeking")
     m.player.callFunc("removeEventListener", "seeked", m.top, "onSeeked")
     m.player.callFunc("removeEventListener", "timeupdate", m.top, "onTimeUpdate")
@@ -273,6 +276,35 @@ sub onPause(eventData = invalid)
   if m.player.seeking then return
 
   onPlayerStateChanged(m.collectorStates.PAUSED)
+end sub
+
+sub onBitrateChange(eventData = invalid)
+  if eventData = invalid then return
+
+  m.currentVideoBitrate = eventData.bitrate
+
+  ' Send qualityChange sample only if the player is currently playing, otherwise only update the bitrate in the sample
+  ' Note: on the initial bitratechange event the player is not playing yet
+
+  if m.currentState = m.collectorStates.PLAYING
+    ' send playing state sample for the previous bitrate
+    setVideoTimeEnd()
+    stateDuration = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+
+    ' send qualityChange change sample
+    sample = {
+      videoBitrate: m.currentVideoBitrate,
+      videoTimeStart: getCurrentPlayerTimeInMs(),
+      videoTimeEnd: getCurrentPlayerTimeInMs()
+    }
+    sendAnalyticsRequestAndClearValues(sample, 0, "qualityChange")
+  end if
+
+  updateSample({ videoBitrate: m.currentVideoBitrate })
+
 end sub
 
 sub onDestroy(eventData = invalid)
