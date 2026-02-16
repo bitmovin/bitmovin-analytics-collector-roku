@@ -13,5 +13,8 @@
     <function name="onBitrateChange" />
     <function name="onDestroy" />
     <function name="onSourceChange" />
+    <function name="onSeeking" />
+    <function name="onSeeked" />
+    <function name="onTimeUpdate" />
   </interface>
 </component>
