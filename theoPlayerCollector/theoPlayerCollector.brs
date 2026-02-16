@@ -8,6 +8,7 @@ sub init()
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.lastKnownCurrentTime = -1
+  m.videoNode = invalid
 end sub
 
 ' ===== PUBLIC METHODS =====
@@ -31,6 +32,8 @@ sub initializePlayer(player)
   m.didVideoPlay = false
 
   m.currentTimeAtPauseStart = invalid
+
+  m.videoNode = m.player.callFunc("getVideoNode")
 
   setUpObservers()
   detectSourceFormat()
@@ -197,6 +200,10 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "error", m.top, "onError")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
+
+  if m.videoNode <> invalid
+    m.videoNode.observeFieldScoped("state", "onVideoNodeStateChanged")
+  end if
 end sub
 
 sub unobserveFields(isDestroy = false)
@@ -214,6 +221,11 @@ sub unobserveFields(isDestroy = false)
   if m.collectorCore <> invalid
     m.collectorCore.unobserveFieldScoped("fireHeartbeat")
   end if
+
+  if m.videoNode <> invalid
+    m.videoNode.unobserveFieldScoped("state")
+  end if
+
 end sub
 
 sub onHeartbeat()
@@ -404,6 +416,8 @@ sub onTimeUpdate(eventData = invalid)
 end sub
 
 sub onPlayerStateChanged(newState)
+  print m.tag; "onPlayerStateChanged: "; newState
+
   transitionToState(newState)
   m.collectorCore.playerState = m.currentState
 
@@ -419,6 +433,8 @@ sub transitionToState(nextState)
 end sub
 
 sub handlePreviousState()
+  ' conclude previous state
+
   if m.previousState = m.collectorStates.PLAYING
     played = m.playerStateTimer.TotalMilliseconds()
     sendAnalyticsRequestAndClearValues({ played: played }, played, m.previousState)
@@ -433,6 +449,9 @@ sub handlePreviousState()
     else
       sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.previousState)
     end if
+  else if m.previousState = m.collectorStates.BUFFERING and m.currentState = m.collectorStates.PLAYING
+    buffered = m.playerStateTimer.TotalMilliseconds()
+    sendAnalyticsRequestAndClearValues( { buffered: buffered } , buffered, m.collectorStates.BUFFERING)
   end if
 end sub
 
@@ -450,6 +469,22 @@ end sub
 
 sub setVideoTimeEnd()
   m.collectorCore.callFunc("setVideoTimeEnd", getCurrentPlayerTimeInMs())
+end sub
+
+sub onVideoNodeStateChanged()
+  if m.videoNode = invalid or m.currentState = m.collectorStates.SETUP then return
+
+  state = m.videoNode.state
+
+  if state = "buffering"
+    onBufferingStart()
+  end if
+end sub
+
+sub onBufferingStart()
+  if m.alreadySeeking = true then return
+
+  onPlayerStateChanged(m.collectorStates.BUFFERING)
 end sub
 
 ' ====== SSAI related ad callbacks ======
