@@ -31,7 +31,7 @@ sub initializePlayer(player)
   m.didVideoPlay = false
 
   m.alreadySeeking = false
-  m.seekStartPosition = invalid
+  m.currentTimeAtPauseStart = invalid
   m.seekTimer = invalid
 
   setUpObservers()
@@ -195,8 +195,6 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "sourcechange", m.top, "onSourceChange")
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
   m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
-  m.player.callFunc("addEventListener", "seeking", m.top, "onSeeking")
-  m.player.callFunc("addEventListener", "seeked", m.top, "onSeeked")
   m.player.callFunc("addEventListener", "timeupdate", m.top, "onTimeUpdate")
   m.player.callFunc("addEventListener", "error", m.top, "onError")
 
@@ -211,8 +209,6 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", "sourcechange", m.top, "onSourceChange")
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
     m.player.callFunc("removeEventListener", "bitratechange", m.top, "onBitrateChange")
-    m.player.callFunc("removeEventListener", "seeking", m.top, "onSeeking")
-    m.player.callFunc("removeEventListener", "seeked", m.top, "onSeeked")
     m.player.callFunc("removeEventListener", "timeupdate", m.top, "onTimeUpdate")
     m.player.callFunc("removeEventListener", "error", m.top, "onError")
   end if
@@ -324,6 +320,9 @@ end sub
 sub onPause(eventData = invalid)
   if m.player.seeking then return
 
+  ' save currentTime in case pause is due to a seek
+  m.currentTimeAtPauseStart = getCurrentPlayerTimeInMs()
+
   onPlayerStateChanged(m.collectorStates.PAUSED)
 end sub
 
@@ -409,6 +408,8 @@ sub onTimeUpdate(eventData = invalid)
 end sub
 
 sub onPlayerStateChanged(newState)
+  print "onPlayerStateChanged: "; newState
+
   transitionToState(newState)
   m.collectorCore.playerState = m.currentState
 
@@ -428,8 +429,16 @@ sub handlePreviousState()
     played = m.playerStateTimer.TotalMilliseconds()
     sendAnalyticsRequestAndClearValues({ played: played }, played, m.previousState)
   else if m.previousState = m.collectorStates.PAUSED and m.currentState = m.collectorStates.PLAYING
-    paused = m.playerStateTimer.TotalMilliseconds()
-    sendAnalyticsRequestAndClearValues({ paused: paused }, paused, m.previousState)
+    stateDuration = m.playerStateTimer.TotalMilliseconds()
+    currentTime = getCurrentPlayerTimeInMs()
+
+    if (m.currentTimeAtPauseStart <> currentTime)
+      ' current time changed during paused state, there was a seek
+      sample = { videoTimeStart: m.currentTimeAtPauseStart, seeked: stateDuration }
+      sendAnalyticsRequestAndClearValues(sample, stateDuration, "seeking")
+    else
+      sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.previousState)
+    end if
   end if
 end sub
 
@@ -449,42 +458,9 @@ sub setVideoTimeEnd()
   m.collectorCore.callFunc("setVideoTimeEnd", getCurrentPlayerTimeInMs())
 end sub
 
-sub onSeeking(eventData = invalid)
-  if m.alreadySeeking = true or m.currentState = m.collectorStates.SETUP then return
-
-  m.alreadySeeking = true
-  ' At the time when we receive the seeking event, the player has already updated the `currentTime` to the
-  ' seek-target. Thus we need to rely on our last tracked `currentTime` to get an approximate starting position.
-  m.seekStartPosition = m.lastKnownCurrentTime
-  m.seekTimer = createObject("roTimeSpan")
-
-  if m.currentState = m.collectorStates.PLAYING
-    m.collectorCore.callFunc("setVideoTimeEnd", Cint(m.lastKnownCurrentTime * 1000))
-    played = m.playerStateTimer.TotalMilliseconds()
-    sendAnalyticsRequestAndClearValues({ played: played }, played, m.currentState)
-    m.playerStateTimer.Mark()
-    setVideoTimeStart()
-  end if
-end sub
-
-sub onSeeked(eventData = invalid)
-  if m.seekTimer = invalid then return
-
-  duration = m.seekTimer.TotalMilliseconds()
-  seekedEventData = {
-    videoTimeStart: m.seekStartPosition,
-    seeked: duration
-  }
-
-  setVideoTimeEnd()
-  sendAnalyticsRequestAndClearValues(seekedEventData, duration, "seeked")
-  setVideoTimeStart() ' Finished seeking does not trigger a state change, need to manually set videoTimeStart
-  resetSeekHelperVariables()
-end sub
-
 sub resetSeekHelperVariables()
   m.alreadySeeking = false
-  m.seekStartPosition = invalid
+  m.currentTimeAtPauseStart = invalid
   m.seekTimer = invalid
 end sub
 
