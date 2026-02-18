@@ -30,9 +30,7 @@ sub initializePlayer(player)
   m.didAttemptPlay = false
   m.didVideoPlay = false
 
-  m.alreadySeeking = false
   m.currentTimeAtPauseStart = invalid
-  m.seekTimer = invalid
 
   setUpObservers()
   detectSourceFormat()
@@ -219,8 +217,6 @@ sub unobserveFields(isDestroy = false)
 end sub
 
 sub onHeartbeat()
-  if m.alreadySeeking = true then return
-
   setVideoTimeEnd()
 
   duration = getDuration(m.playerStateTimer)
@@ -456,12 +452,6 @@ end sub
 
 sub setVideoTimeEnd()
   m.collectorCore.callFunc("setVideoTimeEnd", getCurrentPlayerTimeInMs())
-end sub
-
-sub resetSeekHelperVariables()
-  m.alreadySeeking = false
-  m.currentTimeAtPauseStart = invalid
-  m.seekTimer = invalid
 end sub
 
 ' ====== SSAI related ad callbacks ======

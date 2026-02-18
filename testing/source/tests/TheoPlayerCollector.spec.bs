@@ -1378,36 +1378,6 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("onHeartbeat")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("suppresses heartbeat when seeking")
-    function _()
-      testContext = { sendCount: 0 }
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "sendAnalyticsRequestAndClearValues"
-            m.testContext.sendCount++
-          end if
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      'bs:disable-next-line
-      m.node.alreadySeeking = true
-
-      'bs:disable-next-line
-      onHeartbeat()
-
-      m.assertEqual(testContext.sendCount, 0)
-
-      m.node.collectorCore = originalCollectorCore
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("onPlaying - seek interaction")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
