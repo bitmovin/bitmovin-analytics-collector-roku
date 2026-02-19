@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.14.0-beta.0
+
+### Added
+- experimental support for the THEOplayer Roku SDK by Dolby OptiView
+
 ### Internal
 - added demo channel and testing setup for THEO player
 - added THEO player collector skeleton that adheres to the `baseCollector` structure
