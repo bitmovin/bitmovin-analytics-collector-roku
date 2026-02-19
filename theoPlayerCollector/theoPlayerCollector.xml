@@ -14,7 +14,6 @@
     <function name="onBitrateChange" />
     <function name="onDestroy" />
     <function name="onSourceChange" />
-    <function name="onTimeUpdate" />
     <function name="onError" />
   </interface>
 </component>
