@@ -15,7 +15,7 @@
     "remove-test-collectors": "rm -rf testing/components/collectorCore & rm -rf testing/components/nativePlayerCollector & rm -rf testing/components/bitmovinPlayerCollector & rm -rf testing/components/theoPlayerCollector",
     "refresh-collectors": "npm run remove-test-collectors && npm run copy-test-collectors",
     "copy-test-collectors": "cp -R collectorCore testing/components & cp -R nativePlayerCollector testing/components & cp -R bitmovinPlayerCollector testing/components & cp -R theoPlayerCollector testing/components",
-    "run-tests": "source .env && npm run build-tests && cd build && zip -9 -r ../dist/tests.zip . && cd .. && curl -S --user rokudev:$DEVPASSWORD --digest -F mysubmit=Install -F archive=@dist/tests.zip http://$ROKU_DEV_TARGET/plugin_install && curl -d '' http://$ROKU_DEV_TARGET:8060/keypress/home && sleep 2 && curl -d '' http://$ROKU_DEV_TARGET:8060/launch/dev?RunTests=true\\&logLevel=4 && sleep 10 | telnet $ROKU_DEV_TARGET 8085",
+    "run-tests": "rooibos-cli r testing/source/tests/rooibos/testConfig.json && cd testing && make test -e ROKU_DEV_TARGET=YOUR_DEVICE_IP_HERE DEVPASSWORD=YOUR_DEV_PASSWORD_HERE",
     "build-tests": "npx bsc"
   },
   "author": "",
