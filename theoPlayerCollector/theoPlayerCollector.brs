@@ -79,14 +79,40 @@ sub setNewMetadata(metadata = invalid)
 end sub
 
 function setCustomData(customData)
-  ' TODO: Implement (possibly extract into `baseCollector`)
+  if customData = invalid then return invalid
+  finishRunningSample()
+
+  return updateSample(customData)
 end function
 
 sub setCustomDataOnce(customData)
-  ' TODO: Implement (possibly extract into `baseCollector`)
+  if customData = invalid then return
+  finishRunningSample()
+
+  duration = getDuration(m.playerStateTimer)
+  createTempMetadataSampleAndSendAnalyticsRequest(customData, duration)
 end sub
 
 ' ===== HELPER METHODS =====
+
+sub finishRunningSample()
+  duration = getDuration(m.playerStateTimer)
+  m.playerStateTimer.Mark()
+
+  sendAnalyticsRequestAndClearValues({}, duration)
+end sub
+
+sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
+  sampleData = eventData
+  sampleData.Append({
+    state: state,
+    duration: duration,
+    time: getCurrentTimeInMilliseconds()
+  })
+  decorateSampleWithPlaybackData(sampleData)
+
+  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
+end sub
 
 sub detectSourceFormat()
   source = getActiveSource(m.player)
