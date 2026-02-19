@@ -1428,38 +1428,6 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("onTimeUpdate")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("updates lastKnownCurrentTime from event data")
-    function _()
-      'bs:disable-next-line
-      m.node.lastKnownCurrentTime = -1
-
-      m.mockPlayer.seeking = false
-
-      'bs:disable-next-line
-      onTimeUpdate({ currentTime: 42 })
-
-      'bs:disable-next-line
-      m.assertEqual(m.node.lastKnownCurrentTime, 42)
-    end function
-
-    @it("does not update lastKnownCurrentTime when player is seeking")
-    function _()
-      'bs:disable-next-line
-      m.node.lastKnownCurrentTime = 10
-
-      m.mockPlayer.seeking = true
-
-      'bs:disable-next-line
-      onTimeUpdate({ currentTime: 42 })
-
-      'bs:disable-next-line
-      m.assertEqual(m.node.lastKnownCurrentTime, 10)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("onPause - seek interaction")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

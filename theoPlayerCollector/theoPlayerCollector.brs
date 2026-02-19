@@ -7,7 +7,6 @@ sub init()
   m.errorSeverities = getErrorSeverities()
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
-  m.lastKnownCurrentTime = -1
 end sub
 
 ' ===== PUBLIC METHODS =====
@@ -193,7 +192,6 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "sourcechange", m.top, "onSourceChange")
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
   m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
-  m.player.callFunc("addEventListener", "timeupdate", m.top, "onTimeUpdate")
   m.player.callFunc("addEventListener", "error", m.top, "onError")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
@@ -207,7 +205,6 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", "sourcechange", m.top, "onSourceChange")
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
     m.player.callFunc("removeEventListener", "bitratechange", m.top, "onBitrateChange")
-    m.player.callFunc("removeEventListener", "timeupdate", m.top, "onTimeUpdate")
     m.player.callFunc("removeEventListener", "error", m.top, "onError")
   end if
 
@@ -395,12 +392,6 @@ end sub
 
 sub onDestroy(eventData = invalid)
   destroy()
-end sub
-
-sub onTimeUpdate(eventData = invalid)
-  if m.player.seeking then return
-
-  m.lastKnownCurrentTime = eventData.currentTime
 end sub
 
 sub onPlayerStateChanged(newState)
