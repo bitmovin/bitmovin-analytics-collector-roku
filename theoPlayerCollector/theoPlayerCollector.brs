@@ -33,6 +33,8 @@ sub initializePlayer(player)
 
   m.currentTimeAtPauseStart = invalid
 
+  m.isBuffering = false
+
   m.videoNode = m.player.callFunc("getVideoNode")
 
   setUpObservers()
@@ -323,6 +325,7 @@ sub onPlaying(eventData = invalid)
   if m.currentState = m.collectorStates.PLAYING then return
 
   onPlayerStateChanged(m.collectorStates.PLAYING)
+  m.isBuffering = false
 end sub
 
 sub onPause(eventData = invalid)
@@ -416,8 +419,6 @@ sub onTimeUpdate(eventData = invalid)
 end sub
 
 sub onPlayerStateChanged(newState)
-  print m.tag; "onPlayerStateChanged: "; newState
-
   transitionToState(newState)
   m.collectorCore.playerState = m.currentState
 
@@ -439,6 +440,11 @@ sub handlePreviousState()
     played = m.playerStateTimer.TotalMilliseconds()
     sendAnalyticsRequestAndClearValues({ played: played }, played, m.previousState)
   else if m.previousState = m.collectorStates.PAUSED and m.currentState = m.collectorStates.PLAYING
+    ' A paused state can mean multiple things as the player pauses during seeking and buffering, possibilities are:
+    ' 1) user-initiated pause (current time does not change during paused state)
+    ' 2) seek (current time changes during paused state)
+    ' 3) buffering (current time does not change but player signals buffering during paused state)
+
     stateDuration = m.playerStateTimer.TotalMilliseconds()
     currentTime = getCurrentPlayerTimeInMs()
 
@@ -446,12 +452,14 @@ sub handlePreviousState()
       ' current time changed during paused state, there was a seek
       sample = { videoTimeStart: m.currentTimeAtPauseStart, seeked: stateDuration }
       sendAnalyticsRequestAndClearValues(sample, stateDuration, "seeking")
+    else if (m.isBuffering = true)
+      ' buffering was signaled during paused state
+      sample = { videoTimeStart: m.currentTimeAtPauseStart, buffered: stateDuration }
+      sendAnalyticsRequestAndClearValues(sample, stateDuration, "buffering")
     else
+      ' regular pause
       sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.previousState)
     end if
-  else if m.previousState = m.collectorStates.BUFFERING and m.currentState = m.collectorStates.PLAYING
-    buffered = m.playerStateTimer.TotalMilliseconds()
-    sendAnalyticsRequestAndClearValues( { buffered: buffered } , buffered, m.collectorStates.BUFFERING)
   end if
 end sub
 
@@ -477,14 +485,8 @@ sub onVideoNodeStateChanged()
   state = m.videoNode.state
 
   if state = "buffering"
-    onBufferingStart()
+    m.isBuffering = true
   end if
-end sub
-
-sub onBufferingStart()
-  if m.alreadySeeking = true then return
-
-  onPlayerStateChanged(m.collectorStates.BUFFERING)
 end sub
 
 ' ====== SSAI related ad callbacks ======
