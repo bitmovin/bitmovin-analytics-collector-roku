@@ -404,8 +404,6 @@ sub onTimeUpdate(eventData = invalid)
 end sub
 
 sub onPlayerStateChanged(newState)
-  print "onPlayerStateChanged: "; newState
-
   transitionToState(newState)
   m.collectorCore.playerState = m.currentState
 
