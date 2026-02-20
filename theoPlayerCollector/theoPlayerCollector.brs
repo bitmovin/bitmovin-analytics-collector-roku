@@ -429,6 +429,8 @@ sub handlePreviousState()
   ' conclude previous state
 
   if m.previousState = m.collectorStates.PLAYING
+    ' PLAYING → any
+
     played = m.playerStateTimer.TotalMilliseconds()
     sample = { played: played }
 
@@ -440,23 +442,29 @@ sub handlePreviousState()
     end if
 
     sendAnalyticsRequestAndClearValues(sample, played, m.previousState)
-  else if m.previousState = m.collectorStates.PAUSED and m.currentState = m.collectorStates.PLAYING
+  else if m.previousState = m.collectorStates.PAUSED
     stateDuration = m.playerStateTimer.TotalMilliseconds()
-    currentTime = getCurrentPlayerTimeInMs()
 
-    if (m.currentTimeAtPauseStart <> currentTime)
-      ' current time changed during paused state, there was a seek
-      ' Note: This detection is needed because with seeks through the UI, the player does not always fire a seeking. But
-      ' it does get paused before seeking so we can detect a seek when exiting paused state.
-      sample = { videoTimeStart: m.currentTimeAtPauseStart, seeked: stateDuration }
-      sendAnalyticsRequestAndClearValues(sample, stateDuration, "seeking")
-    else
+    if m.currentState = m.collectorStates.SEEKING
+      ' PAUSED → SEEKING
+      ' API seek while paused — just conclude the paused state
       sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.previousState)
+    else if m.currentState = m.collectorStates.PLAYING
+      ' PAUSED → PLAYING
+      currentTime = getCurrentPlayerTimeInMs()
+
+      if (m.currentTimeAtPauseStart <> currentTime)
+        ' UI seek as current time changed during paused state w/o seeking event - signal seeking
+        ' Note: This detection is needed because with seeks through the UI, the player does not always fire a seeking. But
+        ' it does get paused before seeking so we can detect a seek when exiting paused state.
+        sample = { videoTimeStart: m.currentTimeAtPauseStart, seeked: stateDuration }
+        sendAnalyticsRequestAndClearValues(sample, stateDuration, "seeking")
+      else
+        sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.previousState)
+      end if
     end if
-  else if m.previousState = m.collectorStates.PAUSED and m.currentState = m.collectorStates.SEEKING
-    stateDuration = m.playerStateTimer.TotalMilliseconds()
-    sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.previousState)
   else if m.previousState = m.collectorStates.SEEKING
+    ' SEEKING → any
     stateDuration = m.playerStateTimer.TotalMilliseconds()
     sample = {
       videoTimeStart: Cint(m.seekStartPosition * 1000),
