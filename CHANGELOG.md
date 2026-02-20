@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Develop
 
 ### Internal
+- implemented THEO player collector seek tracking for API-initiated seeks
+
+## v2.14.0-beta.0
+
+### Added
+- experimental support for the THEOplayer Roku SDK by Dolby OptiView
+
+### Internal
 - added demo channel and testing setup for THEO player
 - added THEO player collector skeleton that adheres to the `baseCollector` structure
 - implemented THEO player collector `setup` event
@@ -20,7 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - implemented THEO player collector video quality change tracking
 - implemented THEO player collector error handling with application-level severity override
 - improved THEO player collector seek detection
-- implemented THEO player collector seek tracking for API-initiated seeks
+- implemented THEO player collector buffering tracking
 
 ## v2.13.0
 

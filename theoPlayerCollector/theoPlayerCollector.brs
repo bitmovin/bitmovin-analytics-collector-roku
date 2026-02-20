@@ -7,6 +7,7 @@ sub init()
   m.errorSeverities = getErrorSeverities()
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
+  m.videoNode = invalid
 end sub
 
 ' ===== PUBLIC METHODS =====
@@ -34,6 +35,10 @@ sub initializePlayer(player)
   m.lastKnownCurrentTime = 0
 
   m.currentTimeAtPauseStart = invalid
+
+  m.isBuffering = false
+
+  m.videoNode = m.player.callFunc("getVideoNode")
 
   setUpObservers()
   detectSourceFormat()
@@ -201,6 +206,10 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "error", m.top, "onError")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
+
+  if m.videoNode <> invalid
+    m.videoNode.observeFieldScoped("state", "onVideoNodeStateChanged")
+  end if
 end sub
 
 sub unobserveFields(isDestroy = false)
@@ -219,6 +228,11 @@ sub unobserveFields(isDestroy = false)
   if m.collectorCore <> invalid
     m.collectorCore.unobserveFieldScoped("fireHeartbeat")
   end if
+
+  if m.videoNode <> invalid
+    m.videoNode.unobserveFieldScoped("state")
+  end if
+
 end sub
 
 sub onHeartbeat()
@@ -318,6 +332,7 @@ sub onPlaying(eventData = invalid)
   if m.currentState = m.collectorStates.PLAYING then return
 
   onPlayerStateChanged(m.collectorStates.PLAYING)
+  m.isBuffering = false
 end sub
 
 sub onPause(eventData = invalid)
@@ -443,6 +458,11 @@ sub handlePreviousState()
 
     sendAnalyticsRequestAndClearValues(sample, stateDuration, m.previousState)
   else if m.previousState = m.collectorStates.PAUSED
+    ' A paused state can mean multiple things as the player pauses during UI seek and buffering, possibilities are:
+    ' 1) user-initiated pause (current time does not change during paused state)
+    ' 2) UI-initiated seek (current time changes during paused state)
+    ' 3) buffering (current time does not change but player signals buffering during paused state)
+
     if m.currentState = m.collectorStates.SEEKING
       ' PAUSED → SEEKING
       ' API seek while paused — just conclude the paused state
@@ -457,6 +477,10 @@ sub handlePreviousState()
         ' it does get paused before seeking so we can detect a seek when exiting paused state.
         sample = { videoTimeStart: m.currentTimeAtPauseStart, seeked: stateDuration }
         sendAnalyticsRequestAndClearValues(sample, stateDuration, "seeking")
+      else if (m.isBuffering = true)
+        ' buffering was signaled during paused state
+        sample = { videoTimeStart: m.currentTimeAtPauseStart, buffered: stateDuration }
+        sendAnalyticsRequestAndClearValues(sample, stateDuration, "buffering")
       else
         sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.previousState)
       end if
@@ -503,6 +527,16 @@ end sub
 sub resetSeekHelperVariables()
   m.isSeeking = false
   m.seekStartPosition = invalid
+end sub
+
+sub onVideoNodeStateChanged()
+  if m.videoNode = invalid or m.currentState = m.collectorStates.SETUP then return
+
+  state = m.videoNode.state
+
+  if state = "buffering"
+    m.isBuffering = true
+  end if
 end sub
 
 ' ====== SSAI related ad callbacks ======
