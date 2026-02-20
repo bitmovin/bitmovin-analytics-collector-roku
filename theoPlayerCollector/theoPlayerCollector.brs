@@ -428,11 +428,11 @@ end sub
 sub handlePreviousState()
   ' conclude previous state
 
+  stateDuration = m.playerStateTimer.TotalMilliseconds()
+
   if m.previousState = m.collectorStates.PLAYING
     ' PLAYING → any
-
-    played = m.playerStateTimer.TotalMilliseconds()
-    sample = { played: played }
+    sample = { played: stateDuration }
 
     if m.currentState = m.collectorStates.SEEKING
       ' If we are entering seeking state the currentTime is already updated to the seek-target and thus the default
@@ -441,10 +441,8 @@ sub handlePreviousState()
       sample.videoTimeEnd = Cint(m.seekStartPosition * 1000)
     end if
 
-    sendAnalyticsRequestAndClearValues(sample, played, m.previousState)
+    sendAnalyticsRequestAndClearValues(sample, stateDuration, m.previousState)
   else if m.previousState = m.collectorStates.PAUSED
-    stateDuration = m.playerStateTimer.TotalMilliseconds()
-
     if m.currentState = m.collectorStates.SEEKING
       ' PAUSED → SEEKING
       ' API seek while paused — just conclude the paused state
@@ -465,7 +463,6 @@ sub handlePreviousState()
     end if
   else if m.previousState = m.collectorStates.SEEKING
     ' SEEKING → any
-    stateDuration = m.playerStateTimer.TotalMilliseconds()
     sample = {
       videoTimeStart: Cint(m.seekStartPosition * 1000),
       seeked: stateDuration
