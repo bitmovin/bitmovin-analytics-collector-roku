@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - implemented THEO player collector video quality change tracking
 - implemented THEO player collector error handling with application-level severity override
 - improved THEO player collector seek detection
+- implemented THEO player collector seek tracking for API-initiated seeks
 
 ## v2.13.0
 
