@@ -40,9 +40,9 @@ sub initializePlayer(player)
   detectSourceFormat()
 
   eventData = {
-    playerTech: "theo"
+    playerTech: "Roku:THEOplayer"
     version: getPlayerVersion()
-    player: "theo"
+    player: "theoplayer"
     playerKey: getPlayerKeyFromManifest(m.appInfo)
     playerStartupTime: 1
   }
@@ -65,7 +65,7 @@ sub destroy(param = invalid)
 end sub
 
 function getPlayerVersion()
-  return "theo-" + m.player.version
+  return "theoplayer-" + m.player.version
 end function
 
 function setAnalyticsConfig(config)
