@@ -37,7 +37,7 @@ namespace tests
       'bs:disable-next-line
       returnedPlayerVersion = getPlayerVersion()
 
-      m.assertEqual(returnedPlayerVersion, "theo-0.0.0")
+      m.assertEqual(returnedPlayerVersion, "theoplayer-0.0.0")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
