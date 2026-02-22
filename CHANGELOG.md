@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Added
+- support for `customData` fields in THEOplayer collector
+
 ## v2.14.0-beta.0
 
 ### Added
