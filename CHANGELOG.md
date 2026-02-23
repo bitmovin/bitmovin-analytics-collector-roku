@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Internal
+- implemented THEO player collector seek tracking for API-initiated seeks
+
 ## v2.14.0-beta.0
 
 ### Added

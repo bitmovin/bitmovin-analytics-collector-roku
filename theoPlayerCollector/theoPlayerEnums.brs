@@ -4,5 +4,6 @@ function getCollectorStates()
     SETUP: "setup"
     PLAYING: "playing"
     PAUSED: "paused"
+    SEEKING: "seeking"
   }
 end function
