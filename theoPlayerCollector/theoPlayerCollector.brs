@@ -21,24 +21,9 @@ sub initializePlayer(player)
   m.player = player
 
   m.playerStateTimer = CreateObject("roTimespan")
-  m.previousState = ""
-  m.currentState = m.collectorStates.SETUP
-  m.currentVideoBitrate = invalid
-
-  m.videoStartupTimer = invalid
-  m.videoStartUpTime = -1
-  m.didAttemptPlay = false
-  m.didVideoPlay = false
-
-  m.isSeeking = false
-  m.seekStartPosition = invalid
-  m.lastKnownCurrentTime = 0
-
-  m.currentTimeAtPauseStart = invalid
-
-  m.isBuffering = false
-
   m.videoNode = m.player.callFunc("getVideoNode")
+
+  resetCollectorState()
 
   setUpObservers()
   detectSourceFormat()
@@ -311,8 +296,9 @@ sub onSourceChange(eventData = invalid)
   sourceChangedFromInitialOne = m.currentState <> m.collectorStates.SETUP
 
   if sourceChangedFromInitialOne
+    sendClosingSampleForCurrentState()
     m.collectorCore.callFunc("setupSample") ' new analytics impression
-    m.videoStartUpTime = -1
+    resetCollectorState()
   end if
 
   detectSourceFormat()
@@ -496,6 +482,26 @@ sub handlePreviousState()
   end if
 end sub
 
+sub sendClosingSampleForCurrentState()
+  setVideoTimeEnd()
+  stateDuration = m.playerStateTimer.TotalMilliseconds()
+
+  if m.currentState = m.collectorStates.PLAYING
+    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
+  else if m.currentState = m.collectorStates.PAUSED
+    sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
+  else if m.currentState = m.collectorStates.SEEKING
+    sample = {
+      videoTimeStart: Cint(m.seekStartPosition * 1000),
+      seeked: stateDuration
+    }
+    sendAnalyticsRequestAndClearValues(sample, stateDuration, m.currentState)
+    resetSeekHelperVariables()
+  end if
+
+  m.playerStateTimer.Mark()
+end sub
+
 function getCurrentPlayerTimeInMs()
   currentTime = m.player.currentTime
   if currentTime = invalid then return 0
@@ -527,6 +533,23 @@ end sub
 sub resetSeekHelperVariables()
   m.isSeeking = false
   m.seekStartPosition = invalid
+end sub
+
+sub resetCollectorState()
+  m.previousState = ""
+  m.currentState = m.collectorStates.SETUP
+
+  m.didAttemptPlay = false
+  m.didVideoPlay = false
+  m.videoStartupTimer = invalid
+  m.videoStartUpTime = -1
+
+  m.currentVideoBitrate = invalid
+  m.isBuffering = false
+  m.isSeeking = false
+  m.seekStartPosition = invalid
+  m.currentTimeAtPauseStart = invalid
+  m.lastKnownCurrentTime = 0
 end sub
 
 sub onVideoNodeStateChanged()
