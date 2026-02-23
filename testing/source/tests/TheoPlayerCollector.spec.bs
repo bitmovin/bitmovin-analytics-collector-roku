@@ -689,15 +689,15 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("sends closing sample for seeking state when source changes mid-seek")
+    @it("does not send seeking sample when source changes during a seek")
     function _()
-      testContext = { capturedClosingSample: invalid }
+      testContext = { seekedSampleSent: false }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
           if funcName = "updateSample" and sampleData <> invalid and sampleData.DoesExist("seeked")
-            m.testContext.capturedClosingSample = sampleData
+            m.testContext.seekedSampleSent = true
           end if
           return true
         end function,
@@ -728,10 +728,7 @@ namespace tests
       'bs:disable-next-line
       onSourceChange()
 
-      m.assertNotInvalid(testContext.capturedClosingSample)
-      m.assertEqual(testContext.capturedClosingSample.state, "seeking")
-      m.assertNotInvalid(testContext.capturedClosingSample.seeked)
-      m.assertEqual(testContext.capturedClosingSample.videoTimeStart, 30000)
+      m.assertFalse(testContext.seekedSampleSent)
 
       m.node.collectorCore = originalCollectorCore
     end function
