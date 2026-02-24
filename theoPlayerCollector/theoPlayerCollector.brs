@@ -496,9 +496,6 @@ sub sendClosingSampleForCurrentState()
       sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
     end if
   end if
-  ' SEEKING: the played/paused sample before the seek was already sent by handlePreviousState()
-  ' when onSeeking fired. No seeking sample is sent here since that seek was triggered by the
-  ' source change itself (THEO fires: seeking → pause → sourcechange).
 
   m.playerStateTimer.Mark()
 end sub
