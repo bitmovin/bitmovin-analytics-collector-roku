@@ -463,7 +463,7 @@ sub handlePreviousState()
         ' it does get paused before seeking so we can detect a seek when exiting paused state.
         sample = { videoTimeStart: m.currentTimeAtPauseStart, seeked: stateDuration }
         sendAnalyticsRequestAndClearValues(sample, stateDuration, "seeking")
-      else if (m.isBuffering = true)
+      else if m.isBuffering
         ' buffering was signaled during paused state
         sample = { videoTimeStart: m.currentTimeAtPauseStart, buffered: stateDuration }
         sendAnalyticsRequestAndClearValues(sample, stateDuration, "buffering")
@@ -489,7 +489,12 @@ sub sendClosingSampleForCurrentState()
   if m.currentState = m.collectorStates.PLAYING
     sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
   else if m.currentState = m.collectorStates.PAUSED
-    sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
+    if m.isBuffering
+      sample = { videoTimeStart: m.currentTimeAtPauseStart, buffered: stateDuration }
+      sendAnalyticsRequestAndClearValues(sample, stateDuration, "buffering")
+    else
+      sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
+    end if
   end if
   ' SEEKING: the played/paused sample before the seek was already sent by handlePreviousState()
   ' when onSeeking fired. No seeking sample is sent here since that seek was triggered by the
