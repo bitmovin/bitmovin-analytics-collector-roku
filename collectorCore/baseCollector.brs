@@ -21,3 +21,5 @@ sub  adBreakEnd()
 end sub
 sub adQuartileFinished()
 end sub
+sub programChange()
+end sub

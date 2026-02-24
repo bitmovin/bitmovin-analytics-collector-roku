@@ -90,6 +90,60 @@ sub setCustomDataOnce(customData)
   ' TODO: Implement (possibly extract into `baseCollector`)
 end sub
 
+sub programChange(newSourceMetadata = invalid)
+  if newSourceMetadata = invalid then return
+  if m.currentState = m.collectorStates.SETUP then return
+
+  ' Conclude current impression
+  setVideoTimeEnd()
+  stateDuration = m.playerStateTimer.TotalMilliseconds()
+
+  finalSampleData = { isProgramChange: true }
+  if m.currentState = m.collectorStates.PLAYING
+    finalSampleData.played = stateDuration
+  else if m.currentState = m.collectorStates.PAUSED
+    finalSampleData.paused = stateDuration
+  end if
+
+  sendAnalyticsRequestAndClearValues(finalSampleData, stateDuration, m.currentState)
+
+  ' Start new impression
+  m.collectorCore.callFunc("setupSample")
+
+  ' Apply new program metadata (config-level fields: title, videoId, cdnProvider, isLive, customData, experimentName)
+  m.collectorCore.callFunc("updateAnalyticsConfig", newSourceMetadata)
+
+  ' Apply URL fields (mpdUrl, m3u8Url, progUrl, path) and infer streamFormat
+  updateSample(getProgramChangeSourceMetadata(newSourceMetadata))
+
+  ' Send first sample of new impression
+  setVideoTimeStart()
+  setVideoTimeEnd()
+  sendAnalyticsRequestAndClearValues({ isProgramChange: true, videoStartupTime: 1 }, 0, "programChange")
+
+  ' Resume state tracking
+  m.playerStateTimer.Mark()
+  setVideoTimeStart()
+end sub
+
+function getProgramChangeSourceMetadata(metadata)
+  sourceMetadata = {}
+  if metadata.DoesExist("path") then sourceMetadata.path = metadata.path
+  if metadata.DoesExist("mpdUrl")
+    sourceMetadata.mpdUrl = metadata.mpdUrl
+    sourceMetadata.streamFormat = "dash"
+  end if
+  if metadata.DoesExist("m3u8Url")
+    sourceMetadata.m3u8Url = metadata.m3u8Url
+    sourceMetadata.streamFormat = "hls"
+  end if
+  if metadata.DoesExist("progUrl")
+    sourceMetadata.progUrl = metadata.progUrl
+    sourceMetadata.streamFormat = "progressive"
+  end if
+  return sourceMetadata
+end function
+
 ' ===== HELPER METHODS =====
 
 sub detectSourceFormat()

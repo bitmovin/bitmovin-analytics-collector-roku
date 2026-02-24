@@ -15,5 +15,6 @@
     <function name="adStart"/>
     <function name="adBreakEnd"/>
     <function name="adQuartileFinished"/>
+    <function name="programChange" />
   </interface>
 </component>
