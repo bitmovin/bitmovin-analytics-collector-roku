@@ -2655,6 +2655,47 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("passes skipHeartbeatReset true for both programChange sends")
+    function _()
+      testContext = { capturedSkipHeartbeatReset: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.capturedSkipHeartbeatReset.Push(arg)
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertEqual(testContext.capturedSkipHeartbeatReset.Count(), 2)
+      m.assertTrue(testContext.capturedSkipHeartbeatReset[0])
+      m.assertTrue(testContext.capturedSkipHeartbeatReset[1])
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("sends final sample before setupSample")
     function _()
       testContext = { calledFunctions: [] }

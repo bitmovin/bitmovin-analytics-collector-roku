@@ -218,14 +218,17 @@ function getPersistedUserId(sectionRegistryName)
 end function
 
 ' TODO: Error handling if the keys are invalid
-sub sendAnalyticsRequestAndClearValues(analyticsRequestType = m.AnalyticsRequestTypes.REGULAR)
+sub sendAnalyticsRequestAndClearValues(skipHeartbeatReset = false)
   manipulateSampleForSsai()
   m.AnalyticsDataTask.eventData = {
-    requestType: analyticsRequestType
+    requestType: m.AnalyticsRequestTypes.REGULAR
     requestData: m.sample
     isSsaiRelated: isCurrentSampleSsaiRelated()
+    skipHeartbeatReset: skipHeartbeatReset
   }
   m.sample.sequenceNumber++
+
+  print m.tag; "Sending analytics sample: "; FormatJson(m.sample)
 
   sendAnalyticsRequest()
   clearSampleValues()

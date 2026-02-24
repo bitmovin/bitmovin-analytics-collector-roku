@@ -105,7 +105,7 @@ sub programChange(newSourceMetadata = invalid)
     finalSampleData.paused = stateDuration
   end if
 
-  sendAnalyticsRequestAndClearValues(finalSampleData, stateDuration, m.currentState)
+  sendAnalyticsRequestAndClearValues(finalSampleData, stateDuration, m.currentState, true)
 
   ' Start new impression
   m.collectorCore.callFunc("setupSample")
@@ -119,7 +119,7 @@ sub programChange(newSourceMetadata = invalid)
   ' Send first sample of new impression
   setVideoTimeStart()
   setVideoTimeEnd()
-  sendAnalyticsRequestAndClearValues({ isProgramChange: true, videoStartupTime: 1 }, 0, "programChange")
+  sendAnalyticsRequestAndClearValues({ isProgramChange: true, videoStartupTime: 1 }, 0, "programChange", true)
 
   ' Resume state tracking
   m.playerStateTimer.Mark()
@@ -235,7 +235,7 @@ function updateSample(sampleData)
   return m.collectorCore.callFunc("updateSample", sampleData)
 end function
 
-sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
+sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState, skipHeartbeatReset = false)
   sampleData = eventData
   sampleData.Append({
     state: state,
@@ -245,7 +245,7 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
   decorateSampleWithPlaybackData(sampleData)
 
   updateSample(sampleData)
-  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
+  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues", skipHeartbeatReset)
 end sub
 
 sub setUpObservers()
