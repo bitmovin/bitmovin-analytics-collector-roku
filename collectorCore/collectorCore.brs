@@ -228,8 +228,6 @@ sub sendAnalyticsRequestAndClearValues(skipHeartbeatReset = false)
   }
   m.sample.sequenceNumber++
 
-  print m.tag; "Sending analytics sample: "; FormatJson(m.sample)
-
   sendAnalyticsRequest()
   clearSampleValues()
 end sub
