@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Internal
 - implemented THEO player collector seek tracking for API-initiated seeks
+- implemented `programChange` API for THEO player collector
 
 ## v2.14.0-beta.0
 
