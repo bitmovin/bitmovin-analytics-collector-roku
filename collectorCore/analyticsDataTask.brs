@@ -196,8 +196,8 @@ end function
 sub sendAnalyticsEventsFromQueue()
   if m.analyticsEventsQueue.Count() = 0 then return
 
-  firstEvent = m.analyticsEventsQueue[0]
-  if firstEvent.skipHeartbeatReset <> true then m.heartbeatTimer.Mark()
+  event = m.analyticsEventsQueue[0]
+  if event.skipHeartbeatReset <> true then m.heartbeatTimer.Mark()
   for each event in m.analyticsEventsQueue
     sendAnalyticsData(event)
   end for
