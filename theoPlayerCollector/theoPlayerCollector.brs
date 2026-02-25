@@ -92,7 +92,12 @@ end sub
 
 sub programChange(newSourceMetadata = invalid)
   if newSourceMetadata = invalid then return
-  if m.currentState = m.collectorStates.SETUP then return
+
+  if m.currentState = m.collectorStates.SETUP then
+    ' no source loaded yet, handle gracefully and treat it as a simple metadata update, no new impression
+    m.collectorCore.callFunc("updateAnalyticsConfig", newSourceMetadata)
+    return
+  end if
 
   ' Conclude current impression
   setVideoTimeEnd()
@@ -107,7 +112,7 @@ sub programChange(newSourceMetadata = invalid)
 
   sendAnalyticsRequestAndClearValues(finalSampleData, stateDuration, m.currentState, true)
 
-  ' Start new impression
+  ' Start new impression with new metadata
   m.collectorCore.callFunc("setupSample")
 
   ' Apply new program metadata (config-level fields: title, videoId, cdnProvider, isLive, customData, experimentName)

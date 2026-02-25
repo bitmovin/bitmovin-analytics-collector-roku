@@ -2532,14 +2532,15 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("does nothing when called in SETUP state")
+    @it("applies metadata update but does not start new impression when called in SETUP state")
     function _()
-      testContext = { callCount: 0 }
+      testContext = { capturedFuncName: invalid, capturedMetadata: invalid }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          m.testContext.callCount++
+          m.testContext.capturedFuncName = funcName
+          m.testContext.capturedMetadata = sampleData
           return true
         end function,
         testContext: testContext
@@ -2551,7 +2552,32 @@ namespace tests
       'bs:disable-next-line
       programChange({ title: "New Program" })
 
-      m.assertEqual(testContext.callCount, 0)
+      m.assertEqual(testContext.capturedFuncName, "updateAnalyticsConfig")
+      m.assertEqual(testContext.capturedMetadata.title, "New Program")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not conclude or start an impression when called in SETUP state")
+    function _()
+      testContext = { calledFunctions: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          m.testContext.calledFunctions[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
       m.node.collectorCore = originalCollectorCore
     end function
 
