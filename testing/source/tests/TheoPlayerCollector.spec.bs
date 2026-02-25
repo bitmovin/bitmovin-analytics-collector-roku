@@ -2828,6 +2828,21 @@ namespace tests
       m.assertEqual(result.path, "/channel/news")
     end function
 
+    @it("does not carry isProgramChange flag on samples after programChange")
+    function _()
+      realCollectorCore = m.node.collectorCore
+      analyticsDataTask = realCollectorCore.findNode("analyticsDataTask")
+
+      ' Simulate the programChange final sample: set isProgramChange and send
+      realCollectorCore.callFunc("updateSample", { isProgramChange: true })
+      realCollectorCore.callFunc("sendAnalyticsRequestAndClearValues", true)
+
+      ' Subsequent sample send (e.g. heartbeat) should not carry isProgramChange
+      realCollectorCore.callFunc("sendAnalyticsRequestAndClearValues", false)
+
+      m.assertFalse(analyticsDataTask.eventData.requestData.isProgramChange)
+    end function
+
   end class
 
 end namespace
