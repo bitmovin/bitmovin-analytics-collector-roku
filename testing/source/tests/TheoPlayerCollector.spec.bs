@@ -1339,6 +1339,9 @@ namespace tests
       }
 
       m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 0, width: 0 }
+        end if
         return invalid
       end function
 
