@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Internal
 - implemented THEO player collector seek tracking for API-initiated seeks
+- implemented THEO player collector source change handling (closing sample + state reset)
 
 ## v2.14.0-beta.0
 
