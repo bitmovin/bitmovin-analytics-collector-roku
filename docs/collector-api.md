@@ -32,7 +32,7 @@ Configuration object accepted by `initializeAnalytics`, `setAnalyticsConfig`, an
 | `customUserId` | String | Application-level user identifier. |
 | `experimentName` | String | Arbitrary experiment name. |
 | `isLive` | Boolean | Set to `true` for live streams. Defaults to `false`. |
-| `customData1`–`customData50` | String | Free-form custom dimensions. |
+| `customData1`–`customData100` | String | Free-form custom dimensions. |
 | `ssaiEngagementTrackingEnabled` | Boolean | Enables sending SSAI ad engagement samples (started, quartiles). Defaults to `false`. |
 
 ---
@@ -121,7 +121,7 @@ Applies custom data fields to the current impression immediately. Finalizes the 
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `customData` | AssociativeArray | Yes | Fields to merge into the current sample. Typically `customData1`–`customData50`. |
+| `customData` | AssociativeArray | Yes | Fields to merge into the current sample. Typically `customData1`–`customData100`. |
 
 ```brightscript
 m.collector.callFunc("setCustomData", { customData1: "segment-A", customData2: "tier-premium" })
@@ -175,7 +175,7 @@ Signals the start of an individual ad within the current ad break. Must be calle
 | `adMetadata` | AssociativeArray | No | Metadata for the specific ad. |
 | `adMetadata.adId` | String | No | Identifier for the ad. |
 | `adMetadata.adSystem` | String | No | Ad system/provider name. |
-| `adMetadata.customData` | AssociativeArray | No | Custom data fields (`customData1`–`customData50`) scoped to this ad. |
+| `adMetadata.customData` | AssociativeArray | No | Custom data fields (`customData1`–`customData100`) scoped to this ad. |
 
 ```brightscript
 m.collector.callFunc("adStart", {
@@ -222,7 +222,7 @@ m.collector.callFunc("adQuartileFinished", "completed", { failedBeaconUrl: "http
 
 > **THEO Player collector only.**
 
-Reports a program change within a live stream. Finalizes the current impression, starts a new one, and applies updated metadata for the new program. No-op if the player is in the initial SETUP state.
+Reports a program change within a live stream. Finalizes the current impression, starts a new one, and applies updated metadata for the new program. If called before any source has been loaded (SETUP state), applies the metadata as a configuration update without starting a new impression.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
