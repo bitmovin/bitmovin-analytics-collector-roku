@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - support for `customData` fields in THEOplayer collector
 
+### Changed
+- value of `playerTech` to `Roku:THEOplayer` and `player` to `theoplayer` in samples for consistency with other collectors
+
 ## v2.14.0-beta.0
 
 ### Added
