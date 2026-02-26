@@ -90,7 +90,7 @@ sub setCustomDataOnce(customData)
   finishRunningSample()
 
   duration = getDuration(m.playerStateTimer)
-  createTempMetadataSampleAndSendAnalticsRequest(customData, duration, m.currentState)
+  createTempMetadataSampleAndSendAnalyticsRequest(customData, duration, m.currentState)
 end sub
 
 ' ===== HELPER METHODS =====
