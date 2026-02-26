@@ -44,9 +44,9 @@ sub initializePlayer(player)
   detectSourceFormat()
 
   eventData = {
-    playerTech: "theo"
+    playerTech: "Roku:THEOplayer"
     version: getPlayerVersion()
-    player: "theo"
+    player: "theoplayer"
     playerKey: getPlayerKeyFromManifest(m.appInfo)
     playerStartupTime: 1
   }
@@ -69,7 +69,7 @@ sub destroy(param = invalid)
 end sub
 
 function getPlayerVersion()
-  return "theo-" + m.player.version
+  return "theoplayer-" + m.player.version
 end function
 
 function setAnalyticsConfig(config)
@@ -83,14 +83,40 @@ sub setNewMetadata(metadata = invalid)
 end sub
 
 function setCustomData(customData)
-  ' TODO: Implement (possibly extract into `baseCollector`)
+  if customData = invalid then return invalid
+  finishRunningSample()
+
+  return updateSample(customData)
 end function
 
 sub setCustomDataOnce(customData)
-  ' TODO: Implement (possibly extract into `baseCollector`)
+  if customData = invalid then return
+  finishRunningSample()
+
+  duration = getDuration(m.playerStateTimer)
+  createTempMetadataSampleAndSendAnalyticsRequest(customData, duration, m.currentState)
 end sub
 
 ' ===== HELPER METHODS =====
+
+sub finishRunningSample()
+  duration = getDuration(m.playerStateTimer)
+  m.playerStateTimer.Mark()
+
+  sendAnalyticsRequestAndClearValues({}, duration, m.currentState)
+end sub
+
+sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
+  sampleData = eventData
+  sampleData.Append({
+    state: state,
+    duration: duration,
+    time: getCurrentTimeInMilliseconds()
+  })
+  decorateSampleWithPlaybackData(sampleData)
+
+  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
+end sub
 
 sub detectSourceFormat()
   source = getActiveSource(m.player)
