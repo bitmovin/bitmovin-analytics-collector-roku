@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - value of `playerTech` to `Roku:THEOplayer` and `player` to `theoplayer` in samples for consistency with other collectors
 
+### Internal
+- implemented THEO player collector seek tracking for API-initiated seeks
+
 ## v2.14.0-beta.0
 
 ### Added

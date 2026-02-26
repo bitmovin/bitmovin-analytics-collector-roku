@@ -1450,6 +1450,50 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("sends paused sample when transitioning from paused to seeking")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 120
+
+      'bs:disable-next-line
+      m.node.previousState = "paused"
+      'bs:disable-next-line
+      m.node.currentState = "seeking"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      handlePreviousState()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "paused")
+      m.assertNotInvalid(testContext.capturedSampleData.paused)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("sends buffering sample when isBuffering is true and currentTime did not change")
     function _()
       testContext = { capturedSampleData: invalid }
@@ -1499,6 +1543,104 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("corrects videoTimeEnd when transitioning from playing to seeking")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 60
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 120
+
+      'bs:disable-next-line
+      m.node.previousState = "playing"
+      'bs:disable-next-line
+      m.node.currentState = "seeking"
+      'bs:disable-next-line
+      m.node.seekStartPosition = 30
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      handlePreviousState()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "playing")
+      m.assertEqual(testContext.capturedSampleData.videoTimeEnd, 30000)
+      m.assertNotInvalid(testContext.capturedSampleData.played)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends seeking sample with correct videoTimeStart when leaving seeking state")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 60
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 120
+
+      'bs:disable-next-line
+      m.node.previousState = "seeking"
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.seekStartPosition = 30
+      'bs:disable-next-line
+      m.node.isSeeking = true
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      handlePreviousState()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "seeking")
+      m.assertEqual(testContext.capturedSampleData.videoTimeStart, 30000)
+      m.assertNotInvalid(testContext.capturedSampleData.seeked)
+      'bs:disable-next-line
+      m.assertFalse(m.node.isSeeking)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("sends seeking sample when isBuffering is true but currentTime changed")
     function _()
       testContext = { capturedSampleData: invalid }
@@ -1544,6 +1686,180 @@ namespace tests
       m.assertEqual(testContext.capturedSampleData.state, "seeking")
       m.assertEqual(testContext.capturedSampleData.videoTimeStart, 30000)
       m.assertNotInvalid(testContext.capturedSampleData.seeked)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onSeeking")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("transitions to seeking state and captures seek start position")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      m.mockPlayer.currentTime = 60
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 120
+
+      'bs:disable-next-line
+      m.node.isSeeking = false
+      'bs:disable-next-line
+      m.node.lastKnownCurrentTime = 30
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.previousState = ""
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onSeeking()
+
+      'bs:disable-next-line
+      m.assertTrue(m.node.isSeeking)
+      'bs:disable-next-line
+      m.assertEqual(m.node.seekStartPosition, 30)
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "seeking")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not transition when already seeking")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      'bs:disable-next-line
+      m.node.isSeeking = true
+      'bs:disable-next-line
+      m.node.seekStartPosition = 10
+      'bs:disable-next-line
+      m.node.lastKnownCurrentTime = 50
+      'bs:disable-next-line
+      m.node.currentState = "seeking"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onSeeking()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.seekStartPosition, 10)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not transition during setup state")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      'bs:disable-next-line
+      m.node.isSeeking = false
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onSeeking()
+
+      'bs:disable-next-line
+      m.assertFalse(m.node.isSeeking)
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "setup")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onTimeUpdate")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stores currentTime from event data")
+    function _()
+      m.mockPlayer.seeking = false
+
+      'bs:disable-next-line
+      m.node.lastKnownCurrentTime = 0
+
+      'bs:disable-next-line
+      onTimeUpdate({ currentTime: 42.5 })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.lastKnownCurrentTime, 42.5)
+    end function
+
+    @it("does not update when player is seeking")
+    function _()
+      m.mockPlayer.seeking = true
+
+      'bs:disable-next-line
+      m.node.lastKnownCurrentTime = 10
+
+      'bs:disable-next-line
+      onTimeUpdate({ currentTime: 60 })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.lastKnownCurrentTime, 10)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onHeartbeat - seek interaction")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does not send heartbeat when seeking")
+    function _()
+      testContext = { sendRequestCount: 0 }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendRequestCount++
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isSeeking = true
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onHeartbeat()
+
+      m.assertEqual(testContext.sendRequestCount, 0)
 
       m.node.collectorCore = originalCollectorCore
     end function
