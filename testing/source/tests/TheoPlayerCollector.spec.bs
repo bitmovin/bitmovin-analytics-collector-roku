@@ -37,7 +37,7 @@ namespace tests
       'bs:disable-next-line
       returnedPlayerVersion = getPlayerVersion()
 
-      m.assertEqual(returnedPlayerVersion, "theo-0.0.0")
+      m.assertEqual(returnedPlayerVersion, "theoplayer-0.0.0")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -515,7 +515,19 @@ namespace tests
 
       'bs:disable-next-line
       m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
 
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+      m.mockPlayer.currentTime = 0
       m.mockPlayer.source = {
         sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
       }
@@ -550,7 +562,19 @@ namespace tests
       m.node.currentState = "playing"
       'bs:disable-next-line
       m.node.videoStartUpTime = 500
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
 
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+      m.mockPlayer.currentTime = 0
       m.mockPlayer.source = {
         sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
       }
