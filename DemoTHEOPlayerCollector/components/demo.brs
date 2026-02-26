@@ -1,6 +1,7 @@
 function init()
   m.tag = "[demo] "
   m.PlayerSourceType = getPlayerSourceType()
+  m.appInfo = CreateObject("roAppInfo")
 
   m.theoPlayerCollector = CreateObject("roSgNode", "theoPlayerCollector")
 

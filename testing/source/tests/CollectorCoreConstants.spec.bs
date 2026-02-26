@@ -1,0 +1,29 @@
+namespace tests
+  @SGNode("collectorCore")
+  @suite
+  class CollectorCoreConstantsTests extends rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getCustomDataValueKeys")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns an array with 100 entries")
+    function _()
+      'bs:disable-next-line
+      keys = getCustomDataValueKeys()
+
+      m.assertEqual(keys.Count(), 100)
+    end function
+
+    @it("first entry is customData1 and last entry is customData100")
+    function _()
+      'bs:disable-next-line
+      keys = getCustomDataValueKeys()
+
+      m.assertEqual(keys[0], "customData1")
+      m.assertEqual(keys[keys.Count() - 1], "customData100")
+    end function
+
+  end class
+
+end namespace

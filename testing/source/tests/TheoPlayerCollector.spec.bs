@@ -2869,6 +2869,136 @@ namespace tests
       m.assertFalse(analyticsDataTask.eventData.requestData.isProgramChange)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setCustomData")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing when customData is invalid")
+    function _()
+      testContext = { updateSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.updateSampleCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      setCustomData(invalid)
+
+      m.assertFalse(testContext.updateSampleCalled)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("updates the sample with the custom data fields when customData is valid")
+    function _()
+      testContext = { capturedSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSample = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.previousState = "playing"
+
+      'bs:disable-next-line
+      setCustomData({ customData1: "testValue1", customData2: "testValue2" })
+
+      m.assertEqual(testContext.capturedSample.customData1, "testValue1")
+      m.assertEqual(testContext.capturedSample.customData2, "testValue2")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setCustomDataOnce")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing when customData is invalid")
+    function _()
+      testContext = { tempSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
+            m.testContext.tempSampleCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      setCustomDataOnce(invalid)
+
+      m.assertFalse(testContext.tempSampleCalled)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends a temp metadata sample with the custom data fields when customData is valid")
+    function _()
+      testContext = { capturedTempSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
+            m.testContext.capturedTempSample = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.previousState = "playing"
+
+      'bs:disable-next-line
+      setCustomDataOnce({ customData3: "onceValue" })
+
+      m.assertNotInvalid(testContext.capturedTempSample)
+      m.assertEqual(testContext.capturedTempSample.customData3, "onceValue")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
   end class
 
 end namespace

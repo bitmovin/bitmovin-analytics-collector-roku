@@ -28,56 +28,10 @@ function getAdQuartileTypes()
 end function
 
 function getCustomDataValueKeys()
-  customDataValuesKeys = [
-    "customData1",
-    "customData2",
-    "customData3",
-    "customData4",
-    "customData5",
-    "customData6",
-    "customData7",
-    "customData8",
-    "customData9",
-    "customData10",
-    "customData11",
-    "customData12",
-    "customData13",
-    "customData14",
-    "customData15",
-    "customData16",
-    "customData17",
-    "customData18",
-    "customData19",
-    "customData20",
-    "customData21",
-    "customData22",
-    "customData23",
-    "customData24",
-    "customData25",
-    "customData26",
-    "customData27",
-    "customData28",
-    "customData29",
-    "customData30",
-    "customData31",
-    "customData32",
-    "customData33",
-    "customData34",
-    "customData35",
-    "customData36",
-    "customData37",
-    "customData38",
-    "customData39",
-    "customData40",
-    "customData42",
-    "customData43",
-    "customData44",
-    "customData45",
-    "customData46",
-    "customData47",
-    "customData48",
-    "customData49",
-    "customData50"
-  ]
-  return customDataValuesKeys
+  maxFieldIndex = 100
+  keys = []
+  for i = 1 to maxFieldIndex
+    keys.Push("customData" + i.ToStr())
+  end for
+  return keys
 end function
