@@ -96,7 +96,7 @@ This must happen before any content is set on the THEO player:
 
 ```javascript
 m.theoPlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
-m.theoPlayerCollector.callFunc("initializePlayer", m.nativePlayer)
+m.theoPlayerCollector.callFunc("initializePlayer", m.theoPlayer)
 ```
 
 ## Optional configuration parameters for Bitmovin Analytics

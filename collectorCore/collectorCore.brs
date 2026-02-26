@@ -166,6 +166,8 @@ sub clearSampleValues()
   m.sample.duration = 0
   m.sample.droppedFrames = 0
 
+  m.sample.isProgramChange = false
+
   m.sample.errorCode = invalid
   m.sample.errorMessage = invalid
 end sub
@@ -218,12 +220,13 @@ function getPersistedUserId(sectionRegistryName)
 end function
 
 ' TODO: Error handling if the keys are invalid
-sub sendAnalyticsRequestAndClearValues(analyticsRequestType = m.AnalyticsRequestTypes.REGULAR)
+sub sendAnalyticsRequestAndClearValues(skipHeartbeatReset = false)
   manipulateSampleForSsai()
   m.AnalyticsDataTask.eventData = {
-    requestType: analyticsRequestType
+    requestType: m.AnalyticsRequestTypes.REGULAR
     requestData: m.sample
     isSsaiRelated: isCurrentSampleSsaiRelated()
+    skipHeartbeatReset: skipHeartbeatReset
   }
   m.sample.sequenceNumber++
 

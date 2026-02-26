@@ -513,7 +513,11 @@ namespace tests
         testContext: testContext
       }
 
-      m.mockPlayer.currentTime = 30
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
       m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
         if funcName = "getVideoNode"
           return { height: 1080, width: 1920 }
@@ -523,32 +527,24 @@ namespace tests
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
+      m.mockPlayer.currentTime = 0
       m.mockPlayer.source = {
         sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
       }
 
       'bs:disable-next-line
-      m.node.currentState = "playing"
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
-
-      'bs:disable-next-line
       onSourceChange()
 
-      sendRequestIndex = -1
       setupIndex = -1
-      lastUpdateIndex = -1
+      updateIndex = -1
       for i = 0 to testContext.callOrder.Count() - 1
-        if testContext.callOrder[i] = "sendAnalyticsRequestAndClearValues" and sendRequestIndex = -1 then sendRequestIndex = i
         if testContext.callOrder[i] = "setupSample" then setupIndex = i
-        if testContext.callOrder[i] = "updateSample" then lastUpdateIndex = i
+        if testContext.callOrder[i] = "updateSample" then updateIndex = i
       end for
 
-      m.assertTrue(sendRequestIndex >= 0, "sendAnalyticsRequestAndClearValues should have been called for closing sample")
       m.assertTrue(setupIndex >= 0, "setupSample should have been called")
-      m.assertTrue(lastUpdateIndex >= 0, "updateSample should have been called")
-      m.assertTrue(sendRequestIndex < setupIndex, "closing sample should be sent before setupSample")
-      m.assertTrue(setupIndex < lastUpdateIndex, "setupSample should be called before detectSourceFormat")
+      m.assertTrue(updateIndex >= 0, "updateSample should have been called")
+      m.assertTrue(setupIndex < updateIndex, "setupSample should be called before updateSample")
       m.node.collectorCore = originalCollectorCore
     end function
 
@@ -562,20 +558,6 @@ namespace tests
         end function
       }
 
-      m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
-      m.mockPlayer.audioTracks = []
-      m.mockPlayer.textTracks = []
-      m.mockPlayer.duration = 60
-      m.mockPlayer.source = {
-        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
-      }
-
       'bs:disable-next-line
       m.node.currentState = "playing"
       'bs:disable-next-line
@@ -583,289 +565,25 @@ namespace tests
       'bs:disable-next-line
       m.node.playerStateTimer = CreateObject("roTimespan")
 
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+      m.mockPlayer.currentTime = 0
+      m.mockPlayer.source = {
+        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
+      }
+
       'bs:disable-next-line
       onSourceChange()
 
       'bs:disable-next-line
       m.assertEqual(m.node.videoStartUpTime, -1)
-      m.node.collectorCore = originalCollectorCore
-    end function
-
-    @it("sends closing sample for playing state before setupSample when source changes mid-playback")
-    function _()
-      testContext = { callOrder: [], capturedClosingSample: invalid }
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
-          m.testContext.callOrder.Push(funcName)
-          if funcName = "updateSample" and sampleData <> invalid and sampleData.DoesExist("played")
-            m.testContext.capturedClosingSample = sampleData
-          end if
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
-      m.mockPlayer.audioTracks = []
-      m.mockPlayer.textTracks = []
-      m.mockPlayer.duration = 60
-      m.mockPlayer.source = {
-        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
-      }
-
-      'bs:disable-next-line
-      m.node.currentState = "playing"
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
-
-      'bs:disable-next-line
-      onSourceChange()
-
-      sendRequestIndex = -1
-      setupIndex = -1
-      for i = 0 to testContext.callOrder.Count() - 1
-        if testContext.callOrder[i] = "sendAnalyticsRequestAndClearValues" and sendRequestIndex = -1 then sendRequestIndex = i
-        if testContext.callOrder[i] = "setupSample" then setupIndex = i
-      end for
-
-      m.assertTrue(sendRequestIndex >= 0, "sendAnalyticsRequestAndClearValues should have been called")
-      m.assertTrue(setupIndex >= 0, "setupSample should have been called")
-      m.assertTrue(sendRequestIndex < setupIndex, "closing sample should be sent before setupSample")
-      m.assertNotInvalid(testContext.capturedClosingSample)
-      m.assertNotInvalid(testContext.capturedClosingSample.played)
-
-      m.node.collectorCore = originalCollectorCore
-    end function
-
-    @it("sends closing sample for paused state when source changes mid-pause")
-    function _()
-      testContext = { capturedClosingSample: invalid }
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "updateSample" and sampleData <> invalid and sampleData.DoesExist("paused")
-            m.testContext.capturedClosingSample = sampleData
-          end if
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      m.mockPlayer.currentTime = 20
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
-      m.mockPlayer.audioTracks = []
-      m.mockPlayer.textTracks = []
-      m.mockPlayer.duration = 60
-      m.mockPlayer.source = {
-        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
-      }
-
-      'bs:disable-next-line
-      m.node.currentState = "paused"
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
-
-      'bs:disable-next-line
-      onSourceChange()
-
-      m.assertNotInvalid(testContext.capturedClosingSample)
-      m.assertEqual(testContext.capturedClosingSample.state, "paused")
-      m.assertNotInvalid(testContext.capturedClosingSample.paused)
-
-      m.node.collectorCore = originalCollectorCore
-    end function
-
-    @it("sends buffering sample instead of paused when isBuffering is true on source change")
-    function _()
-      testContext = { capturedClosingSample: invalid }
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "updateSample" and sampleData <> invalid and sampleData.DoesExist("buffered")
-            m.testContext.capturedClosingSample = sampleData
-          end if
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      m.mockPlayer.currentTime = 20
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
-      m.mockPlayer.audioTracks = []
-      m.mockPlayer.textTracks = []
-      m.mockPlayer.duration = 60
-      m.mockPlayer.source = {
-        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
-      }
-
-      'bs:disable-next-line
-      m.node.currentState = "paused"
-      'bs:disable-next-line
-      m.node.isBuffering = true
-      'bs:disable-next-line
-      m.node.currentTimeAtPauseStart = 15000
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
-
-      'bs:disable-next-line
-      onSourceChange()
-
-      m.assertNotInvalid(testContext.capturedClosingSample)
-      m.assertEqual(testContext.capturedClosingSample.state, "buffering")
-      m.assertNotInvalid(testContext.capturedClosingSample.buffered)
-      m.assertEqual(testContext.capturedClosingSample.videoTimeStart, 15000)
-
-      m.node.collectorCore = originalCollectorCore
-    end function
-
-    @it("does not send seeking sample when source changes during a seek")
-    function _()
-      testContext = { seekedSampleSent: false }
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "updateSample" and sampleData <> invalid and sampleData.DoesExist("seeked")
-            m.testContext.seekedSampleSent = true
-          end if
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      m.mockPlayer.currentTime = 45
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
-      m.mockPlayer.audioTracks = []
-      m.mockPlayer.textTracks = []
-      m.mockPlayer.duration = 120
-      m.mockPlayer.source = {
-        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
-      }
-
-      'bs:disable-next-line
-      m.node.currentState = "seeking"
-      'bs:disable-next-line
-      m.node.seekStartPosition = 30
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
-
-      'bs:disable-next-line
-      onSourceChange()
-
-      m.assertFalse(testContext.seekedSampleSent)
-
-      m.node.collectorCore = originalCollectorCore
-    end function
-
-    @it("does not send closing sample on initial source load")
-    function _()
-      testContext = { sendAnalyticsRequestCalled: false }
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "sendAnalyticsRequestAndClearValues"
-            m.testContext.sendAnalyticsRequestCalled = true
-          end if
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      'bs:disable-next-line
-      m.node.currentState = "setup"
-
-      m.mockPlayer.source = {
-        sources: [{ src: "http://example.com/stream.m3u8", type: "application/x-mpegURL" }]
-      }
-
-      'bs:disable-next-line
-      onSourceChange()
-
-      m.assertFalse(testContext.sendAnalyticsRequestCalled)
-      m.node.collectorCore = originalCollectorCore
-    end function
-
-    @it("resets local state variables when source changes after initial setup")
-    function _()
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
-          return true
-        end function
-      }
-
-      m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
-      m.mockPlayer.audioTracks = []
-      m.mockPlayer.textTracks = []
-      m.mockPlayer.duration = 60
-      m.mockPlayer.source = {
-        sources: [{ src: "http://example.com/new-stream.m3u8", type: "application/x-mpegURL" }]
-      }
-
-      'bs:disable-next-line
-      m.node.currentState = "playing"
-      'bs:disable-next-line
-      m.node.currentVideoBitrate = 5000000
-      'bs:disable-next-line
-      m.node.didAttemptPlay = true
-      'bs:disable-next-line
-      m.node.didVideoPlay = true
-      'bs:disable-next-line
-      m.node.isSeeking = false
-      'bs:disable-next-line
-      m.node.isBuffering = true
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
-
-      'bs:disable-next-line
-      onSourceChange()
-
-      'bs:disable-next-line
-      m.assertEqual(m.node.currentState, "setup")
-      'bs:disable-next-line
-      m.assertInvalid(m.node.currentVideoBitrate)
-      'bs:disable-next-line
-      m.assertFalse(m.node.didAttemptPlay)
-      'bs:disable-next-line
-      m.assertFalse(m.node.didVideoPlay)
-      'bs:disable-next-line
-      m.assertFalse(m.node.isSeeking)
-      'bs:disable-next-line
-      m.assertFalse(m.node.isBuffering)
-
       m.node.collectorCore = originalCollectorCore
     end function
 
@@ -1645,9 +1363,6 @@ namespace tests
       }
 
       m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 0, width: 0 }
-        end if
         return invalid
       end function
 
@@ -2815,6 +2530,367 @@ namespace tests
 
       'bs:disable-next-line
       m.assertFalse(m.node.isBuffering)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("programChange")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing when called with invalid metadata")
+    function _()
+      testContext = { callCount: 0 }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          m.testContext.callCount++
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      programChange(invalid)
+
+      m.assertEqual(testContext.callCount, 0)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("applies metadata update but does not start new impression when called in SETUP state")
+    function _()
+      testContext = { capturedFuncName: invalid, capturedMetadata: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          m.testContext.capturedFuncName = funcName
+          m.testContext.capturedMetadata = sampleData
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertEqual(testContext.capturedFuncName, "updateAnalyticsConfig")
+      m.assertEqual(testContext.capturedMetadata.title, "New Program")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not conclude or start an impression when called in SETUP state")
+    function _()
+      testContext = { calledFunctions: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          m.testContext.calledFunctions[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("concludes current impression and starts new one when playing")
+    function _()
+      testContext = { capturedSamples: [], capturedConfigMetadata: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          else if funcName = "updateAnalyticsConfig"
+            m.testContext.capturedConfigMetadata = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      newMetadata = { title: "New Program" }
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      programChange(newMetadata)
+
+      ' Final impression sample
+      m.assertTrue(testContext.capturedSamples.Count() >= 3)
+      finalSample = testContext.capturedSamples[0]
+      m.assertTrue(finalSample.isProgramChange)
+      m.assertNotInvalid(finalSample.played)
+      m.assertEqual(finalSample.state, "playing")
+
+      ' updateAnalyticsConfig called with new metadata
+      m.assertNotInvalid(testContext.capturedConfigMetadata)
+      m.assertEqual(testContext.capturedConfigMetadata.title, "New Program")
+
+      ' programChange sample (last updateSample call)
+      programChangeSample = testContext.capturedSamples[testContext.capturedSamples.Count() - 1]
+      m.assertTrue(programChangeSample.isProgramChange)
+      m.assertEqual(programChangeSample.videoStartupTime, 1)
+      m.assertEqual(programChangeSample.state, "programChange")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("concludes current impression when paused")
+    function _()
+      testContext = { capturedSamples: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "paused"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertTrue(testContext.capturedSamples.Count() >= 1)
+      finalSample = testContext.capturedSamples[0]
+      m.assertTrue(finalSample.isProgramChange)
+      m.assertNotInvalid(finalSample.paused)
+      m.assertEqual(finalSample.state, "paused")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends final sample without duration fields when state is not playing or paused")
+    function _()
+      testContext = { capturedSamples: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "seeking"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertTrue(testContext.capturedSamples.Count() >= 1)
+      finalSample = testContext.capturedSamples[0]
+      m.assertTrue(finalSample.isProgramChange)
+      m.assertInvalid(finalSample.played)
+      m.assertInvalid(finalSample.paused)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("passes skipHeartbeatReset true for both programChange sends")
+    function _()
+      testContext = { capturedSkipHeartbeatReset: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.capturedSkipHeartbeatReset.Push(arg)
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertEqual(testContext.capturedSkipHeartbeatReset.Count(), 2)
+      m.assertTrue(testContext.capturedSkipHeartbeatReset[0])
+      m.assertTrue(testContext.capturedSkipHeartbeatReset[1])
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends final sample before setupSample")
+    function _()
+      testContext = { calledFunctions: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          m.testContext.calledFunctions.Push(funcName)
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      firstUpdateSampleIndex = -1
+      setupSampleIndex = -1
+      for i = 0 to testContext.calledFunctions.Count() - 1
+        if testContext.calledFunctions[i] = "updateSample" and firstUpdateSampleIndex = -1 then firstUpdateSampleIndex = i
+        if testContext.calledFunctions[i] = "setupSample" then setupSampleIndex = i
+      end for
+
+      m.assertTrue(firstUpdateSampleIndex >= 0, "updateSample should have been called")
+      m.assertTrue(setupSampleIndex >= 0, "setupSample should have been called")
+      m.assertTrue(firstUpdateSampleIndex < setupSampleIndex, "final sample should be sent before setupSample")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("getProgramChangeSourceMetadata maps m3u8Url to hls streamFormat")
+    function _()
+      metadata = { m3u8Url: "http://example.com/stream.m3u8" }
+
+      'bs:disable-next-line
+      result = getProgramChangeSourceMetadata(metadata)
+
+      m.assertEqual(result.streamFormat, "hls")
+      m.assertEqual(result.m3u8Url, "http://example.com/stream.m3u8")
+    end function
+
+    @it("getProgramChangeSourceMetadata maps mpdUrl to dash streamFormat")
+    function _()
+      metadata = { mpdUrl: "http://example.com/stream.mpd" }
+
+      'bs:disable-next-line
+      result = getProgramChangeSourceMetadata(metadata)
+
+      m.assertEqual(result.streamFormat, "dash")
+      m.assertEqual(result.mpdUrl, "http://example.com/stream.mpd")
+    end function
+
+    @it("getProgramChangeSourceMetadata maps progUrl to progressive streamFormat")
+    function _()
+      metadata = { progUrl: "http://example.com/video.mp4" }
+
+      'bs:disable-next-line
+      result = getProgramChangeSourceMetadata(metadata)
+
+      m.assertEqual(result.streamFormat, "progressive")
+      m.assertEqual(result.progUrl, "http://example.com/video.mp4")
+    end function
+
+    @it("getProgramChangeSourceMetadata handles path field")
+    function _()
+      metadata = { path: "/channel/news" }
+
+      'bs:disable-next-line
+      result = getProgramChangeSourceMetadata(metadata)
+
+      m.assertEqual(result.path, "/channel/news")
+    end function
+
+    @it("does not carry isProgramChange flag on samples after programChange")
+    function _()
+      realCollectorCore = m.node.collectorCore
+      analyticsDataTask = realCollectorCore.findNode("analyticsDataTask")
+
+      ' Simulate the programChange final sample: set isProgramChange and send
+      realCollectorCore.callFunc("updateSample", { isProgramChange: true })
+      realCollectorCore.callFunc("sendAnalyticsRequestAndClearValues", true)
+
+      ' Subsequent sample send (e.g. heartbeat) should not carry isProgramChange
+      realCollectorCore.callFunc("sendAnalyticsRequestAndClearValues", false)
+
+      m.assertFalse(analyticsDataTask.eventData.requestData.isProgramChange)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

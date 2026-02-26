@@ -56,6 +56,7 @@ function getAnalyticsSample()
     videoTitle: invalid,
     videoWindowHeight: 0,
     videoWindowWidth: 0,
+    isProgramChange: false,
     deviceInformation: invalid
   }
 end function

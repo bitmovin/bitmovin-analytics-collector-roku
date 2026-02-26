@@ -43,6 +43,42 @@ namespace tests
       m.AssertFalse(hasBeenCleared)
     end function
 
+    @it("pushToAnalyticsEventsQueue - skipHeartbeatReset true - does not reset heartbeat timer")
+    function _()
+      m.node.heartbeatTimer.Mark()
+      sleep(10)
+
+      'bs:disable-next-line
+      pushToAnalyticsEventsQueue({ skipHeartbeatReset: true })
+
+      elapsed = m.node.heartbeatTimer.TotalMilliseconds()
+      m.assertTrue(elapsed >= 5)
+    end function
+
+    @it("pushToAnalyticsEventsQueue - skipHeartbeatReset false - resets heartbeat timer")
+    function _()
+      m.node.heartbeatTimer.Mark()
+      sleep(10)
+
+      'bs:disable-next-line
+      pushToAnalyticsEventsQueue({ skipHeartbeatReset: false })
+
+      elapsed = m.node.heartbeatTimer.TotalMilliseconds()
+      m.assertTrue(elapsed < 5)
+    end function
+
+    @it("pushToAnalyticsEventsQueue - no skipHeartbeatReset field - resets heartbeat timer")
+    function _()
+      m.node.heartbeatTimer.Mark()
+      sleep(10)
+
+      'bs:disable-next-line
+      pushToAnalyticsEventsQueue({ customData: "test" })
+
+      elapsed = m.node.heartbeatTimer.TotalMilliseconds()
+      m.assertTrue(elapsed < 5)
+    end function
+
   end class
 
 end namespace

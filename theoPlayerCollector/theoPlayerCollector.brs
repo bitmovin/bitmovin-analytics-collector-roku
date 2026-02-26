@@ -82,6 +82,65 @@ sub setCustomDataOnce(customData)
   createTempMetadataSampleAndSendAnalyticsRequest(customData, duration, m.currentState)
 end sub
 
+sub programChange(newSourceMetadata = invalid)
+  if newSourceMetadata = invalid then return
+
+  if m.currentState = m.collectorStates.SETUP then
+    ' no source loaded yet, handle gracefully and treat it as a simple metadata update, no new impression
+    m.collectorCore.callFunc("updateAnalyticsConfig", newSourceMetadata)
+    return
+  end if
+
+  ' Conclude current impression
+  setVideoTimeEnd()
+  stateDuration = m.playerStateTimer.TotalMilliseconds()
+
+  finalSampleData = { isProgramChange: true }
+  if m.currentState = m.collectorStates.PLAYING
+    finalSampleData.played = stateDuration
+  else if m.currentState = m.collectorStates.PAUSED
+    finalSampleData.paused = stateDuration
+  end if
+
+  sendAnalyticsRequestAndClearValues(finalSampleData, stateDuration, m.currentState, true)
+
+  ' Start new impression with new metadata
+  m.collectorCore.callFunc("setupSample")
+
+  ' Apply new program metadata (config-level fields: title, videoId, cdnProvider, isLive, customData, experimentName)
+  m.collectorCore.callFunc("updateAnalyticsConfig", newSourceMetadata)
+
+  ' Apply URL fields (mpdUrl, m3u8Url, progUrl, path) and infer streamFormat
+  updateSample(getProgramChangeSourceMetadata(newSourceMetadata))
+
+  ' Send first sample of new impression
+  setVideoTimeStart()
+  setVideoTimeEnd()
+  sendAnalyticsRequestAndClearValues({ isProgramChange: true, videoStartupTime: 1 }, 0, "programChange", true)
+
+  ' Resume state tracking
+  m.playerStateTimer.Mark()
+  setVideoTimeStart()
+end sub
+
+function getProgramChangeSourceMetadata(metadata)
+  sourceMetadata = {}
+  if metadata.DoesExist("path") then sourceMetadata.path = metadata.path
+  if metadata.DoesExist("mpdUrl")
+    sourceMetadata.mpdUrl = metadata.mpdUrl
+    sourceMetadata.streamFormat = "dash"
+  end if
+  if metadata.DoesExist("m3u8Url")
+    sourceMetadata.m3u8Url = metadata.m3u8Url
+    sourceMetadata.streamFormat = "hls"
+  end if
+  if metadata.DoesExist("progUrl")
+    sourceMetadata.progUrl = metadata.progUrl
+    sourceMetadata.streamFormat = "progressive"
+  end if
+  return sourceMetadata
+end function
+
 ' ===== HELPER METHODS =====
 
 sub finishRunningSample()
@@ -192,7 +251,7 @@ function updateSample(sampleData)
   return m.collectorCore.callFunc("updateSample", sampleData)
 end function
 
-sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
+sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState, skipHeartbeatReset = false)
   sampleData = eventData
   sampleData.Append({
     state: state,
@@ -202,7 +261,7 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
   decorateSampleWithPlaybackData(sampleData)
 
   updateSample(sampleData)
-  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
+  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues", skipHeartbeatReset)
 end sub
 
 sub setUpObservers()
