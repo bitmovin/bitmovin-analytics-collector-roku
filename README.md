@@ -29,6 +29,10 @@ analyticsConfig = {
 }
 ```
 
+## Collector API
+
+All collectors share the same interface. For a full reference of configuration options and available methods — including lifecycle, metadata, SSAI, and live stream APIs — see the [Collector API documentation](docs/collector-api.md).
+
 ## Bitmovin player collector
 
 Bitmovin analytics collector for monitoring Bitmovin player playback.
