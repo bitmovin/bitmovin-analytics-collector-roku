@@ -5,19 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Develop
+## v2.14.0
 
 ### Added
-- support for `customData` fields in THEOplayer collector
-
-### Changed
-- value of `playerTech` to `Roku:THEOplayer` and `player` to `theoplayer` in samples for consistency with other collectors
+- general support for the THEOplayer Roku SDK by Dolby OptiView
 
 ### Internal
 - implemented THEO player collector seek tracking for API-initiated seeks
 - implemented THEO player collector source change handling (closing sample + state reset)
 - implemented `programChange` API for THEO player collector
 - implemented `setNewMetadata` API for THEO player collector
+- fixed value of `playerTech` to `Roku:THEOplayer` and `player` to `theoplayer` in samples for consistency with other collectors
+- implemented support for `customData` fields in THEO player collector
 
 ## v2.14.0-beta.0
 
