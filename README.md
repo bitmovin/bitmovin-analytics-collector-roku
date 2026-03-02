@@ -103,6 +103,9 @@ m.theoPlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
 m.theoPlayerCollector.callFunc("initializePlayer", m.theoPlayer)
 ```
 
+### Limitations
+- Client-side ad tracking not supported yet
+
 ## Optional configuration parameters for Bitmovin Analytics
 
 Several other fields can be added to the Bitmovin Analytics configuration in order to improve data collection:
