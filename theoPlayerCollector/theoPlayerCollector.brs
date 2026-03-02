@@ -64,7 +64,16 @@ function setAnalyticsConfig(config)
 end function
 
 sub setNewMetadata(metadata = invalid)
-  ' TODO: Implement (possibly extract into `baseCollector`)
+  if metadata = invalid then return
+
+  m.pendingMetadata = metadata
+end sub
+
+sub applyPendingMetadata()
+  if m.pendingMetadata = invalid then return
+
+  updateSample(m.pendingMetadata)
+  m.pendingMetadata = invalid
 end sub
 
 function setCustomData(customData)
@@ -387,6 +396,7 @@ sub onSourceChange(eventData = invalid)
   end if
 
   detectSourceFormat()
+  applyPendingMetadata()
 end sub
 
 sub onPlay(eventData = invalid)
