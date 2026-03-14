@@ -47,7 +47,6 @@ sub csaiOnAdBegin(ad = invalid)
   m.csaiAdIndex++
   adSample.adPodPosition = m.csaiAdPodPosition
   m.csaiAdPodPosition++
-  adSample.started = 1
 
   if ad <> invalid
     adSample.adId = ad.id
@@ -64,18 +63,13 @@ sub csaiOnAdBegin(ad = invalid)
   adSample.adPosition = csaiMapTimeOffsetToPosition(adBreakForPosition)
 
   m.activeCsaiAdSample = adSample
-  sendCsaiAdSample()
-  m.activeCsaiAdSample.started = 0
+  sendCsaiAdSampleWithFlag({ started: 1 })
 end sub
 
 sub csaiOnAdEnd(ad = invalid)
   if m.csaiState <> m.CSAI_STATES.ACTIVE then return
 
-  if m.activeCsaiAdSample <> invalid
-    m.activeCsaiAdSample.completed = 1
-    m.activeCsaiAdSample.timeSinceAdStartedInMs = getCsaiTimePlayed()
-    sendCsaiAdSample()
-  end if
+  sendCsaiAdSampleWithFlag({ completed: 1 })
 
   csaiTransitionFromActive()
 end sub
@@ -83,11 +77,7 @@ end sub
 sub csaiOnAdSkip(ad = invalid)
   if m.csaiState <> m.CSAI_STATES.ACTIVE then return
 
-  if m.activeCsaiAdSample <> invalid
-    m.activeCsaiAdSample.skipped = 1
-    m.activeCsaiAdSample.timeSinceAdStartedInMs = getCsaiTimePlayed()
-    sendCsaiAdSample()
-  end if
+  sendCsaiAdSampleWithFlag({ skipped: 1 })
 
   csaiTransitionFromActive()
 end sub
@@ -95,14 +85,12 @@ end sub
 sub csaiOnAdError(eventData = invalid)
   if m.csaiState = m.CSAI_STATES.IDLE then return
 
-  if m.activeCsaiAdSample <> invalid
-    m.activeCsaiAdSample.timeSinceAdStartedInMs = getCsaiTimePlayed()
-    if eventData <> invalid
-      m.activeCsaiAdSample.errorCode = eventData.code
-      m.activeCsaiAdSample.errorMessage = eventData.message
-    end if
-    sendCsaiAdSample()
+  flag = {}
+  if eventData <> invalid
+    flag.errorCode = eventData.code
+    flag.errorMessage = eventData.message
   end if
+  sendCsaiAdSampleWithFlag(flag)
 
   resetCsaiHelpers()
 end sub
@@ -129,12 +117,8 @@ sub csaiSetQuartileFlag(quartile, flag)
   if m.activeCsaiAdSample = invalid then return
   if m.csaiReportedQuartiles[quartile] = true then return
 
-  m.activeCsaiAdSample.append(flag)
   m.csaiReportedQuartiles[quartile] = true
-  sendCsaiAdSample()
-  for each key in flag
-    m.activeCsaiAdSample.delete(key)
-  end for
+  sendCsaiAdSampleWithFlag(flag)
 end sub
 
 sub csaiTransitionFromActive()
@@ -143,9 +127,13 @@ sub csaiTransitionFromActive()
   m.csaiAdStartTimer = invalid
 end sub
 
-sub sendCsaiAdSample()
+sub sendCsaiAdSampleWithFlag(flag)
   if m.activeCsaiAdSample = invalid then return
-  sendAnalyticsSampleOnce(m.activeCsaiAdSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  sample = {}
+  sample.append(m.activeCsaiAdSample)
+  sample.timeSinceAdStartedInMs = getCsaiTimePlayed()
+  sample.append(flag)
+  sendAnalyticsSampleOnce(sample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 end sub
 
 function getCsaiTimePlayed()
