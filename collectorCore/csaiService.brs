@@ -18,6 +18,7 @@ sub resetCsaiHelpers()
   m.csaiAdPodPosition = 0
 end sub
 
+
 sub csaiOnAdBreakBegin(adBreak = invalid)
   if m.csaiState <> m.CSAI_STATES.IDLE then return
 
@@ -47,6 +48,7 @@ sub csaiOnAdBegin(ad = invalid)
   m.csaiAdIndex++
   adSample.adPodPosition = m.csaiAdPodPosition
   m.csaiAdPodPosition++
+  adSample.started = 1
 
   if ad <> invalid
     adSample.adId = ad.id
@@ -63,35 +65,32 @@ sub csaiOnAdBegin(ad = invalid)
   adSample.adPosition = csaiMapTimeOffsetToPosition(adBreakForPosition)
 
   m.activeCsaiAdSample = adSample
-  sendCsaiAdSampleWithFlag({ started: 1 })
 end sub
 
 sub csaiOnAdEnd(ad = invalid)
   if m.csaiState <> m.CSAI_STATES.ACTIVE then return
 
-  sendCsaiAdSampleWithFlag({ completed: 1 })
-
+  m.activeCsaiAdSample.completed = 1
+  sendCsaiAdSample()
   csaiTransitionFromActive()
 end sub
 
 sub csaiOnAdSkip(ad = invalid)
   if m.csaiState <> m.CSAI_STATES.ACTIVE then return
 
-  sendCsaiAdSampleWithFlag({ skipped: 1 })
-
+  m.activeCsaiAdSample.skipped = 1
+  sendCsaiAdSample()
   csaiTransitionFromActive()
 end sub
 
 sub csaiOnAdError(eventData = invalid)
   if m.csaiState = m.CSAI_STATES.IDLE then return
 
-  flag = {}
-  if eventData <> invalid
-    flag.errorCode = eventData.code
-    flag.errorMessage = eventData.message
+  if m.activeCsaiAdSample <> invalid and eventData <> invalid
+    m.activeCsaiAdSample.errorCode = eventData.code
+    m.activeCsaiAdSample.errorMessage = eventData.message
   end if
-  sendCsaiAdSampleWithFlag(flag)
-
+  sendCsaiAdSample()
   resetCsaiHelpers()
 end sub
 
@@ -101,24 +100,31 @@ sub csaiOnAdBreakEnd()
 end sub
 
 sub csaiOnAdFirstQuartile()
-  csaiSetQuartileFlag(getAdQuartileTypes().FIRST, { quartile1: 1 })
+  csaiSetQuartileFlag(getAdQuartileTypes().FIRST)
 end sub
 
 sub csaiOnAdMidpoint()
-  csaiSetQuartileFlag(getAdQuartileTypes().MIDPOINT, { midpoint: 1 })
+  csaiSetQuartileFlag(getAdQuartileTypes().MIDPOINT)
 end sub
 
 sub csaiOnAdThirdQuartile()
-  csaiSetQuartileFlag(getAdQuartileTypes().THIRD, { quartile3: 1 })
+  csaiSetQuartileFlag(getAdQuartileTypes().THIRD)
 end sub
 
-sub csaiSetQuartileFlag(quartile, flag)
+function getCsaiFlagForAdQuartile(quartile)
+  if quartile = getAdQuartileTypes().FIRST then return { quartile1: 1 }
+  if quartile = getAdQuartileTypes().MIDPOINT then return { midpoint: 1 }
+  if quartile = getAdQuartileTypes().THIRD then return { quartile3: 1 }
+  return {}
+end function
+
+sub csaiSetQuartileFlag(quartile)
   if m.csaiState <> m.CSAI_STATES.ACTIVE then return
   if m.activeCsaiAdSample = invalid then return
   if m.csaiReportedQuartiles[quartile] = true then return
 
+  m.activeCsaiAdSample.append(getCsaiFlagForAdQuartile(quartile))
   m.csaiReportedQuartiles[quartile] = true
-  sendCsaiAdSampleWithFlag(flag)
 end sub
 
 sub csaiTransitionFromActive()
@@ -127,13 +133,10 @@ sub csaiTransitionFromActive()
   m.csaiAdStartTimer = invalid
 end sub
 
-sub sendCsaiAdSampleWithFlag(flag)
+sub sendCsaiAdSample()
   if m.activeCsaiAdSample = invalid then return
-  sample = {}
-  sample.append(m.activeCsaiAdSample)
-  sample.timeSinceAdStartedInMs = getCsaiTimePlayed()
-  sample.append(flag)
-  sendAnalyticsSampleOnce(sample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+  m.activeCsaiAdSample.timeSinceAdStartedInMs = getCsaiTimePlayed()
+  sendAnalyticsSampleOnce(m.activeCsaiAdSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 end sub
 
 function getCsaiTimePlayed()
