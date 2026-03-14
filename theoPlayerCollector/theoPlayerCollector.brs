@@ -670,7 +670,6 @@ sub setUpCsaiAdObservers()
   m.player.ads.callFunc("addEventListener", adEvents.adbegin, m.top, "onAdBegin")
   m.player.ads.callFunc("addEventListener", adEvents.adend, m.top, "onAdEnd")
   m.player.ads.callFunc("addEventListener", adEvents.adbreakend, m.top, "onAdBreakEnd")
-  m.player.ads.callFunc("addEventListener", adEvents.aderror, m.top, "onAdError")
   m.player.ads.callFunc("addEventListener", adEvents.adfirstquartile, m.top, "onAdFirstQuartile")
   m.player.ads.callFunc("addEventListener", adEvents.admidpoint, m.top, "onAdMidpoint")
   m.player.ads.callFunc("addEventListener", adEvents.adthirdquartile, m.top, "onAdThirdQuartile")
@@ -686,7 +685,6 @@ sub tearDownCsaiAdObservers()
   m.player.ads.callFunc("removeEventListener", adEvents.adbegin, m.top, "onAdBegin")
   m.player.ads.callFunc("removeEventListener", adEvents.adend, m.top, "onAdEnd")
   m.player.ads.callFunc("removeEventListener", adEvents.adbreakend, m.top, "onAdBreakEnd")
-  m.player.ads.callFunc("removeEventListener", adEvents.aderror, m.top, "onAdError")
   m.player.ads.callFunc("removeEventListener", adEvents.adfirstquartile, m.top, "onAdFirstQuartile")
   m.player.ads.callFunc("removeEventListener", adEvents.admidpoint, m.top, "onAdMidpoint")
   m.player.ads.callFunc("removeEventListener", adEvents.adthirdquartile, m.top, "onAdThirdQuartile")
@@ -716,12 +714,6 @@ end sub
 sub onAdBreakEnd(eventData = invalid)
   print m.tag; "onAdBreakEnd"
   m.collectorCore.callFunc("csaiOnAdBreakEnd")
-end sub
-
-sub onAdError(eventData = invalid)
-  ' Note: eventData contains circular references (ad → adBreak → ads[] → ad) so FormatJson cannot be used here
-  print m.tag; "onAdError: type="; eventData?.type; " errorObject="; eventData?.errorObject
-  m.collectorCore.callFunc("csaiOnAdError", eventData)
 end sub
 
 sub onAdFirstQuartile(eventData = invalid)

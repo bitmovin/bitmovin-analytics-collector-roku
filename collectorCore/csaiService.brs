@@ -83,19 +83,10 @@ sub csaiOnAdSkip(ad = invalid)
   csaiTransitionFromActive()
 end sub
 
-sub csaiOnAdError(eventData = invalid)
-  if m.csaiState = m.CSAI_STATES.IDLE then return
-
-  if m.activeCsaiAdSample <> invalid and eventData <> invalid
-    m.activeCsaiAdSample.errorCode = eventData.code
-    m.activeCsaiAdSample.errorMessage = eventData.message
-  end if
-  sendCsaiAdSample()
-  resetCsaiHelpers()
-end sub
 
 sub csaiOnAdBreakEnd()
   if m.csaiState = m.CSAI_STATES.IDLE then return
+
   resetCsaiHelpers()
 end sub
 

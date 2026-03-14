@@ -21,7 +21,6 @@
     <function name="onAdBegin" />
     <function name="onAdEnd" />
     <function name="onAdBreakEnd" />
-    <function name="onAdError" />
     <function name="onAdFirstQuartile" />
     <function name="onAdMidpoint" />
     <function name="onAdThirdQuartile" />
