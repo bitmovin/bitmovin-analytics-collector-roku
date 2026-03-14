@@ -64,6 +64,8 @@ sub csaiOnAdBegin(ad = invalid)
   adSample.adPosition = csaiMapTimeOffsetToPosition(adBreakForPosition)
 
   m.activeCsaiAdSample = adSample
+  sendCsaiAdSample()
+  m.activeCsaiAdSample.started = 0
 end sub
 
 sub csaiOnAdEnd(ad = invalid)
@@ -129,6 +131,10 @@ sub csaiSetQuartileFlag(quartile, flag)
 
   m.activeCsaiAdSample.append(flag)
   m.csaiReportedQuartiles[quartile] = true
+  sendCsaiAdSample()
+  for each key in flag
+    m.activeCsaiAdSample.delete(key)
+  end for
 end sub
 
 sub csaiTransitionFromActive()
