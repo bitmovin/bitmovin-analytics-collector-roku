@@ -31,7 +31,6 @@
     <function name="csaiOnAdEnd"/>
     <function name="csaiOnAdSkip"/>
     <function name="csaiOnAdBreakEnd"/>
-    <function name="csaiOnAdError"/>
     <function name="csaiOnAdFirstQuartile"/>
     <function name="csaiOnAdMidpoint"/>
     <function name="csaiOnAdThirdQuartile"/>
