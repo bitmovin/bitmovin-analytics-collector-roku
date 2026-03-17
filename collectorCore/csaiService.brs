@@ -67,21 +67,23 @@ sub csaiOnAdBegin(ad = invalid)
   m.activeCsaiAdSample = adSample
 end sub
 
-sub csaiOnAdEnd(ad = invalid)
-  if m.csaiState <> m.CSAI_STATES.ACTIVE then return
+function csaiOnAdEnd(ad = invalid) as object
+  if m.csaiState <> m.CSAI_STATES.ACTIVE then return invalid
 
   m.activeCsaiAdSample.completed = 1
-  sendCsaiAdSample()
+  sentSample = sendCsaiAdSample()
   csaiTransitionFromActive()
-end sub
+  return sentSample
+end function
 
-sub csaiOnAdSkip(ad = invalid)
-  if m.csaiState <> m.CSAI_STATES.ACTIVE then return
+function csaiOnAdSkip(ad = invalid) as object
+  if m.csaiState <> m.CSAI_STATES.ACTIVE then return invalid
 
   m.activeCsaiAdSample.skipped = 1
-  sendCsaiAdSample()
+  sentSample = sendCsaiAdSample()
   csaiTransitionFromActive()
-end sub
+  return sentSample
+end function
 
 
 sub csaiOnAdBreakEnd()
@@ -124,11 +126,12 @@ sub csaiTransitionFromActive()
   m.csaiAdStartTimer = invalid
 end sub
 
-sub sendCsaiAdSample()
-  if m.activeCsaiAdSample = invalid then return
+function sendCsaiAdSample() as object
+  if m.activeCsaiAdSample = invalid then return invalid
   m.activeCsaiAdSample.timeSinceAdStartedInMs = getCsaiTimePlayed()
   sendAnalyticsSampleOnce(m.activeCsaiAdSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
-end sub
+  return m.activeCsaiAdSample
+end function
 
 function getCsaiTimePlayed()
   if m.csaiAdStartTimer = invalid then return 0
