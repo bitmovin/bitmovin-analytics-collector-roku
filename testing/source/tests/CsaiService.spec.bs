@@ -1,0 +1,340 @@
+namespace tests
+
+  @SGNode("collectorCore")
+  @suite("CsaiService")
+  class CsaiServiceTests extends rooibos.BaseTestSuite
+
+    protected override function beforeEach()
+      'bs:disable-next-line
+      initializeAnalytics()
+      'bs:disable-next-line
+      setupCsaiService()
+    end function
+
+    @describe("csaiOnAdBegin")
+
+    @it("does nothing if state is IDLE - adEnd returns invalid")
+    function _()
+      'bs:disable-next-line
+      csaiOnAdBegin(m.fakeAd(m.fakeAdBreak(0)))
+      'bs:disable-next-line
+      result = csaiOnAdEnd(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("sets started=1 on the submitted sample")
+    function _()
+      sample = m.runFullAd(0)
+
+      m.assertEqual(sample.started, 1)
+    end function
+
+    @it("sets adType to CSAI on the submitted sample")
+    function _()
+      sample = m.runFullAd(0)
+
+      'bs:disable-next-line
+      m.assertEqual(sample.adType, getAdTypes().CSAI)
+    end function
+
+    @it("sets the correct adPosition based on timeOffset")
+    @params(0, "preroll")
+    @params(-1, "postroll")
+    @params(30, "midroll")
+    function _(timeOffset, expectedPosition)
+      sample = m.runFullAd(timeOffset)
+
+      m.assertEqual(sample.adPosition, expectedPosition)
+    end function
+
+    @it("populates ad metadata fields from the ad object")
+    function _()
+      adBreak = m.fakeAdBreak(0)
+      ad = m.fakeAd(adBreak)
+      'bs:disable-next-line
+      csaiOnAdBreakBegin(adBreak)
+      'bs:disable-next-line
+      csaiOnAdBegin(ad)
+      'bs:disable-next-line
+      sample = csaiOnAdEnd(ad)
+
+      m.assertEqual(sample.adId, ad.id)
+      m.assertEqual(sample.adSystem, ad.adSystem)
+      m.assertEqual(sample.adDuration, ad.duration * 1000)
+      m.assertEqual(sample.creativeId, ad.creativeId)
+      m.assertEqual(sample.mediaUrl, ad.resourceUri)
+    end function
+
+    @it("adPodPosition increments across ads within the same break")
+    function _()
+      adBreak = m.fakeAdBreak(0)
+      'bs:disable-next-line
+      csaiOnAdBreakBegin(adBreak)
+
+      'bs:disable-next-line
+      csaiOnAdBegin(m.fakeAd(adBreak))
+      'bs:disable-next-line
+      sample1 = csaiOnAdEnd(invalid)
+
+      'bs:disable-next-line
+      csaiOnAdBegin(m.fakeAd(adBreak))
+      'bs:disable-next-line
+      sample2 = csaiOnAdEnd(invalid)
+
+      m.assertEqual(sample1.adPodPosition, 0)
+      m.assertEqual(sample2.adPodPosition, 1)
+    end function
+
+    @it("adIndex increments globally across ad breaks")
+    function _()
+      sample1 = m.runFullAd(0)
+      'bs:disable-next-line
+      csaiOnAdBreakEnd()
+
+      sample2 = m.runFullAd(60)
+      'bs:disable-next-line
+      csaiOnAdBreakEnd()
+
+      m.assertEqual(sample2.adIndex, sample1.adIndex + 1)
+    end function
+
+    @describe("Quartile tracking")
+
+    @it("sets the correct flag on the submitted sample for each quartile")
+    @params("first", "quartile1")
+    @params("midpoint", "midpoint")
+    @params("third", "quartile3")
+    function _(quartileName, expectedProp)
+      m.enterFakeCsaiAd(0)
+      m.fireQuartile(quartileName)
+      'bs:disable-next-line
+      sample = csaiOnAdEnd(invalid)
+
+      m.assertEqual(sample[expectedProp], 1)
+    end function
+
+    @it("does not set a quartile flag a second time if already reported")
+    @params("first", "quartile1")
+    @params("midpoint", "midpoint")
+    @params("third", "quartile3")
+    function _(quartileName, expectedProp)
+      m.enterFakeCsaiAd(0)
+      m.fireQuartile(quartileName)
+      m.fireQuartile(quartileName)
+      'bs:disable-next-line
+      sample = csaiOnAdEnd(invalid)
+
+      m.assertEqual(sample[expectedProp], 1)
+    end function
+
+    @it("does not crash when quartile events fire outside of an active ad")
+    function _()
+      try
+        'bs:disable-next-line
+        csaiOnAdFirstQuartile()
+        'bs:disable-next-line
+        csaiOnAdMidpoint()
+        'bs:disable-next-line
+        csaiOnAdThirdQuartile()
+      catch e
+        m.fail("quartile handlers crashed when called outside an active ad")
+      end try
+    end function
+
+    @describe("csaiOnAdEnd")
+
+    @it("returns invalid if state is not ACTIVE")
+    function _()
+      'bs:disable-next-line
+      result = csaiOnAdEnd(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("submitted sample has completed=1 and timeSinceAdStartedInMs >= 0")
+    function _()
+      m.enterFakeCsaiAd(0)
+      'bs:disable-next-line
+      sample = csaiOnAdEnd(invalid)
+
+      m.assertEqual(sample.completed, 1)
+      m.assertTrue(sample.timeSinceAdStartedInMs >= 0)
+    end function
+
+    @it("subsequent adEnd returns invalid - state transitioned away from ACTIVE")
+    function _()
+      m.enterFakeCsaiAd(0)
+      'bs:disable-next-line
+      csaiOnAdEnd(invalid)
+      'bs:disable-next-line
+      result = csaiOnAdEnd(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @describe("csaiOnAdSkip")
+
+    @it("returns invalid if state is not ACTIVE")
+    function _()
+      'bs:disable-next-line
+      result = csaiOnAdSkip(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("submitted sample has skipped=1 and any accumulated quartile flags")
+    function _()
+      m.enterFakeCsaiAd(0)
+      'bs:disable-next-line
+      csaiOnAdFirstQuartile()
+      'bs:disable-next-line
+      sample = csaiOnAdSkip(invalid)
+
+      m.assertEqual(sample.started, 1)
+      m.assertEqual(sample.quartile1, 1)
+      m.assertEqual(sample.skipped, 1)
+      m.assertTrue(sample.timeSinceAdStartedInMs >= 0)
+    end function
+
+    @it("subsequent adSkip returns invalid - state transitioned away from ACTIVE")
+    function _()
+      m.enterFakeCsaiAd(0)
+      'bs:disable-next-line
+      csaiOnAdSkip(invalid)
+      'bs:disable-next-line
+      result = csaiOnAdSkip(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @describe("csaiOnAdBreakEnd")
+
+    @it("resets state - new ad break can start cleanly after break ends")
+    function _()
+      sample1 = m.runFullAd(0)
+      'bs:disable-next-line
+      csaiOnAdBreakEnd()
+
+      sample2 = m.runFullAd(0)
+      'bs:disable-next-line
+      csaiOnAdBreakEnd()
+
+      m.assertNotInvalid(sample1)
+      m.assertNotInvalid(sample2)
+      m.assertEqual(sample2.adPodPosition, 0)
+    end function
+
+    @it("does nothing if no ad break is in progress - does not crash")
+    function _()
+      try
+        'bs:disable-next-line
+        csaiOnAdBreakEnd()
+      catch e
+        m.fail("csaiOnAdBreakEnd crashed when called outside of an ad break")
+      end try
+    end function
+
+    @describe("Full ad break sequence")
+
+    @it("complete preroll break: two ads, all quartiles, both samples correct")
+    function _()
+      adBreak = m.fakeAdBreak(0)
+      'bs:disable-next-line
+      csaiOnAdBreakBegin(adBreak)
+
+      ' --- First ad: all quartiles ---
+      'bs:disable-next-line
+      csaiOnAdBegin(m.fakeAd(adBreak))
+      'bs:disable-next-line
+      csaiOnAdFirstQuartile()
+      'bs:disable-next-line
+      csaiOnAdMidpoint()
+      'bs:disable-next-line
+      csaiOnAdThirdQuartile()
+      'bs:disable-next-line
+      sample1 = csaiOnAdEnd(invalid)
+
+      m.assertEqual(sample1.adPodPosition, 0)
+      m.assertEqual(sample1.adPosition, "preroll")
+      m.assertEqual(sample1.started, 1)
+      m.assertEqual(sample1.quartile1, 1)
+      m.assertEqual(sample1.midpoint, 1)
+      m.assertEqual(sample1.quartile3, 1)
+      m.assertEqual(sample1.completed, 1)
+      m.assertTrue(sample1.timeSinceAdStartedInMs >= 0)
+
+      ' --- Second ad: only first quartile, then skipped ---
+      'bs:disable-next-line
+      csaiOnAdBegin(m.fakeAd(adBreak))
+      'bs:disable-next-line
+      csaiOnAdFirstQuartile()
+      'bs:disable-next-line
+      sample2 = csaiOnAdSkip(invalid)
+
+      m.assertEqual(sample2.adPodPosition, 1)
+      m.assertEqual(sample2.adPosition, "preroll")
+      m.assertEqual(sample2.started, 1)
+      m.assertEqual(sample2.quartile1, 1)
+      m.assertInvalid(sample2.midpoint)
+      m.assertInvalid(sample2.quartile3)
+      m.assertEqual(sample2.skipped, 1)
+
+      ' --- Break ends: next break resets pod position ---
+      'bs:disable-next-line
+      csaiOnAdBreakEnd()
+
+      sample3 = m.runFullAd(60)
+      m.assertEqual(sample3.adPodPosition, 0)
+      m.assertEqual(sample3.adPosition, "midroll")
+    end function
+
+    ' UTILITY FUNCTIONS
+
+    function fakeAdBreak(timeOffset as integer) as object
+      return { timeOffset: timeOffset }
+    end function
+
+    function fakeAd(adBreak as object) as object
+      return {
+        id: "test-ad-id",
+        adSystem: "test-ad-system",
+        duration: 30,
+        width: 1920,
+        height: 1080,
+        creativeId: "test-creative-id",
+        resourceUri: "https://example.com/ad.mp4",
+        adBreak: adBreak
+      }
+    end function
+
+    function enterFakeCsaiAd(timeOffset as integer)
+      adBreak = m.fakeAdBreak(timeOffset)
+      'bs:disable-next-line
+      csaiOnAdBreakBegin(adBreak)
+      'bs:disable-next-line
+      csaiOnAdBegin(m.fakeAd(adBreak))
+    end function
+
+    function runFullAd(timeOffset as integer) as object
+      m.enterFakeCsaiAd(timeOffset)
+      'bs:disable-next-line
+      return csaiOnAdEnd(invalid)
+    end function
+
+    function fireQuartile(quartileName as string)
+      if quartileName = "first"
+        'bs:disable-next-line
+        csaiOnAdFirstQuartile()
+      else if quartileName = "midpoint"
+        'bs:disable-next-line
+        csaiOnAdMidpoint()
+      else if quartileName = "third"
+        'bs:disable-next-line
+        csaiOnAdThirdQuartile()
+      end if
+    end function
+
+  end class
+
+end namespace
