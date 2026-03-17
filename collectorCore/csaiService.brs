@@ -17,8 +17,6 @@ sub resetCsaiHelpers()
   m.csaiReportedQuartiles = {}
   m.csaiAdPodPosition = 0
 end sub
-
-
 sub csaiOnAdBreakBegin(adBreak = invalid)
   if m.csaiState <> m.CSAI_STATES.IDLE then return
 
