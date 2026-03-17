@@ -82,8 +82,6 @@ function csaiOnAdSkip(ad = invalid) as object
   csaiTransitionFromActive()
   return sentSample
 end function
-
-
 sub csaiOnAdBreakEnd()
   if m.csaiState = m.CSAI_STATES.IDLE then return
 
