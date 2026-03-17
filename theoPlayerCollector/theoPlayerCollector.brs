@@ -739,9 +739,9 @@ end sub
 sub onAdError(eventData = invalid)
   errorCode = invalid
   errorMessage = invalid
-  if eventData <> invalid and eventData.errorObject <> invalid
-    errorCode = eventData.errorObject.code
-    errorMessage = eventData.errorObject.message
+  if eventData <> invalid
+    if eventData.errcode <> invalid then errorCode = Val(eventData.errcode)
+    if eventData.errmsg <> invalid then errorMessage = eventData.errmsg
   end if
   m.collectorCore.callFunc("csaiOnAdError", { errorCode: errorCode, errorMessage: errorMessage })
 end sub

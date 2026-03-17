@@ -24,5 +24,6 @@
     <function name="onAdFirstQuartile" />
     <function name="onAdMidpoint" />
     <function name="onAdThirdQuartile" />
+    <function name="onAdError" />
   </interface>
 </component>
