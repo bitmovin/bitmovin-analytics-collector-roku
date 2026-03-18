@@ -496,8 +496,6 @@ sub onError(eventData = invalid)
     sendAnalyticsRequestAndClearValues(errorSample, 0, "error")
   end if
 
-  unobserveFields()
-
   m.collectorCore.callFunc("onError", errorSample)
 end sub
 
