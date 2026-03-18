@@ -289,6 +289,74 @@ namespace tests
       m.assertEqual(sample3.adPosition, "midroll")
     end function
 
+    @describe("isCsaiAdBreakInProgress")
+
+    @it("returns false when no ad break is active")
+    function _()
+      'bs:disable-next-line
+      result = isCsaiAdBreakInProgress()
+
+      m.assertFalse(result)
+    end function
+
+    @it("returns true after adBreakBegin")
+    function _()
+      'bs:disable-next-line
+      csaiOnAdBreakBegin(m.fakeAdBreak(0))
+
+      'bs:disable-next-line
+      result = isCsaiAdBreakInProgress()
+
+      m.assertTrue(result)
+    end function
+
+    @it("returns true during an active ad")
+    function _()
+      m.enterFakeCsaiAd(0)
+
+      'bs:disable-next-line
+      result = isCsaiAdBreakInProgress()
+
+      m.assertTrue(result)
+    end function
+
+    @it("returns false after adBreakEnd")
+    function _()
+      m.runFullAd(0)
+      'bs:disable-next-line
+      csaiOnAdBreakEnd()
+
+      'bs:disable-next-line
+      result = isCsaiAdBreakInProgress()
+
+      m.assertFalse(result)
+    end function
+
+    @describe("manipulateSampleForCsai")
+
+    @it("sets ad=CSAI on the sent sample when state is ad")
+    function _()
+      'bs:disable-next-line
+      updateSample({ state: "ad" })
+      'bs:disable-next-line
+      sendAnalyticsRequestAndClearValues(false)
+
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.ad, getAdTypes().CSAI)
+    end function
+
+    @it("does not set ad field when state is not ad")
+    function _()
+      'bs:disable-next-line
+      updateSample({ state: "playing" })
+      'bs:disable-next-line
+      sendAnalyticsRequestAndClearValues(false)
+
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+      m.assertEqual(analyticsDataTask.eventData.requestData.ad, 0)
+    end function
+
     ' UTILITY FUNCTIONS
 
     function fakeAdBreak(timeOffset as integer) as object

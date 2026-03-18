@@ -134,6 +134,15 @@ function getCsaiTimePlayed()
   return m.csaiAdStartTimer.TotalMilliseconds()
 end function
 
+function isCsaiAdBreakInProgress() as boolean
+  return m.csaiState <> m.CSAI_STATES.IDLE
+end function
+
+sub manipulateSampleForCsai()
+  if m.sample.state <> "ad" then return
+  updateSample({ ad: getAdTypes().CSAI })
+end sub
+
 function csaiMapTimeOffsetToPosition(adBreak)
   if adBreak = invalid or adBreak.timeOffset = invalid then return "midroll"
   timeOffset = adBreak.timeOffset
