@@ -78,14 +78,16 @@ end sub
 
 function setCustomData(customData)
   if customData = invalid then return invalid
-  finishRunningSample()
+
+  if m.currentState <> m.collectorStates.SETUP then finishRunningSample()
 
   return updateSample(customData)
 end function
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
-  finishRunningSample()
+
+  if m.currentState <> m.collectorStates.SETUP then finishRunningSample()
 
   duration = getDuration(m.playerStateTimer)
   createTempMetadataSampleAndSendAnalyticsRequest(customData, duration, m.currentState)

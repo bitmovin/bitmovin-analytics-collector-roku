@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - automated CSAI tracking for THEOplayer/Dolby OptiView
 
+### Fixed
+- Prevent duplicate SETUP sample with THEO player when calling `setCustomData` or `setCustomDataOnce` before playback starts
+
 ## v2.14.0
 
 ### Added

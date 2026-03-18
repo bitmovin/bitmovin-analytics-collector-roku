@@ -2948,13 +2948,43 @@ namespace tests
       'bs:disable-next-line
       m.node.playerStateTimer = CreateObject("roTimespan")
       'bs:disable-next-line
-      m.node.previousState = "playing"
+      m.node.currentState = "playing"
 
       'bs:disable-next-line
       setCustomData({ customData1: "testValue1", customData2: "testValue2" })
 
       m.assertEqual(testContext.capturedSample.customData1, "testValue1")
       m.assertEqual(testContext.capturedSample.customData2, "testValue2")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not call finishRunningSample when in SETUP state")
+    function _()
+      testContext = { sendAnalyticsCalled: false, capturedSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendAnalyticsCalled = true
+          end if
+          if funcName = "updateSample"
+            m.testContext.capturedSample = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      setCustomData({ customData1: "testValue1" })
+
+      m.assertFalse(testContext.sendAnalyticsCalled)
+      m.assertNotInvalid(testContext.capturedSample)
+      m.assertEqual(testContext.capturedSample.customData1, "testValue1")
       m.node.collectorCore = originalCollectorCore
     end function
 
@@ -3013,11 +3043,54 @@ namespace tests
       'bs:disable-next-line
       m.node.playerStateTimer = CreateObject("roTimespan")
       'bs:disable-next-line
-      m.node.previousState = "playing"
+      m.node.currentState = "playing"
 
       'bs:disable-next-line
       setCustomDataOnce({ customData3: "onceValue" })
 
+      m.assertNotInvalid(testContext.capturedTempSample)
+      m.assertEqual(testContext.capturedTempSample.customData3, "onceValue")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not call finishRunningSample when in SETUP state")
+    function _()
+      testContext = { sendAnalyticsCalled: false, capturedTempSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendAnalyticsCalled = true
+          end if
+          if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
+            m.testContext.capturedTempSample = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      setCustomDataOnce({ customData3: "onceValue" })
+
+      m.assertFalse(testContext.sendAnalyticsCalled)
       m.assertNotInvalid(testContext.capturedTempSample)
       m.assertEqual(testContext.capturedTempSample.customData3, "onceValue")
       m.node.collectorCore = originalCollectorCore
