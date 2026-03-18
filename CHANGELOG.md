@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Prevent duplicate SETUP sample with THEO player when calling `setCustomData` or `setCustomDataOnce` before playback starts
+- THEO player collector stops on player error
 
 ## v2.14.0
 
