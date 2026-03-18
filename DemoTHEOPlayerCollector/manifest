@@ -1,3 +1,6 @@
+# Required for CSAI ad playback via Roku Advertising Framework (RAF)
+bs_libs_required=roku_ads_lib
+
 # Channel Details
 title=Theo Demo
 major_version=0

@@ -289,6 +289,8 @@ sub setUpObservers()
   if m.videoNode <> invalid
     m.videoNode.observeFieldScoped("state", "onVideoNodeStateChanged")
   end if
+
+  setUpCsaiAdObservers()
 end sub
 
 sub unobserveFields(isDestroy = false)
@@ -312,6 +314,7 @@ sub unobserveFields(isDestroy = false)
     m.videoNode.unobserveFieldScoped("state")
   end if
 
+  tearDownCsaiAdObservers()
 end sub
 
 sub onHeartbeat()
@@ -653,6 +656,79 @@ sub onVideoNodeStateChanged()
   if state = "buffering"
     m.isBuffering = true
   end if
+end sub
+
+' ====== CSAI related ad observers and callbacks ======
+
+sub setUpCsaiAdObservers()
+  if m.player.ads = invalid then return
+
+  adEvents = m.player.ads.events
+  if adEvents = invalid then return
+
+  m.player.ads.callFunc("addEventListener", adEvents.adbreakbegin, m.top, "onAdBreakBegin")
+  m.player.ads.callFunc("addEventListener", adEvents.adbegin, m.top, "onAdBegin")
+  m.player.ads.callFunc("addEventListener", adEvents.adend, m.top, "onAdEnd")
+  m.player.ads.callFunc("addEventListener", adEvents.adbreakend, m.top, "onAdBreakEnd")
+  m.player.ads.callFunc("addEventListener", adEvents.adfirstquartile, m.top, "onAdFirstQuartile")
+  m.player.ads.callFunc("addEventListener", adEvents.admidpoint, m.top, "onAdMidpoint")
+  m.player.ads.callFunc("addEventListener", adEvents.adthirdquartile, m.top, "onAdThirdQuartile")
+end sub
+
+sub tearDownCsaiAdObservers()
+  if m.player = invalid or m.player.ads = invalid then return
+
+  adEvents = m.player.ads.events
+  if adEvents = invalid then return
+
+  m.player.ads.callFunc("removeEventListener", adEvents.adbreakbegin, m.top, "onAdBreakBegin")
+  m.player.ads.callFunc("removeEventListener", adEvents.adbegin, m.top, "onAdBegin")
+  m.player.ads.callFunc("removeEventListener", adEvents.adend, m.top, "onAdEnd")
+  m.player.ads.callFunc("removeEventListener", adEvents.adbreakend, m.top, "onAdBreakEnd")
+  m.player.ads.callFunc("removeEventListener", adEvents.adfirstquartile, m.top, "onAdFirstQuartile")
+  m.player.ads.callFunc("removeEventListener", adEvents.admidpoint, m.top, "onAdMidpoint")
+  m.player.ads.callFunc("removeEventListener", adEvents.adthirdquartile, m.top, "onAdThirdQuartile")
+end sub
+
+sub onAdBreakBegin(eventData = invalid)
+  adBreak = invalid
+  if eventData <> invalid then adBreak = eventData.adBreak
+  print m.tag; "onAdBreakBegin: timeOffset="; adBreak?.timeOffset; " maxDuration="; adBreak?.maxDuration
+  m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
+end sub
+
+sub onAdBegin(eventData = invalid)
+  ad = invalid
+  if eventData <> invalid then ad = eventData.ad
+  print m.tag; "onAdBegin: id="; ad?.id; " duration="; ad?.duration
+  m.collectorCore.callFunc("csaiOnAdBegin", ad)
+end sub
+
+sub onAdEnd(eventData = invalid)
+  ad = invalid
+  if eventData <> invalid then ad = eventData.ad
+  print m.tag; "onAdEnd: id="; ad?.id
+  m.collectorCore.callFunc("csaiOnAdEnd", ad)
+end sub
+
+sub onAdBreakEnd(eventData = invalid)
+  print m.tag; "onAdBreakEnd"
+  m.collectorCore.callFunc("csaiOnAdBreakEnd")
+end sub
+
+sub onAdFirstQuartile(eventData = invalid)
+  print m.tag; "onAdFirstQuartile"
+  m.collectorCore.callFunc("csaiOnAdFirstQuartile")
+end sub
+
+sub onAdMidpoint(eventData = invalid)
+  print m.tag; "onAdMidpoint"
+  m.collectorCore.callFunc("csaiOnAdMidpoint")
+end sub
+
+sub onAdThirdQuartile(eventData = invalid)
+  print m.tag; "onAdThirdQuartile"
+  m.collectorCore.callFunc("csaiOnAdThirdQuartile")
 end sub
 
 ' ====== SSAI related ad callbacks ======

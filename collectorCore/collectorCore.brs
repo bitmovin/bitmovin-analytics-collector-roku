@@ -23,6 +23,7 @@ sub initializeAnalytics(config = invalid)
   setupSample()
 
   setupSsaiService()
+  setupCsaiService()
 
   updateAnalyticsConfig(config)
 end sub
@@ -123,6 +124,7 @@ function getBaseAdSample()
     time: m.sample.time,
     videoWindowHeight: m.sample.videoWindowHeight,
     videoWindowWidth: m.sample.videoWindowWidth,
+    playerStartupTime: 1,
   }
 
   if m.currentAdMetadata <> invalid

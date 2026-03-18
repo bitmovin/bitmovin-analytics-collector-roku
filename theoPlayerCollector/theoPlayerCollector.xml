@@ -17,5 +17,12 @@
     <function name="onSeeking" />
     <function name="onTimeUpdate" />
     <function name="onError" />
+    <function name="onAdBreakBegin" />
+    <function name="onAdBegin" />
+    <function name="onAdEnd" />
+    <function name="onAdBreakEnd" />
+    <function name="onAdFirstQuartile" />
+    <function name="onAdMidpoint" />
+    <function name="onAdThirdQuartile" />
   </interface>
 </component>
