@@ -482,6 +482,9 @@ sub onError(eventData = invalid)
     }
   }
 
+  ' If an error occurs during an active CSAI ad, also track it as an ad error
+  m.collectorCore.callFunc("csaiOnAdError", { errorCode: errorCode, errorMessage: errorMessage })
+
   transformedError = m.top.error.error
   errorSample = {
     errorCode: transformedError.code,
@@ -679,6 +682,7 @@ sub setUpCsaiAdObservers()
   m.player.ads.callFunc("addEventListener", adEvents.adfirstquartile, m.top, "onAdFirstQuartile")
   m.player.ads.callFunc("addEventListener", adEvents.admidpoint, m.top, "onAdMidpoint")
   m.player.ads.callFunc("addEventListener", adEvents.adthirdquartile, m.top, "onAdThirdQuartile")
+  m.player.ads.callFunc("addEventListener", adEvents.aderror, m.top, "onAdError")
 end sub
 
 sub tearDownCsaiAdObservers()
@@ -694,6 +698,7 @@ sub tearDownCsaiAdObservers()
   m.player.ads.callFunc("removeEventListener", adEvents.adfirstquartile, m.top, "onAdFirstQuartile")
   m.player.ads.callFunc("removeEventListener", adEvents.admidpoint, m.top, "onAdMidpoint")
   m.player.ads.callFunc("removeEventListener", adEvents.adthirdquartile, m.top, "onAdThirdQuartile")
+  m.player.ads.callFunc("removeEventListener", adEvents.aderror, m.top, "onAdError")
 end sub
 
 sub onAdBreakBegin(eventData = invalid)
@@ -736,6 +741,16 @@ end sub
 sub onAdThirdQuartile(eventData = invalid)
   print m.tag; "onAdThirdQuartile"
   m.collectorCore.callFunc("csaiOnAdThirdQuartile")
+end sub
+
+sub onAdError(eventData = invalid)
+  errorCode = invalid
+  errorMessage = invalid
+  if eventData <> invalid
+    if eventData.errcode <> invalid then errorCode = Val(eventData.errcode)
+    if eventData.errmsg <> invalid then errorMessage = eventData.errmsg
+  end if
+  m.collectorCore.callFunc("csaiOnAdError", { errorCode: errorCode, errorMessage: errorMessage })
 end sub
 
 ' ====== SSAI related ad callbacks ======

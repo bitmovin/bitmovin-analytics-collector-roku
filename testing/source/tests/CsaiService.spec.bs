@@ -208,6 +208,111 @@ namespace tests
       m.assertInvalid(result)
     end function
 
+    @describe("csaiOnAdError")
+
+    @it("returns invalid if state is IDLE")
+    function _()
+      'bs:disable-next-line
+      result = csaiOnAdError({ errorCode: 100, errorMessage: "test error" })
+
+      m.assertInvalid(result)
+    end function
+
+    @describe("csaiOnAdError - ACTIVE state")
+
+    @it("submitted sample has errorCode, errorMessage and errorSeverity=CRITICAL")
+    function _()
+      m.enterFakeCsaiAd(0)
+      'bs:disable-next-line
+      sample = csaiOnAdError({ errorCode: 100, errorMessage: "ad load failed" })
+
+      m.assertEqual(sample.errorCode, 100)
+      m.assertEqual(sample.errorMessage, "ad load failed")
+      m.assertEqual(sample.errorSeverity, "CRITICAL")
+    end function
+
+    @it("submitted sample retains started=1 and any accumulated quartile flags")
+    function _()
+      m.enterFakeCsaiAd(0)
+      'bs:disable-next-line
+      csaiOnAdFirstQuartile()
+      'bs:disable-next-line
+      sample = csaiOnAdError({ errorCode: 200, errorMessage: "playback error" })
+
+      m.assertEqual(sample.started, 1)
+      m.assertEqual(sample.quartile1, 1)
+      m.assertTrue(sample.timeSinceAdStartedInMs >= 0)
+    end function
+
+    @it("handles invalid error object gracefully")
+    function _()
+      m.enterFakeCsaiAd(0)
+      'bs:disable-next-line
+      sample = csaiOnAdError(invalid)
+
+      m.assertNotInvalid(sample)
+      m.assertEqual(sample.errorSeverity, "CRITICAL")
+    end function
+
+    @it("transitions away from ACTIVE - subsequent adEnd returns invalid")
+    function _()
+      m.enterFakeCsaiAd(0)
+      'bs:disable-next-line
+      csaiOnAdError({ errorCode: 100, errorMessage: "test error" })
+      'bs:disable-next-line
+      result = csaiOnAdEnd(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @describe("csaiOnAdError - AD_BREAK_STARTED state")
+
+    @it("submitted sample has errorCode, errorMessage and errorSeverity=CRITICAL")
+    function _()
+      m.enterFakeAdBreak(0)
+      'bs:disable-next-line
+      sample = csaiOnAdError({ errorCode: 405, errorMessage: "Problem displaying MediaFile" })
+
+      m.assertEqual(sample.errorCode, 405)
+      m.assertEqual(sample.errorMessage, "Problem displaying MediaFile")
+      m.assertEqual(sample.errorSeverity, "CRITICAL")
+    end function
+
+    @it("submitted sample has adType=CSAI, adPosition and a valid adImpressionId")
+    function _()
+      m.enterFakeAdBreak(0)
+      'bs:disable-next-line
+      sample = csaiOnAdError({ errorCode: 405, errorMessage: "Problem displaying MediaFile" })
+
+      'bs:disable-next-line
+      m.assertEqual(sample.adType, getAdTypes().CSAI)
+      m.assertEqual(sample.adPosition, "preroll")
+      m.assertNotInvalid(sample.adImpressionId)
+    end function
+
+    @it("does not set started=1 since no ad began")
+    function _()
+      m.enterFakeAdBreak(0)
+      'bs:disable-next-line
+      sample = csaiOnAdError({ errorCode: 405, errorMessage: "Problem displaying MediaFile" })
+
+      m.assertInvalid(sample.started)
+    end function
+
+    @it("subsequent adBreakEnd does not crash")
+    function _()
+      m.enterFakeAdBreak(0)
+      'bs:disable-next-line
+      csaiOnAdError({ errorCode: 405, errorMessage: "Problem displaying MediaFile" })
+
+      try
+        'bs:disable-next-line
+        csaiOnAdBreakEnd()
+      catch e
+        m.fail("csaiOnAdBreakEnd crashed after an AD_BREAK_STARTED error")
+      end try
+    end function
+
     @describe("csaiOnAdBreakEnd")
 
     @it("resets state - new ad break can start cleanly after break ends")
@@ -376,12 +481,16 @@ namespace tests
       }
     end function
 
-    function enterFakeCsaiAd(timeOffset as integer)
+    function enterFakeAdBreak(timeOffset as integer)
       adBreak = m.fakeAdBreak(timeOffset)
       'bs:disable-next-line
       csaiOnAdBreakBegin(adBreak)
+    end function
+
+    function enterFakeCsaiAd(timeOffset as integer)
+      m.enterFakeAdBreak(timeOffset)
       'bs:disable-next-line
-      csaiOnAdBegin(m.fakeAd(adBreak))
+      csaiOnAdBegin(m.fakeAd(m.fakeAdBreak(timeOffset)))
     end function
 
     function runFullAd(timeOffset as integer) as object

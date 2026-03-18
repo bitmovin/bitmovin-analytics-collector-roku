@@ -35,3 +35,10 @@ function getCustomDataValueKeys()
   end for
   return keys
 end function
+
+function getErrorSeverities()
+  return {
+    critical: "CRITICAL",
+    info: "INFO"
+  }
+end function

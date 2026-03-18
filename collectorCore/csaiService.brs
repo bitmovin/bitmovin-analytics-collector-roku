@@ -82,6 +82,38 @@ function csaiOnAdSkip(ad = invalid) as object
   csaiTransitionFromActive()
   return sentSample
 end function
+
+function csaiOnAdError(error = invalid) as object
+  if m.csaiState = m.CSAI_STATES.IDLE then return invalid
+
+  if m.csaiState = m.CSAI_STATES.AD_BREAK_STARTED
+    adSample = getBaseAdSample()
+    adSample.adImpressionId = getRandomImpressionId()
+    adSample.adType = getAdTypes().CSAI
+    if m.csaiAdBreakStartTimer <> invalid
+      adSample.adStartupTime = m.csaiAdBreakStartTimer.TotalMilliseconds()
+      m.csaiAdBreakStartTimer = invalid
+    end if
+    adSample.adIndex = m.csaiAdIndex
+    m.csaiAdIndex++
+    adSample.adPodPosition = m.csaiAdPodPosition
+    m.csaiAdPodPosition++
+    adSample.adPosition = csaiMapTimeOffsetToPosition(m.csaiCurrentAdBreak)
+    m.activeCsaiAdSample = adSample
+  end if
+
+  if error <> invalid
+    m.activeCsaiAdSample.errorCode = error.errorCode
+    m.activeCsaiAdSample.errorMessage = error.errorMessage
+  end if
+  m.activeCsaiAdSample.errorSeverity = getErrorSeverities().critical
+
+  sentSample = sendCsaiAdSample()
+  csaiTransitionFromActive()
+  return sentSample
+end function
+
+
 sub csaiOnAdBreakEnd()
   if m.csaiState = m.CSAI_STATES.IDLE then return
 
