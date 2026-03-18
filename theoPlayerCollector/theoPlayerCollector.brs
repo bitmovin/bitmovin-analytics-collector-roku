@@ -421,6 +421,7 @@ end sub
 
 sub onPause(eventData = invalid)
   if m.player.seeking then return
+  if m.collectorCore.callFunc("isCsaiAdBreakInProgress") then return
 
   ' save currentTime in case pause is due to a seek
   m.currentTimeAtPauseStart = getCurrentPlayerTimeInMs()
@@ -577,6 +578,9 @@ sub handlePreviousState()
     }
     sendAnalyticsRequestAndClearValues(sample, stateDuration, m.previousState)
     resetSeekHelperVariables()
+  else if m.previousState = m.collectorStates.AD
+    ' AD → any (ad finished or next ad started)
+    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.previousState)
   end if
 end sub
 
@@ -593,6 +597,8 @@ sub sendClosingSampleForCurrentState()
     else
       sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
     end if
+  else if m.currentState = m.collectorStates.AD
+    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
   end if
 
   m.playerStateTimer.Mark()
@@ -702,6 +708,7 @@ sub onAdBegin(eventData = invalid)
   if eventData <> invalid then ad = eventData.ad
   print m.tag; "onAdBegin: id="; ad?.id; " duration="; ad?.duration
   m.collectorCore.callFunc("csaiOnAdBegin", ad)
+  onPlayerStateChanged(m.collectorStates.AD)
 end sub
 
 sub onAdEnd(eventData = invalid)
