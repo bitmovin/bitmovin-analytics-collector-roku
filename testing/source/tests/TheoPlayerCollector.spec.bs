@@ -1037,6 +1037,7 @@ namespace tests
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "isCsaiAdBreakInProgress" then return false
           if funcName = "updateSample"
             m.testContext.capturedSampleData = sampleData
           end if
@@ -1084,6 +1085,7 @@ namespace tests
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "isCsaiAdBreakInProgress" then return false
           if funcName = "updateSample"
             m.testContext.capturedSampleData = sampleData
           end if
@@ -1994,8 +1996,6 @@ namespace tests
           end if
           return true
         end function,
-        unobserveFieldScoped: function(field as string)
-        end function,
         testContext: testContext
       }
 
@@ -2042,8 +2042,6 @@ namespace tests
             m.testContext.capturedSampleData = sampleData
           end if
           return true
-        end function,
-        unobserveFieldScoped: function(field as string)
         end function,
         testContext: testContext
       }
@@ -2094,8 +2092,6 @@ namespace tests
           end if
           return true
         end function,
-        unobserveFieldScoped: function(field as string)
-        end function,
         testContext: testContext
       }
 
@@ -2141,8 +2137,6 @@ namespace tests
             m.testContext.onErrorSample = sampleData
           end if
           return true
-        end function,
-        unobserveFieldScoped: function(field as string)
         end function,
         testContext: testContext
       }
@@ -2195,8 +2189,6 @@ namespace tests
           end if
           return true
         end function,
-        unobserveFieldScoped: function(field as string)
-        end function,
         testContext: testContext
       }
 
@@ -2248,8 +2240,6 @@ namespace tests
           end if
           return true
         end function,
-        unobserveFieldScoped: function(field as string)
-        end function,
         testContext: testContext
       }
 
@@ -2284,6 +2274,51 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("does not remove event listeners")
+    function _()
+      removeEventListenerCalled = false
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function,
+        testContext: {}
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "removeEventListener"
+          m.removeEventListenerCalled = true
+        else if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.removeEventListenerCalled = false
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      eventData = { errorObject: { code: 6001, cause: "Stream has stalled" } }
+
+      'bs:disable-next-line
+      onError(eventData)
+
+      m.assertFalse(m.mockPlayer.removeEventListenerCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("sendVideoStartError")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2299,8 +2334,6 @@ namespace tests
             m.testContext.capturedSampleData = sampleData
           end if
           return true
-        end function,
-        unobserveFieldScoped: function(field as string)
         end function,
         testContext: testContext
       }
@@ -2351,8 +2384,6 @@ namespace tests
             m.testContext.capturedSampleData = sampleData
           end if
           return true
-        end function,
-        unobserveFieldScoped: function(field as string)
         end function,
         testContext: testContext
       }
@@ -2948,13 +2979,43 @@ namespace tests
       'bs:disable-next-line
       m.node.playerStateTimer = CreateObject("roTimespan")
       'bs:disable-next-line
-      m.node.previousState = "playing"
+      m.node.currentState = "playing"
 
       'bs:disable-next-line
       setCustomData({ customData1: "testValue1", customData2: "testValue2" })
 
       m.assertEqual(testContext.capturedSample.customData1, "testValue1")
       m.assertEqual(testContext.capturedSample.customData2, "testValue2")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not call finishRunningSample when in SETUP state")
+    function _()
+      testContext = { sendAnalyticsCalled: false, capturedSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendAnalyticsCalled = true
+          end if
+          if funcName = "updateSample"
+            m.testContext.capturedSample = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      setCustomData({ customData1: "testValue1" })
+
+      m.assertFalse(testContext.sendAnalyticsCalled)
+      m.assertNotInvalid(testContext.capturedSample)
+      m.assertEqual(testContext.capturedSample.customData1, "testValue1")
       m.node.collectorCore = originalCollectorCore
     end function
 
@@ -3013,11 +3074,54 @@ namespace tests
       'bs:disable-next-line
       m.node.playerStateTimer = CreateObject("roTimespan")
       'bs:disable-next-line
-      m.node.previousState = "playing"
+      m.node.currentState = "playing"
 
       'bs:disable-next-line
       setCustomDataOnce({ customData3: "onceValue" })
 
+      m.assertNotInvalid(testContext.capturedTempSample)
+      m.assertEqual(testContext.capturedTempSample.customData3, "onceValue")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not call finishRunningSample when in SETUP state")
+    function _()
+      testContext = { sendAnalyticsCalled: false, capturedTempSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendAnalyticsCalled = true
+          end if
+          if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
+            m.testContext.capturedTempSample = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      setCustomDataOnce({ customData3: "onceValue" })
+
+      m.assertFalse(testContext.sendAnalyticsCalled)
       m.assertNotInvalid(testContext.capturedTempSample)
       m.assertEqual(testContext.capturedTempSample.customData3, "onceValue")
       m.node.collectorCore = originalCollectorCore
@@ -3072,6 +3176,191 @@ namespace tests
       m.assertTrue(metadataApplied, "pending metadata should be applied via updateSample on source change")
       'bs:disable-next-line
       m.assertInvalid(m.node.pendingMetadata)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("CSAI ad state tracking")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("onPause does not transition to paused when CSAI ad break is in progress")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "isCsaiAdBreakInProgress" then return true
+          return true
+        end function,
+        playerState: ""
+      }
+
+      m.mockPlayer.seeking = false
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.previousState = ""
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      'bs:disable-next-line
+      onPause()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "playing")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("onAdBegin transitions content state machine to ad state")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.previousState = ""
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      'bs:disable-next-line
+      onAdBegin()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "ad")
+      m.assertEqual(m.node.collectorCore.playerState, "ad")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("onAdBegin sends a played sample for the previous playing state")
+    function _()
+      testContext = { capturedSamples: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          end if
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.previousState = ""
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      'bs:disable-next-line
+      onAdBegin()
+
+      closingPlayingSample = invalid
+      for each sampleData in testContext.capturedSamples
+        if sampleData.DoesExist("state") and sampleData.state = "playing"
+          closingPlayingSample = sampleData
+        end if
+      end for
+
+      m.assertNotInvalid(closingPlayingSample)
+      m.assertNotInvalid(closingPlayingSample.played)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("onPlaying after ad closes the ad state and transitions to playing")
+    function _()
+      testContext = { capturedSamples: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          end if
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode"
+          return { height: 1080, width: 1920 }
+        end if
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+      'bs:disable-next-line
+      m.node.videoStartUpTime = 1
+      'bs:disable-next-line
+      m.node.didVideoPlay = true
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.previousState = "playing"
+      'bs:disable-next-line
+      m.node.currentState = "ad"
+
+      'bs:disable-next-line
+      onPlaying()
+
+      closingAdSample = invalid
+      for each sampleData in testContext.capturedSamples
+        if sampleData.DoesExist("state") and sampleData.state = "ad"
+          closingAdSample = sampleData
+        end if
+      end for
+
+      m.assertNotInvalid(closingAdSample)
+      m.assertNotInvalid(closingAdSample.played)
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "playing")
+
       m.node.collectorCore = originalCollectorCore
     end function
 

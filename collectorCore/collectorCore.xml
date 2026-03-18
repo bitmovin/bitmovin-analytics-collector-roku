@@ -35,6 +35,7 @@
     <function name="csaiOnAdMidpoint"/>
     <function name="csaiOnAdThirdQuartile"/>
     <function name="csaiOnAdError"/>
+    <function name="isCsaiAdBreakInProgress"/>
     <field id="playerState" alias="analyticsDataTask.playerState" type="string"/>
     <field id="fireHeartbeat" type="boolean" alwaysnotify="true"/>
   </interface>

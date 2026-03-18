@@ -224,6 +224,7 @@ end function
 ' TODO: Error handling if the keys are invalid
 sub sendAnalyticsRequestAndClearValues(skipHeartbeatReset = false)
   manipulateSampleForSsai()
+  manipulateSampleForCsai()
   m.AnalyticsDataTask.eventData = {
     requestType: m.AnalyticsRequestTypes.REGULAR
     requestData: m.sample

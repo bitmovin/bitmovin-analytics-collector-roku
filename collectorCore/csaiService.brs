@@ -17,8 +17,6 @@ sub resetCsaiHelpers()
   m.csaiReportedQuartiles = {}
   m.csaiAdPodPosition = 0
 end sub
-
-
 sub csaiOnAdBreakBegin(adBreak = invalid)
   if m.csaiState <> m.CSAI_STATES.IDLE then return
 
@@ -167,6 +165,15 @@ function getCsaiTimePlayed()
   if m.csaiAdStartTimer = invalid then return 0
   return m.csaiAdStartTimer.TotalMilliseconds()
 end function
+
+function isCsaiAdBreakInProgress() as boolean
+  return m.csaiState <> m.CSAI_STATES.IDLE
+end function
+
+sub manipulateSampleForCsai()
+  if m.sample.state <> "ad" then return
+  updateSample({ ad: getAdTypes().CSAI })
+end sub
 
 function csaiMapTimeOffsetToPosition(adBreak)
   if adBreak = invalid or adBreak.timeOffset = invalid then return "midroll"
