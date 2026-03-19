@@ -584,6 +584,9 @@ sub handlePreviousState()
   else if m.previousState = m.collectorStates.AD
     ' AD → any (ad finished or next ad started)
     sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.previousState)
+    if m.currentState <> m.collectorStates.AD
+      updateSample({ videoBitrate: m.currentVideoBitrate })
+    end if
   end if
 end sub
 
@@ -705,6 +708,7 @@ sub onAdBreakBegin(eventData = invalid)
   adBreak = invalid
   if eventData <> invalid then adBreak = eventData.adBreak
   print m.tag; "onAdBreakBegin: timeOffset="; adBreak?.timeOffset; " maxDuration="; adBreak?.maxDuration
+  updateSample({ videoBitrate: invalid })
   m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
 end sub
 
