@@ -176,9 +176,9 @@ sub manipulateSampleForCsai()
 end sub
 
 function csaiMapTimeOffsetToPosition(adBreak)
-  if adBreak = invalid or adBreak.timeOffset = invalid then return "midroll"
+  if adBreak = invalid or adBreak.timeOffset = invalid then return "mid"
   timeOffset = adBreak.timeOffset
-  if timeOffset = 0 then return "preroll"
-  if timeOffset = -1 then return "postroll"
-  return "midroll"
+  if timeOffset = 0 then return "pre"
+  if timeOffset = -1 then return "post"
+  return "mid"
 end function
