@@ -39,9 +39,9 @@ namespace tests
     end function
 
     @it("sets the correct adPosition based on timeOffset")
-    @params(0, "preroll")
-    @params(-1, "postroll")
-    @params(30, "midroll")
+    @params(0, "pre")
+    @params(-1, "post")
+    @params(30, "mid")
     function _(timeOffset, expectedPosition)
       sample = m.runFullAd(timeOffset)
 
@@ -286,7 +286,7 @@ namespace tests
 
       'bs:disable-next-line
       m.assertEqual(sample.adType, getAdTypes().CSAI)
-      m.assertEqual(sample.adPosition, "preroll")
+      m.assertEqual(sample.adPosition, "pre")
       m.assertNotInvalid(sample.adImpressionId)
     end function
 
@@ -361,7 +361,7 @@ namespace tests
       sample1 = csaiOnAdEnd(invalid)
 
       m.assertEqual(sample1.adPodPosition, 0)
-      m.assertEqual(sample1.adPosition, "preroll")
+      m.assertEqual(sample1.adPosition, "pre")
       m.assertEqual(sample1.started, 1)
       m.assertEqual(sample1.quartile1, 1)
       m.assertEqual(sample1.midpoint, 1)
@@ -378,7 +378,7 @@ namespace tests
       sample2 = csaiOnAdSkip(invalid)
 
       m.assertEqual(sample2.adPodPosition, 1)
-      m.assertEqual(sample2.adPosition, "preroll")
+      m.assertEqual(sample2.adPosition, "pre")
       m.assertEqual(sample2.started, 1)
       m.assertEqual(sample2.quartile1, 1)
       m.assertInvalid(sample2.midpoint)
@@ -391,7 +391,7 @@ namespace tests
 
       sample3 = m.runFullAd(60)
       m.assertEqual(sample3.adPodPosition, 0)
-      m.assertEqual(sample3.adPosition, "midroll")
+      m.assertEqual(sample3.adPosition, "mid")
     end function
 
     @describe("isCsaiAdBreakInProgress")
