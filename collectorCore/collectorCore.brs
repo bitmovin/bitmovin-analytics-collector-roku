@@ -125,6 +125,7 @@ function getBaseAdSample()
     videoWindowHeight: m.sample.videoWindowHeight,
     videoWindowWidth: m.sample.videoWindowWidth,
     playerStartupTime: 1,
+    videoBitrate: invalid,
   }
 
   if m.currentAdMetadata <> invalid
