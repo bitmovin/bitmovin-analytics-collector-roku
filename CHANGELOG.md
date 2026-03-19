@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.15.0
+
+### Added
+- official support for CSAI-tracking on THEOplayer/Dolby OptiView
+
+### Internal
+- adjusted reported `adPosition` strings to comply with other Bitmovin collectors
+- prevent reported `videoBitrate` of main content from getting carried over into ads
+
 ## v2.15.0-beta.0
 
 ### Added
