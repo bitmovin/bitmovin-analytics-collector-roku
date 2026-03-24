@@ -20,13 +20,19 @@ end function
 function getVideoWindowSize(video)
   height = m.deviceInfo.GetDisplaySize().h
   width = m.deviceInfo.GetDisplaySize().w
-  if video.height <> 0
+
+  if video.height <> 0 and video.height <> invalid
     height = video.height
   end if
-  if video.width <> 0
+
+  if video.width <> 0 and video.width <> invalid
     width = video.width
   end if
-  return {videoWindowHeight: Int(height), videoWindowWidth: Int(width)}
+
+  return {
+    videoWindowHeight: Int(height)
+    videoWindowWidth: Int(width)
+  }
 end function
 
 'Return the playback size type (FULLSCREEN, WINDOW) of the stream

@@ -1,0 +1,71 @@
+namespace tests
+  @SGNode("theoPlayerCollector")
+  @suite
+  class CollectorCoreUtilsTests extends rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getVideoWindowSize")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("uses video node dimensions when height and width are set")
+    function _()
+      video = { height: 720, width: 1280 }
+
+      'bs:disable-next-line
+      result = getVideoWindowSize(video)
+
+      m.assertEqual(result.videoWindowHeight, 720)
+      m.assertEqual(result.videoWindowWidth, 1280)
+    end function
+
+    @it("falls back to display size when video height is 0")
+    function _()
+      video = { height: 0, width: 1280 }
+
+      'bs:disable-next-line
+      result = getVideoWindowSize(video)
+
+      'bs:disable-next-line
+      m.assertEqual(result.videoWindowHeight, m.node.deviceInfo.GetDisplaySize().h)
+      m.assertEqual(result.videoWindowWidth, 1280)
+    end function
+
+    @it("falls back to display size when video width is 0")
+    function _()
+      video = { height: 720, width: 0 }
+
+      'bs:disable-next-line
+      result = getVideoWindowSize(video)
+
+      m.assertEqual(result.videoWindowHeight, 720)
+      'bs:disable-next-line
+      m.assertEqual(result.videoWindowWidth, m.node.deviceInfo.GetDisplaySize().w)
+    end function
+
+    @it("falls back to display size when video height is invalid")
+    function _()
+      video = { height: invalid, width: 1280 }
+
+      'bs:disable-next-line
+      result = getVideoWindowSize(video)
+
+      'bs:disable-next-line
+      m.assertEqual(result.videoWindowHeight, m.node.deviceInfo.GetDisplaySize().h)
+      m.assertEqual(result.videoWindowWidth, 1280)
+    end function
+
+    @it("falls back to display size when video width is invalid")
+    function _()
+      video = { height: 720, width: invalid }
+
+      'bs:disable-next-line
+      result = getVideoWindowSize(video)
+
+      m.assertEqual(result.videoWindowHeight, 720)
+      'bs:disable-next-line
+      m.assertEqual(result.videoWindowWidth, m.node.deviceInfo.GetDisplaySize().w)
+    end function
+
+  end class
+
+end namespace
