@@ -190,12 +190,7 @@ namespace tests
 
     @it("decorates sample with playback data")
     function _()
-      m.mockPlayer.callFunc = function(funcName as string)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = [{ enabled: true, language: "en" }]
       m.mockPlayer.textTracks = [{ mode: "showing", language: "de" }]
       m.mockPlayer.duration = 120
@@ -518,12 +513,7 @@ namespace tests
       'bs:disable-next-line
       m.node.playerStateTimer = CreateObject("roTimespan")
 
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -595,12 +585,7 @@ namespace tests
       'bs:disable-next-line
       m.node.playerStateTimer = CreateObject("roTimespan")
 
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -646,25 +631,27 @@ namespace tests
 
       ' Set up mock player with required fields
       m.mockPlayer.version = "1.0.0"
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return {
-            height: 1080,
-            width: 1920,
-            observeFieldScoped: function(field as string, callback as string)
-            end function,
-            unobserveFieldScoped: function(field as string)
-            end function
-          }
-        end if
-        return invalid
-      end function
+
+      m.mockPlayer = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+          if funcName = "getVideoNode" then
+            return {
+              height: 1080,
+              width: 1920,
+              observeFieldScoped: function(field as string, callback as string)end function,
+              unobserveFieldScoped: function(field as string)end function
+            }
+          end if
+          return invalid
+        end function
+      }
+
+      m.mockPlayer.version = "1.0.0"
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
       m.mockPlayer.currentTime = 0
-      m.mockPlayer.observeFieldScoped = function(field as string, callback as string)
-      end function
+      m.mockPlayer.source = invalid
 
       'bs:disable-next-line
       initializePlayer(m.mockPlayer)
@@ -821,12 +808,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 0
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -871,12 +853,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 10
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -919,12 +896,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 0
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -966,12 +938,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 0
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -1019,12 +986,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 10
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -1078,12 +1040,7 @@ namespace tests
 
       m.mockPlayer.seeking = false
       m.mockPlayer.currentTime = 10
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -1125,12 +1082,7 @@ namespace tests
 
       m.mockPlayer.seeking = false
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -1235,12 +1187,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -1279,12 +1226,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -1455,12 +1397,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 60
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 120
@@ -1502,12 +1439,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 120
@@ -1548,12 +1480,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 120
@@ -1592,12 +1519,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 120
@@ -1641,12 +1563,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 60
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 120
@@ -1688,12 +1605,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 60
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 120
@@ -1739,12 +1651,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 60
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 120
@@ -1787,12 +1694,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 60
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 120
@@ -1966,12 +1868,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 60
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 120
@@ -2012,12 +1909,7 @@ namespace tests
 
       m.mockPlayer.seeking = true
       m.mockPlayer.currentTime = 10
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2060,12 +1952,11 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 10
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string) end function
+      })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2109,12 +2000,11 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 5
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string) end function
+      })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2160,12 +2050,11 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 0
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string) end function
+      })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2208,12 +2097,11 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 10
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string) end function
+      })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2261,12 +2149,11 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 0
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string) end function
+      })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2314,12 +2201,11 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 0
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string) end function
+      })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2366,12 +2252,11 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 0
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string)end function
+      })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2425,12 +2310,11 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string)end function
+      })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2472,12 +2356,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 0
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2690,12 +2569,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2745,12 +2619,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2788,12 +2657,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2831,12 +2695,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2870,12 +2729,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 30
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -2947,6 +2801,7 @@ namespace tests
 
     @it("does not carry isProgramChange flag on samples after programChange")
     function _()
+      mockVideoNode({ height: 1080, width: 1920 })
       realCollectorCore = m.node.collectorCore
       analyticsDataTask = realCollectorCore.findNode("analyticsDataTask")
 
@@ -3002,12 +2857,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 10
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -3067,12 +2917,7 @@ namespace tests
       }
 
       m.mockPlayer.currentTime = 10
-      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
-        if funcName = "getVideoNode"
-          return { height: 1080, width: 1920 }
-        end if
-        return invalid
-      end function
+      mockVideoNode({ height: 1080, width: 1920 })
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
@@ -3148,6 +2993,10 @@ end namespace
 
 function getVideoStartTimeoutTimerControl() as string
   return m.videoStartTimeoutTimer.control
+end function
+
+function mockVideoNode(node) as object
+  m.videoNode = node
 end function
 
 function modifyTheoErrorData(errorEvent)

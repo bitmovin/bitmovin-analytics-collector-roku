@@ -205,8 +205,7 @@ end function
 sub decorateSampleWithPlaybackData(sampleData)
   if sampleData = invalid then return
 
-  videoNode = m.player.callFunc("getVideoNode")
-  sampleData.Append(getVideoWindowSize(videoNode))
+  sampleData.Append(getVideoWindowSize(m.videoNode))
   sampleData.Append({ size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth) })
 
   ' Set audio language
