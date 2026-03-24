@@ -46,6 +46,7 @@ function getPlayerKeyFromManifest(appInfo)
 end function
 
 sub destroy(param = invalid)
+  clearVideoStartTimeout()
   unobserveFields(true)
 
   if m.collectorCore <> invalid
@@ -387,8 +388,9 @@ end sub
 ' ===== Player event callbacks =====
 
 sub onSourceChange(eventData = invalid)
-  sourceChangedFromInitialOne = m.currentState <> m.collectorStates.SETUP
+  clearVideoStartTimeout()
 
+  sourceChangedFromInitialOne = m.currentState <> m.collectorStates.SETUP
   if sourceChangedFromInitialOne
     sendClosingSampleForCurrentState()
     m.collectorCore.callFunc("setupSample") ' new analytics impression
@@ -486,6 +488,7 @@ sub onError(eventData = invalid)
 
   if m.didAttemptPlay = true and m.didVideoPlay = false
     duration = getDuration(m.playerStateTimer)
+    clearVideoStartTimeout()
     sendVideoStartError(m.videoStartFailedEvents.PlayerError, duration, "error", errorSample)
   else
     sendAnalyticsRequestAndClearValues(errorSample, 0, "error")
