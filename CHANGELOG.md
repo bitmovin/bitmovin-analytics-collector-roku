@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## v2.14.1
+
+### Fixed
+- Potential runtime error after player destruction with THEO player collector
+
 ## v2.14.0
 
 ### Added
