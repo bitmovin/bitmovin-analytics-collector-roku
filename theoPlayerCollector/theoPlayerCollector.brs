@@ -46,6 +46,7 @@ function getPlayerKeyFromManifest(appInfo)
 end function
 
 sub destroy(param = invalid)
+  clearVideoStartTimeout()
   unobserveFields(true)
 
   if m.collectorCore <> invalid
@@ -206,9 +207,10 @@ end function
 sub decorateSampleWithPlaybackData(sampleData)
   if sampleData = invalid then return
 
-  videoNode = m.player.callFunc("getVideoNode")
-  sampleData.Append(getVideoWindowSize(videoNode))
-  sampleData.Append({ size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth) })
+  if m.videoNode <> invalid
+    sampleData.Append(getVideoWindowSize(m.videoNode))
+    sampleData.Append({ size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth) })
+  end if
 
   ' Set audio language
   currentAudioLanguage = getCurrentAudioLanguage(m.player.audioTracks)
@@ -392,8 +394,9 @@ end sub
 ' ===== Player event callbacks =====
 
 sub onSourceChange(eventData = invalid)
-  sourceChangedFromInitialOne = m.currentState <> m.collectorStates.SETUP
+  clearVideoStartTimeout()
 
+  sourceChangedFromInitialOne = m.currentState <> m.collectorStates.SETUP
   if sourceChangedFromInitialOne
     sendClosingSampleForCurrentState()
     m.collectorCore.callFunc("setupSample") ' new analytics impression
@@ -495,6 +498,7 @@ sub onError(eventData = invalid)
 
   if m.didAttemptPlay = true and m.didVideoPlay = false
     duration = getDuration(m.playerStateTimer)
+    clearVideoStartTimeout()
     sendVideoStartError(m.videoStartFailedEvents.PlayerError, duration, "error", errorSample)
   else
     sendAnalyticsRequestAndClearValues(errorSample, 0, "error")

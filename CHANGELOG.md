@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+## v2.15.1
+
+### Fixed
+- Potential runtime error after player destruction with THEO player collector
+
 ## v2.15.0
 
 ### Added
