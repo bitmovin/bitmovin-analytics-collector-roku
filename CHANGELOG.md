@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Develop
 
+### Fixed
+- `setCustomData` sending unnecessary samples when called with values that match the current custom data values
+
 ## v2.15.1
 
 ### Fixed
