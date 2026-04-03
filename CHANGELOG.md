@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Develop
 
 ### Fixed
-- Buffering samples now always report `state = "buffering"` regardless of the player's internal state name (e.g. Bitmovin player uses `stalling` internally)
+- Buffering samples now always report as "buffering"
 
 ## v2.15.1
 
