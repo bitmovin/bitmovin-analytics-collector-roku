@@ -265,6 +265,13 @@ function updateSample(newSampleData)
   return true
 end function
 
+function isCustomDataChanging(newCustomData)
+  for each key in newCustomData
+    if not m.sample.DoesExist(key) or m.sample[key] <> newCustomData[key] then return true
+  end for
+  return false
+end function
+
 sub setVideoTimeStart(time)
   m.sample.videoTimeStart = time
 end sub

@@ -1,0 +1,88 @@
+namespace tests
+
+  @SGNode("collectorCore")
+  @suite
+  class CollectorCoreTests extends rooibos.BaseTestSuite
+    protected override function beforeEach()
+      'bs:disable-next-line
+      initializeAnalytics()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("isCustomDataChanging")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false when newCustomData is empty")
+    function _()
+      'bs:disable-next-line
+      result = isCustomDataChanging({})
+
+      m.assertFalse(result)
+    end function
+
+    @it("returns false when all values match the current sample")
+    function _()
+      'bs:disable-next-line
+      updateSample({ customData1: "existingValue" })
+
+      'bs:disable-next-line
+      result = isCustomDataChanging({ customData1: "existingValue" })
+
+      m.assertFalse(result)
+    end function
+
+    @it("returns true when a value differs from the current sample")
+    function _()
+      'bs:disable-next-line
+      updateSample({ customData1: "oldValue" })
+
+      'bs:disable-next-line
+      result = isCustomDataChanging({ customData1: "newValue" })
+
+      m.assertTrue(result)
+    end function
+
+    @it("returns true when a key does not exist on the current sample")
+    function _()
+      'bs:disable-next-line
+      result = isCustomDataChanging({ customData1: "newValue" })
+
+      m.assertTrue(result)
+    end function
+
+    @it("returns false when both new and existing values are invalid")
+    function _()
+      'bs:disable-next-line
+      updateSample({ customData1: invalid })
+
+      'bs:disable-next-line
+      result = isCustomDataChanging({ customData1: invalid })
+
+      m.assertFalse(result)
+    end function
+
+    @it("returns true when new value is invalid but existing value is a string")
+    function _()
+      'bs:disable-next-line
+      updateSample({ customData1: "existingValue" })
+
+      'bs:disable-next-line
+      result = isCustomDataChanging({ customData1: invalid })
+
+      m.assertTrue(result)
+    end function
+
+    @it("returns true when new value is a string but existing value is invalid")
+    function _()
+      'bs:disable-next-line
+      updateSample({ customData1: invalid })
+
+      'bs:disable-next-line
+      result = isCustomDataChanging({ customData1: "newValue" })
+
+      m.assertTrue(result)
+    end function
+
+  end class
+
+end namespace
