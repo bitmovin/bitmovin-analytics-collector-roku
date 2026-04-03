@@ -350,8 +350,9 @@ end sub
 
 function setCustomData(customData)
   if customData = invalid then return invalid
-  finishRunningSample()
+  if not m.collectorCore.callFunc("isCustomDataChanging", customData) then return invalid
 
+  finishRunningSample()
   return updateSample(customData)
 end function
 

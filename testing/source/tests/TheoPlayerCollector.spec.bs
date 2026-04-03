@@ -2850,6 +2850,8 @@ namespace tests
         callFunc: function(funcName as string, sampleData = invalid)
           if funcName = "updateSample"
             m.testContext.capturedSample = sampleData
+          else if funcName = "isCustomDataChanging"
+            return true
           end if
           return true
         end function,
@@ -2872,6 +2874,30 @@ namespace tests
 
       m.assertEqual(testContext.capturedSample.customData1, "testValue1")
       m.assertEqual(testContext.capturedSample.customData2, "testValue2")
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not finish running sample when custom data values are unchanged")
+    function _()
+      testContext = { updateSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "isCustomDataChanging"
+            return false
+          else if funcName = "updateSample"
+            m.testContext.updateSampleCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      setCustomData({ customData1: "sameValue" })
+
+      m.assertFalse(testContext.updateSampleCalled)
       m.node.collectorCore = originalCollectorCore
     end function
 

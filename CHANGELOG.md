@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Fixed
+- `setCustomData` sending unnecessary samples when called with values that match the current custom data values
+
 ## v2.14.1
 
 ### Fixed
