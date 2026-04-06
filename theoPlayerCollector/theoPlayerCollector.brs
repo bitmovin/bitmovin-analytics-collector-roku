@@ -81,7 +81,7 @@ function setCustomData(customData)
   if customData = invalid then return invalid
   if not m.collectorCore.callFunc("isCustomDataChanging", customData) then return invalid
 
-  if m.currentState <> m.collectorStates.SETUP then finishRunningSample()
+  if m.currentState <> m.collectorStates.SETUP then finishRunningSampleForCustomDataUpdate()
   return updateSample(customData)
 end function
 
@@ -162,6 +162,14 @@ sub finishRunningSample()
   sendAnalyticsRequestAndClearValues({}, duration, m.currentState)
 end sub
 
+sub finishRunningSampleForCustomDataUpdate()
+  sendClosingSampleForCurrentState()
+
+  if m.currentState = m.collectorStates.PLAYING or m.currentState = m.collectorStates.PAUSED or m.currentState = m.collectorStates.AD
+    setVideoTimeStart()
+  end if
+end sub
+
 sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
   sampleData = eventData
   sampleData.Append({
@@ -185,7 +193,13 @@ function getActiveSource(player)
   if player = invalid or player.source = invalid then return invalid
 
   sources = player.source.sources
-  if sources = invalid or sources.Count() = 0 then return invalid
+  if sources = invalid then return invalid
+
+  if GetInterface(sources, "ifAssociativeArray") <> invalid
+    return sources
+  end if
+
+  if GetInterface(sources, "ifArray") = invalid or sources.Count() = 0 then return invalid
 
   return sources[0]
 end function

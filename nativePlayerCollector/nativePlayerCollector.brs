@@ -485,7 +485,7 @@ function setCustomData(customData)
   if customData = invalid then return invalid
   if not m.collectorCore.callFunc("isCustomDataChanging", customData) then return invalid
 
-  finishRunningSample()
+  finishRunningSampleForCustomDataUpdate()
   return updateSample(customData)
 end function
 
@@ -494,6 +494,27 @@ sub finishRunningSample()
   m.playerStateTimer.Mark()
 
   sendAnalyticsRequestAndClearValues({}, duration)
+end sub
+
+sub finishRunningSampleForCustomDataUpdate()
+  duration = getDuration(m.playerStateTimer)
+
+  if m.currentState = m.playerStates.PLAYING
+    setVideoTimeEnd()
+    sendAnalyticsRequestAndClearValues({ played: duration }, duration, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+  else if m.currentState = m.playerStates.PAUSED
+    sendAnalyticsRequestAndClearValues({ paused: duration }, duration, m.currentState)
+    m.playerStateTimer.Mark()
+  else if m.currentState = m.playerStates.BUFFERING
+    setVideoTimeEnd()
+    setVideoTimeStart()
+    sendAnalyticsRequestAndClearValues({ buffered: duration }, duration, m.currentState)
+    m.playerStateTimer.Mark()
+  else
+    finishRunningSample()
+  end if
 end sub
 
 sub setCustomDataOnce(customData)
