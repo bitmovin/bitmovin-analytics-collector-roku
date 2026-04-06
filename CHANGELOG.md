@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Tracking playback quality by observing `activequalitychanged` for THEOplayer versions >= `10.11.0`
 
+### Internal
+- Appended state-specific data for samples triggered by `setCustomData`
+
 ## v2.15.2
 
 ### Fixed
