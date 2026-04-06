@@ -283,7 +283,6 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", "pause", m.top, "onPause")
   m.player.callFunc("addEventListener", "sourcechange", m.top, "onSourceChange")
   m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
-  m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
   m.player.callFunc("addEventListener", "seeking", m.top, "onSeeking")
   m.player.callFunc("addEventListener", "timeupdate", m.top, "onTimeUpdate")
   m.player.callFunc("addEventListener", "error", m.top, "onError")
@@ -294,7 +293,25 @@ sub setUpObservers()
     m.videoNode.observeFieldScoped("state", "onVideoNodeStateChanged")
   end if
 
+  setUpVersionDependentObservers()
   setUpCsaiAdObservers()
+end sub
+
+sub setUpVersionDependentObservers()
+  if m.player = invalid or m.player.version = invalid then return
+
+  versionParts = m.player.version.split(".")
+
+  if versionParts.Count() < 3 then return
+
+  majorVersion = StrToI(versionParts[0])
+  minorVersion = StrToI(versionParts[1])
+
+  if majorVersion >= 10 and minorVersion >= 11 then
+    m.player.callFunc("addEventListener", "activequalitychanged", m.top, "onActiveQualityChanged")
+  else
+    m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
+  end if
 end sub
 
 sub unobserveFields(isDestroy = false)
@@ -305,6 +322,7 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", "sourcechange", m.top, "onSourceChange")
     m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
     m.player.callFunc("removeEventListener", "bitratechange", m.top, "onBitrateChange")
+    m.player.callFunc("removeEventListener", "activequalitychanged", m.top, "onActiveQualityChanged")
     m.player.callFunc("removeEventListener", "seeking", m.top, "onSeeking")
     m.player.callFunc("removeEventListener", "timeupdate", m.top, "onTimeUpdate")
     m.player.callFunc("removeEventListener", "error", m.top, "onError")
@@ -434,10 +452,26 @@ sub onPause(eventData = invalid)
   onPlayerStateChanged(m.collectorStates.PAUSED)
 end sub
 
+sub onActiveQualityChanged(eventData = invalid)
+  if eventData = invalid then return
+
+  print "onActiveQualityChanged: quality="; eventData.quality
+
+  processQualityChangeEvent(eventData.quality)
+end sub
+
 sub onBitrateChange(eventData = invalid)
   if eventData = invalid then return
 
-  m.currentVideoBitrate = eventData.bitrate
+  print "onBitrateChange: bitrate="; eventData.bitrate
+
+  processQualityChangeEvent(eventData.bitrate)
+end sub
+
+sub processQualityChangeEvent(newBitrate)
+  if newBitrate = invalid then return
+
+  m.currentVideoBitrate = newBitrate
 
   ' Send qualityChange sample only if the player is currently playing, otherwise only update the bitrate in the sample
   ' Note: on the initial bitratechange event the player is not playing yet
