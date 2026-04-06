@@ -79,9 +79,9 @@ end sub
 
 function setCustomData(customData)
   if customData = invalid then return invalid
+  if not m.collectorCore.callFunc("isCustomDataChanging", customData) then return invalid
 
   if m.currentState <> m.collectorStates.SETUP then finishRunningSample()
-
   return updateSample(customData)
 end function
 

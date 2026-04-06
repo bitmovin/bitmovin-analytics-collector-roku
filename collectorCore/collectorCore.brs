@@ -1,5 +1,5 @@
 sub init()
-  m.version = "2.15.1"
+  m.version = "2.15.2"
   m.tag = "Bitmovin Analytics Collector [collectorCore] "
   m.appInfo = CreateObject("roAppInfo")
   m.domain = m.appInfo.GetID() + ".roku"
@@ -267,6 +267,13 @@ function updateSample(newSampleData)
   m.sample.append(newSampleData)
 
   return true
+end function
+
+function isCustomDataChanging(newCustomData)
+  for each key in newCustomData
+    if not m.sample.DoesExist(key) or m.sample[key] <> newCustomData[key] then return true
+  end for
+  return false
 end function
 
 sub setVideoTimeStart(time)
