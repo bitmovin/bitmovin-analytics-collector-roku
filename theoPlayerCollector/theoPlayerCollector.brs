@@ -298,16 +298,13 @@ sub setUpObservers()
 end sub
 
 sub setUpVersionDependentObservers()
-  if m.player = invalid or m.player.version = invalid then return
-
   versionParts = m.player.version.split(".")
-
-  if versionParts.Count() < 3 then return
 
   majorVersion = StrToI(versionParts[0])
   minorVersion = StrToI(versionParts[1])
 
-  if majorVersion >= 10 and minorVersion >= 11 then
+
+  if majorVersion > 10 or (majorVersion = 10 and minorVersion >= 11)
     m.player.callFunc("addEventListener", "activequalitychanged", m.top, "onActiveQualityChanged")
   else
     m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
