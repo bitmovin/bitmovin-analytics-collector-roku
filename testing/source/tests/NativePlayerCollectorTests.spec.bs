@@ -104,6 +104,38 @@ namespace tests
       m.assertEqual(errorEventData.error.severity, "CRITICAL")
     end function
 
+    @it("emits sample with state 'buffering' when buffering ends")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.availableAudioTracks = []
+      m.mockPlayer.availableSubtitleTracks = []
+      m.node.player = m.mockPlayer
+
+      'bs:disable-next-line
+      m.node.bufferTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onBufferingEnd()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "buffering")
+      m.assertNotInvalid(testContext.capturedSampleData.buffered)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
   end class
 
 end namespace

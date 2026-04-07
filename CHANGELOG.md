@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - `setCustomData` sending unnecessary samples when called with values that match the current custom data values
 
+### Fixed
+- Buffering samples now always report as "buffering"
+
 ## v2.15.1
 
 ### Fixed
