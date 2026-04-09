@@ -1,5 +1,5 @@
 sub init()
-  m.version = "2.15.2"
+  m.version = "2.16.0"
   m.tag = "Bitmovin Analytics Collector [collectorCore] "
   m.appInfo = CreateObject("roAppInfo")
   m.domain = m.appInfo.GetID() + ".roku"
