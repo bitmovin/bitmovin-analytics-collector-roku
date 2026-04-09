@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Develop
+## [unreleased]
 
 ### Changed
 - Tracking playback quality by observing `activequalitychanged` for THEOplayer versions >= `10.11.0`
+
+### Fixed
+- Buffering samples now always report as "buffering"
 
 ## v2.15.2
 

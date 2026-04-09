@@ -114,7 +114,7 @@ sub handlePreviousState(previousState)
   else if previousState = m.playerStates.PAUSED and m.currentState <> m.playerStates.READY
     onPaused(previousState)
   else if previousState = m.playerStates.STALLING and m.currentState <> m.playerStates.READY
-    onBufferingEnd(previousState)
+    onBufferingEnd()
   end if
 end sub
 
@@ -189,7 +189,7 @@ sub onBuffering()
   m.bufferTimer = CreateObject("roTimespan")
 end sub
 
-sub onBufferingEnd(state)
+sub onBufferingEnd()
   if m.bufferTimer = invalid then return
 
   buffered = m.bufferTimer.TotalMilliseconds()
@@ -198,7 +198,7 @@ sub onBufferingEnd(state)
   }
 
   setVideoTimeStart()
-  sendAnalyticsRequestAndClearValues(eventData, buffered, state)
+  sendAnalyticsRequestAndClearValues(eventData, buffered, "buffering")
   resetBufferingTimer()
 end sub
 
