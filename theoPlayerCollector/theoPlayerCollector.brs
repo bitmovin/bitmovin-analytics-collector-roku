@@ -460,15 +460,11 @@ end sub
 sub onActiveQualityChanged(eventData = invalid)
   if eventData = invalid then return
 
-  print "onActiveQualityChanged: quality="; eventData.quality
-
   processQualityChangeEvent(eventData.quality)
 end sub
 
 sub onBitrateChange(eventData = invalid)
   if eventData = invalid then return
-
-  print "onBitrateChange: bitrate="; eventData.bitrate
 
   processQualityChangeEvent(eventData.bitrate)
 end sub
