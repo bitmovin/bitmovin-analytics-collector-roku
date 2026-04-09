@@ -299,9 +299,9 @@ end sub
 
 sub setUpQualityChangeObserver()
   if m.player.Event <> invalid and m.player.Event.activequalitychanged <> invalid
-    m.player.callFunc("addEventListener", "activequalitychanged", m.top, "onActiveQualityChanged")
+    m.player.callFunc("addEventListener", m.player.Event.activequalitychanged, m.top, "onActiveQualityChanged")
   else
-    m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
+    m.player.callFunc("addEventListener", m.player.Event.bitratechange, m.top, "onBitrateChange")
   end if
 end sub
 
