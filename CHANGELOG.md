@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+## v2.16.0
+
 ### Changed
 - Tracking playback quality by observing `activequalitychanged` for THEOplayer versions >= `10.11.0`
 
