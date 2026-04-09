@@ -286,14 +286,14 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
 end sub
 
 sub setUpObservers()
-  m.player.callFunc("addEventListener", "play", m.top, "onPlay")
-  m.player.callFunc("addEventListener", "playing", m.top, "onPlaying")
-  m.player.callFunc("addEventListener", "pause", m.top, "onPause")
-  m.player.callFunc("addEventListener", "sourcechange", m.top, "onSourceChange")
-  m.player.callFunc("addEventListener", "destroy", m.top, "onDestroy")
-  m.player.callFunc("addEventListener", "seeking", m.top, "onSeeking")
-  m.player.callFunc("addEventListener", "timeupdate", m.top, "onTimeUpdate")
-  m.player.callFunc("addEventListener", "error", m.top, "onError")
+  m.player.callFunc("addEventListener", m.player.Event.play, m.top, "onPlay")
+  m.player.callFunc("addEventListener", m.player.Event.playing, m.top, "onPlaying")
+  m.player.callFunc("addEventListener", m.player.Event.pause, m.top, "onPause")
+  m.player.callFunc("addEventListener", m.player.Event.sourcechange, m.top, "onSourceChange")
+  m.player.callFunc("addEventListener", m.player.Event.destroy, m.top, "onDestroy")
+  m.player.callFunc("addEventListener", m.player.Event.seeking, m.top, "onSeeking")
+  m.player.callFunc("addEventListener", m.player.Event.timeupdate, m.top, "onTimeUpdate")
+  m.player.callFunc("addEventListener", m.player.Event.error, m.top, "onError")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 
@@ -301,18 +301,12 @@ sub setUpObservers()
     m.videoNode.observeFieldScoped("state", "onVideoNodeStateChanged")
   end if
 
-  setUpVersionDependentObservers()
+  setUpQualityChangeObserver()
   setUpCsaiAdObservers()
 end sub
 
-sub setUpVersionDependentObservers()
-  versionParts = m.player.version.split(".")
-
-  majorVersion = StrToI(versionParts[0])
-  minorVersion = StrToI(versionParts[1])
-
-
-  if majorVersion > 10 or (majorVersion = 10 and minorVersion >= 11)
+sub setUpQualityChangeObserver()
+  if m.player.Event <> invalid and m.player.Event.activequalitychanged <> invalid
     m.player.callFunc("addEventListener", "activequalitychanged", m.top, "onActiveQualityChanged")
   else
     m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
@@ -321,16 +315,23 @@ end sub
 
 sub unobserveFields(isDestroy = false)
   if m.player <> invalid
-    m.player.callFunc("removeEventListener", "play", m.top, "onPlay")
-    m.player.callFunc("removeEventListener", "playing", m.top, "onPlaying")
-    m.player.callFunc("removeEventListener", "pause", m.top, "onPause")
-    m.player.callFunc("removeEventListener", "sourcechange", m.top, "onSourceChange")
-    m.player.callFunc("removeEventListener", "destroy", m.top, "onDestroy")
-    m.player.callFunc("removeEventListener", "bitratechange", m.top, "onBitrateChange")
-    m.player.callFunc("removeEventListener", "activequalitychanged", m.top, "onActiveQualityChanged")
-    m.player.callFunc("removeEventListener", "seeking", m.top, "onSeeking")
-    m.player.callFunc("removeEventListener", "timeupdate", m.top, "onTimeUpdate")
-    m.player.callFunc("removeEventListener", "error", m.top, "onError")
+    m.player.callFunc("removeEventListener", m.player.Event.play, m.top, "onPlay")
+    m.player.callFunc("removeEventListener", m.player.Event.playing, m.top, "onPlaying")
+    m.player.callFunc("removeEventListener", m.player.Event.pause, m.top, "onPause")
+    m.player.callFunc("removeEventListener", m.player.Event.sourcechange, m.top, "onSourceChange")
+    m.player.callFunc("removeEventListener", m.player.Event.destroy, m.top, "onDestroy")
+    m.player.callFunc("removeEventListener", m.player.Event.seeking, m.top, "onSeeking")
+    m.player.callFunc("removeEventListener", m.player.Event.timeupdate, m.top, "onTimeUpdate")
+    m.player.callFunc("removeEventListener", m.player.Event.error, m.top, "onError")
+
+    if m.player.Event.activequalitychanged <> invalid then
+      m.player.callFunc("removeEventListener", m.player.Event.activequalitychanged, m.top, "onActiveQualityChanged")
+    end if
+
+    if m.player.Event.bitratechange <> invalid then
+      m.player.callFunc("removeEventListener", m.player.Event.bitratechange, m.top, "onBitrateChange")
+    end if
+
   end if
 
   if m.collectorCore <> invalid
