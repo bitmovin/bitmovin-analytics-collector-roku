@@ -11,7 +11,21 @@ namespace tests
       'bs:disable-next-line
       initializeAnalytics()
 
+      m.mockPlayerEvents = {
+        play: "play"
+        playing: "playing"
+        pause: "pause"
+        sourcechange: "sourcechange"
+        destroy: "destroy"
+        seeking: "seeking"
+        timeupdate: "timeupdate"
+        error: "error"
+        bitratechange: "bitratechange"
+        activequalitychanged: "activequalitychanged"
+      }
+
       m.mockPlayer = {
+        Event: m.mockPlayerEvents
         callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
           return invalid
         end function
@@ -41,11 +55,67 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setUpQualityChangeObserver")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("uses bitratechange when activequalitychanged is not available")
+    function _()
+      testContext = { listeners: [] }
+
+      m.mockPlayer.Event = {
+        activequalitychanged: invalid
+      }
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "addEventListener"
+          m.testContext.listeners.Push({
+            eventName: arg1
+            handler: arg3
+          })
+        end if
+        return invalid
+      end function
+      m.mockPlayer.testContext = testContext
+
+      'bs:disable-next-line
+      setUpQualityChangeObserver()
+
+      m.assertEqual(testContext.listeners.Count(), 1)
+      m.assertEqual(testContext.listeners[0].eventName, "bitratechange")
+      m.assertEqual(testContext.listeners[0].handler, "onBitrateChange")
+    end function
+
+    @it("uses activequalitychanged when the event is available")
+    function _()
+      testContext = { listeners: [] }
+
+      m.mockPlayer.Event = {
+        activequalitychanged: "activequalitychanged"
+      }
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "addEventListener"
+          m.testContext.listeners.Push({
+            eventName: arg1
+            handler: arg3
+          })
+        end if
+        return invalid
+      end function
+      m.mockPlayer.testContext = testContext
+
+      'bs:disable-next-line
+      setUpQualityChangeObserver()
+
+      m.assertEqual(testContext.listeners.Count(), 1)
+      m.assertEqual(testContext.listeners[0].eventName, "activequalitychanged")
+      m.assertEqual(testContext.listeners[0].handler, "onActiveQualityChanged")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("getCurrentAudioLanguage")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("returns invalid when audioTracks is invalid")
-    function _()
+   function _()
       'bs:disable-next-line
       result = getCurrentAudioLanguage(invalid)
 
@@ -633,6 +703,7 @@ namespace tests
       m.mockPlayer.version = "1.0.0"
 
       m.mockPlayer = {
+        Event: m.mockPlayerEvents
         callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
           if funcName = "getVideoNode" then
             return {
@@ -1311,6 +1382,109 @@ namespace tests
 
       'bs:disable-next-line
       m.assertEqual(m.node.currentVideoBitrate, 3000000)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onActiveQualityChanged")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing when eventData is invalid")
+    function _()
+      testContext = { updateSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.updateSampleCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      onActiveQualityChanged(invalid)
+
+      m.assertFalse(testContext.updateSampleCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("only updates sample when not in playing state")
+    function _()
+      testContext = { capturedSamples: [], sendRequestCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          else if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendRequestCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      onActiveQualityChanged({ quality: 5000000 })
+
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 5000000)
+      m.assertFalse(testContext.sendRequestCalled)
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentVideoBitrate, 5000000)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends qualityChange sample when player is playing")
+    function _()
+      testContext = { capturedSamples: [], sendRequestCount: 0 }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          else if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendRequestCount++
+          else if funcName = "setVideoTimeStart" or funcName = "setVideoTimeEnd"
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 30
+      mockVideoNode({ height: 1080, width: 1920 })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentVideoBitrate = 2000000
+
+      'bs:disable-next-line
+      onActiveQualityChanged({ quality: 5000000 })
+
+      m.assertEqual(testContext.sendRequestCount, 2)
+      m.assertTrue(testContext.capturedSamples.Count() >= 2)
+      m.assertEqual(testContext.capturedSamples[1].state, "qualityChange")
+      m.assertEqual(testContext.capturedSamples[1].videoBitrate, 5000000)
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentVideoBitrate, 5000000)
 
       m.node.collectorCore = originalCollectorCore
     end function

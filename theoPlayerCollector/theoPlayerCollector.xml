@@ -12,6 +12,7 @@
     <function name="onPlaying" />
     <function name="onPause" />
     <function name="onBitrateChange" />
+    <function name="onActiveQualityChanged" />
     <function name="onDestroy" />
     <function name="onSourceChange" />
     <function name="onSeeking" />
