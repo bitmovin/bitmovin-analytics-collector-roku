@@ -193,13 +193,7 @@ function getActiveSource(player)
   if player = invalid or player.source = invalid then return invalid
 
   sources = player.source.sources
-  if sources = invalid then return invalid
-
-  if GetInterface(sources, "ifAssociativeArray") <> invalid
-    return sources
-  end if
-
-  if GetInterface(sources, "ifArray") = invalid or sources.Count() = 0 then return invalid
+  if sources = invalid or sources.Count() = 0 then return invalid
 
   return sources[0]
 end function

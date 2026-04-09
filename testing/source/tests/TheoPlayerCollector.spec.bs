@@ -402,18 +402,6 @@ namespace tests
       m.assertEqual(result.type, firstSource.type)
     end function
 
-    @it("returns the source when sources is an associative array")
-    function _()
-      source = { src: "http://example.com/stream.m3u8", type: "application/x-mpegURL" }
-      m.mockPlayer.source = { sources: source }
-
-      'bs:disable-next-line
-      result = getActiveSource(m.mockPlayer)
-
-      m.assertEqual(result.src, source.src)
-      m.assertEqual(result.type, source.type)
-    end function
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("detectSourceFormat")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
