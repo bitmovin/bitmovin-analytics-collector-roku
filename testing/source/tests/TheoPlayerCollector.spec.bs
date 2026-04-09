@@ -41,14 +41,16 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("setUpVersionDependentObservers")
+    @describe("setUpQualityChangeObserver")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("uses bitratechange for older THEOplayer versions")
+    @it("uses bitratechange when activequalitychanged is not available")
     function _()
       testContext = { listeners: [] }
 
-      m.mockPlayer.version = "10.10.0"
+      m.mockPlayer.Event = {
+        activequalitychanged: invalid
+      }
       m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
         if funcName = "addEventListener"
           m.testContext.listeners.Push({
@@ -61,20 +63,20 @@ namespace tests
       m.mockPlayer.testContext = testContext
 
       'bs:disable-next-line
-      setUpVersionDependentObservers()
+      setUpQualityChangeObserver()
 
       m.assertEqual(testContext.listeners.Count(), 1)
       m.assertEqual(testContext.listeners[0].eventName, "bitratechange")
       m.assertEqual(testContext.listeners[0].handler, "onBitrateChange")
     end function
 
-    @it("uses activequalitychanged for THEOplayer 10.11 and newer versions")
-    @params("11.0.0")
-    @params("10.11.0")
-    function _(playerVersion as string)
+    @it("uses activequalitychanged when the event is available")
+    function _()
       testContext = { listeners: [] }
 
-      m.mockPlayer.version = playerVersion
+      m.mockPlayer.Event = {
+        activequalitychanged: "activequalitychanged"
+      }
       m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
         if funcName = "addEventListener"
           m.testContext.listeners.Push({
@@ -87,7 +89,7 @@ namespace tests
       m.mockPlayer.testContext = testContext
 
       'bs:disable-next-line
-      setUpVersionDependentObservers()
+      setUpQualityChangeObserver()
 
       m.assertEqual(testContext.listeners.Count(), 1)
       m.assertEqual(testContext.listeners[0].eventName, "activequalitychanged")
