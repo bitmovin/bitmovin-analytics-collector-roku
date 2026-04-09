@@ -11,7 +11,21 @@ namespace tests
       'bs:disable-next-line
       initializeAnalytics()
 
+      m.mockPlayerEvents = {
+        play: "play"
+        playing: "playing"
+        pause: "pause"
+        sourcechange: "sourcechange"
+        destroy: "destroy"
+        seeking: "seeking"
+        timeupdate: "timeupdate"
+        error: "error"
+        bitratechange: "bitratechange"
+        activequalitychanged: "activequalitychanged"
+      }
+
       m.mockPlayer = {
+        Event: m.mockPlayerEvents
         callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
           return invalid
         end function
@@ -689,6 +703,7 @@ namespace tests
       m.mockPlayer.version = "1.0.0"
 
       m.mockPlayer = {
+        Event: m.mockPlayerEvents
         callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
           if funcName = "getVideoNode" then
             return {
