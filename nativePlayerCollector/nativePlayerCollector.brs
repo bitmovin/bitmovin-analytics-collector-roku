@@ -108,7 +108,7 @@ sub handlePreviousState(previousState)
   else if previousState = m.playerStates.PAUSED and m.currentState <> m.playerStates.READY
     onPaused(previousState)
   else if previousState = m.playerStates.BUFFERING and m.currentState <> m.playerStates.READY
-    onBufferingEnd(previousState)
+    onBufferingEnd()
   end if
 end sub
 
@@ -195,7 +195,7 @@ sub resetBufferingTimer()
   m.bufferTimer = invalid
 end sub
 
-sub onBufferingEnd(state)
+sub onBufferingEnd()
   if m.bufferTimer = invalid then return
 
   buffered = m.bufferTimer.TotalMilliseconds()
@@ -204,7 +204,7 @@ sub onBufferingEnd(state)
   }
 
   setVideoTimeStart() ' Buffering blocks the video
-  sendAnalyticsRequestAndClearValues(eventData, buffered, state)
+  sendAnalyticsRequestAndClearValues(eventData, buffered, "buffering")
   resetBufferingTimer()
 end sub
 
