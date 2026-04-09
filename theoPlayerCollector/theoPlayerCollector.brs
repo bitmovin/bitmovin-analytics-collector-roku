@@ -293,18 +293,12 @@ sub setUpObservers()
     m.videoNode.observeFieldScoped("state", "onVideoNodeStateChanged")
   end if
 
-  setUpVersionDependentObservers()
+  setUpQualityChangeObserver()
   setUpCsaiAdObservers()
 end sub
 
-sub setUpVersionDependentObservers()
-  versionParts = m.player.version.split(".")
-
-  majorVersion = StrToI(versionParts[0])
-  minorVersion = StrToI(versionParts[1])
-
-
-  if majorVersion > 10 or (majorVersion = 10 and minorVersion >= 11)
+sub setUpQualityChangeObserver()
+  if m.player.Event <> invalid and m.player.Event.activequalitychanged <> invalid
     m.player.callFunc("addEventListener", "activequalitychanged", m.top, "onActiveQualityChanged")
   else
     m.player.callFunc("addEventListener", "bitratechange", m.top, "onBitrateChange")
@@ -452,11 +446,15 @@ end sub
 sub onActiveQualityChanged(eventData = invalid)
   if eventData = invalid then return
 
+  print "onActiveQualityChanged: "; eventData
+
   processQualityChangeEvent(eventData.quality)
 end sub
 
 sub onBitrateChange(eventData = invalid)
   if eventData = invalid then return
+
+  print "onBitrateChange: "; eventData
 
   processQualityChangeEvent(eventData.bitrate)
 end sub
