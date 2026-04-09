@@ -317,11 +317,11 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", m.player.Event.error, m.top, "onError")
 
     if m.player.Event.activequalitychanged <> invalid then
-      m.player.callFunc("removeEventListener", "bitratechange", m.top, "onBitrateChange")
+      m.player.callFunc("removeEventListener", m.player.Event.activequalitychanged, m.top, "onActiveQualityChanged")
     end if
 
     if m.player.Event.bitratechange <> invalid then
-      m.player.callFunc("removeEventListener", "activequalitychanged", m.top, "onActiveQualityChanged")
+      m.player.callFunc("removeEventListener", m.player.Event.bitratechange, m.top, "onBitrateChange")
     end if
 
   end if
