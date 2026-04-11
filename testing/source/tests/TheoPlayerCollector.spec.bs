@@ -62,9 +62,7 @@ namespace tests
     function _()
       testContext = { listeners: [] }
 
-      m.mockPlayer.Event = {
-        activequalitychanged: invalid
-      }
+      m.mockPlayer.Event.activequalitychanged = invalid
       m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
         if funcName = "addEventListener"
           m.testContext.listeners.Push({
