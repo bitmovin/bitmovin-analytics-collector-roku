@@ -77,18 +77,22 @@ sub applyPendingMetadata()
   m.pendingMetadata = invalid
 end sub
 
+function shouldFinishRunningSample()
+  return m.currentState = m.collectorStates.PLAYING or m.currentState = m.collectorStates.PAUSED
+end function
+
 function setCustomData(customData)
   if customData = invalid then return invalid
   if not m.collectorCore.callFunc("isCustomDataChanging", customData) then return invalid
 
-  if m.currentState <> m.collectorStates.SETUP then finishRunningSampleForCustomDataUpdate()
+  if shouldFinishRunningSample() then finishRunningSampleForCustomDataUpdate()
   return updateSample(customData)
 end function
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
 
-  if m.currentState <> m.collectorStates.SETUP then finishRunningSample()
+  if shouldFinishRunningSample() then finishRunningSample()
 
   duration = getDuration(m.playerStateTimer)
   createTempMetadataSampleAndSendAnalyticsRequest(customData, duration, m.currentState)
