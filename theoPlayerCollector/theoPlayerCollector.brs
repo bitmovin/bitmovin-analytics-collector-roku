@@ -159,13 +159,6 @@ end function
 
 ' ===== HELPER METHODS =====
 
-sub finishRunningSample()
-  duration = getDuration(m.playerStateTimer)
-  m.playerStateTimer.Mark()
-
-  sendAnalyticsRequestAndClearValues({}, duration, m.currentState)
-end sub
-
 sub finishRunningSampleForCustomDataUpdate()
   sendClosingSampleForCurrentState()
 

@@ -493,13 +493,6 @@ function setCustomData(customData)
   return updateSample(customData)
 end function
 
-sub finishRunningSample()
-  duration = getDuration(m.playerStateTimer)
-  m.playerStateTimer.Mark()
-
-  sendAnalyticsRequestAndClearValues({}, duration)
-end sub
-
 sub finishRunningSampleForCustomDataUpdate()
   duration = getDuration(m.playerStateTimer)
 
