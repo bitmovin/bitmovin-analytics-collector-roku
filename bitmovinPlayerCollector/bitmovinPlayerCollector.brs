@@ -348,11 +348,15 @@ sub onDestroy()
   destroy()
 end sub
 
+function shouldFinishRunningSample()
+  return m.currentState = m.playerStates.PLAYING or m.currentState = m.playerStates.PAUSED
+end function
+
 function setCustomData(customData)
   if customData = invalid then return invalid
   if not m.collectorCore.callFunc("isCustomDataChanging", customData) then return invalid
 
-  finishRunningSampleForCustomDataUpdate()
+  if shouldFinishRunningSample() then finishRunningSampleForCustomDataUpdate()
   return updateSample(customData)
 end function
 
@@ -374,19 +378,12 @@ sub finishRunningSampleForCustomDataUpdate()
   else if m.currentState = m.playerStates.PAUSED
     sendAnalyticsRequestAndClearValues({ paused: duration }, duration, m.currentState)
     m.playerStateTimer.Mark()
-  else if m.currentState = m.playerStates.STALLING
-    setVideoTimeEnd()
-    setVideoTimeStart()
-    sendAnalyticsRequestAndClearValues({ buffered: duration }, duration, m.currentState)
-    m.playerStateTimer.Mark()
-  else
-    finishRunningSample()
   end if
 end sub
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
-  finishRunningSample()
+  if shouldFinishRunningSample() then finishRunningSample()
 
   duration = getDuration(m.playerStateTimer)
   createTempMetadataSampleAndSendAnalyticsRequest(customData, duration)
