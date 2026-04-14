@@ -365,15 +365,15 @@ sub finishRunningSampleForCustomDataUpdate()
 
   if m.currentState = m.playerStates.PLAYING
     setVideoTimeEnd()
-    sendAnalyticsRequestAndClearValues({ played: duration }, duration, m.currentState)
+    sendAnalyticsRequestAndClearValues({ played: duration }, duration, "customdatachange")
     m.playerStateTimer.Mark()
     setVideoTimeStart()
   else if m.currentState = m.playerStates.PAUSED
-    sendAnalyticsRequestAndClearValues({ paused: duration }, duration, m.currentState)
+    sendAnalyticsRequestAndClearValues({ paused: duration }, duration, "customdatachange")
     m.playerStateTimer.Mark()
   else if m.currentState = m.playerStates.STALLING
     setVideoTimeEnd()
-    sendAnalyticsRequestAndClearValues({ buffered: duration }, duration, m.currentState)
+    sendAnalyticsRequestAndClearValues({ buffered: duration }, duration, "customdatachange")
     m.playerStateTimer.Mark()
     setVideoTimeStart()
   end if

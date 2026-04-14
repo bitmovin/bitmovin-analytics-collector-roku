@@ -161,9 +161,21 @@ end function
 ' ===== HELPER METHODS =====
 
 sub finishRunningSampleForCustomDataUpdate()
-  sendClosingSampleForCurrentState()
+  setVideoTimeEnd()
+  stateDuration = m.playerStateTimer.TotalMilliseconds()
 
-  if m.currentState = m.collectorStates.PLAYING or m.currentState = m.collectorStates.PAUSED or m.currentState = m.collectorStates.AD
+  if m.currentState = m.collectorStates.PLAYING
+    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, "customdatachange")
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+  else if m.currentState = m.collectorStates.PAUSED
+    if m.isBuffering
+      sample = { videoTimeStart: m.currentTimeAtPauseStart, buffered: stateDuration }
+      sendAnalyticsRequestAndClearValues(sample, stateDuration, "customdatachange")
+    else
+      sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, "customdatachange")
+    end if
+    m.playerStateTimer.Mark()
     setVideoTimeStart()
   end if
 end sub
