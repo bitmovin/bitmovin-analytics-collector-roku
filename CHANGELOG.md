@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Fixed
+- `setCustomDataOnce` not sending samples of type `customdatachange` like Bitmovin collectors on other platforms
+
 ### Internal
 - Appended state-specific data for samples triggered by `setCustomData`
 
