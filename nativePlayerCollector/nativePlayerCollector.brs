@@ -482,7 +482,7 @@ sub videoStartFailed(reason, duration, state, additionalEventData = invalid)
 end sub
 
 function shouldFinishRunningSample()
-  return m.currentState = m.playerStates.PLAYING or m.currentState = m.playerStates.PAUSED
+  return m.currentState = m.playerStates.PLAYING or m.currentState = m.playerStates.PAUSED or m.currentState = m.playerStates.BUFFERING
 end function
 
 function setCustomData(customData)
@@ -511,12 +511,17 @@ sub finishRunningSampleForCustomDataUpdate()
   else if m.currentState = m.playerStates.PAUSED
     sendAnalyticsRequestAndClearValues({ paused: duration }, duration, m.currentState)
     m.playerStateTimer.Mark()
+  else if m.currentState = m.playerStates.BUFFERING
+    setVideoTimeEnd()
+    sendAnalyticsRequestAndClearValues({ buffered: duration }, duration, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
   end if
 end sub
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
-  if shouldFinishRunningSample() then finishRunningSample()
+  if shouldFinishRunningSample() then finishRunningSampleForCustomDataUpdate()
 
   createTempMetadataSampleAndSendAnalyticsRequest(customData)
 end sub
