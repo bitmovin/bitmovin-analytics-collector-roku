@@ -178,9 +178,6 @@ sub finishRunningSampleForCustomDataUpdate()
     m.playerStateTimer.Mark()
     setVideoTimeStart()
   end if
-
-  currentTime = getCurrentPlayerTimeInMs()
-  createTempMetadataSampleAndSendAnalyticsRequest({ videoTimeStart: currentTime, videoTimeEnd: currentTime }, 0, "customdatachange")
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
