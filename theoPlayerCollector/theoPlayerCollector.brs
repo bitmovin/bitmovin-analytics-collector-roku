@@ -165,19 +165,22 @@ sub finishRunningSampleForCustomDataUpdate()
   stateDuration = m.playerStateTimer.TotalMilliseconds()
 
   if m.currentState = m.collectorStates.PLAYING
-    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, "customdatachange")
+    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
     m.playerStateTimer.Mark()
     setVideoTimeStart()
   else if m.currentState = m.collectorStates.PAUSED
     if m.isBuffering
       sample = { videoTimeStart: m.currentTimeAtPauseStart, buffered: stateDuration }
-      sendAnalyticsRequestAndClearValues(sample, stateDuration, "customdatachange")
+      sendAnalyticsRequestAndClearValues(sample, stateDuration, m.currentState)
     else
-      sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, "customdatachange")
+      sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
     end if
     m.playerStateTimer.Mark()
     setVideoTimeStart()
   end if
+
+  currentTime = getCurrentPlayerTimeInMs()
+  createTempMetadataSampleAndSendAnalyticsRequest({ videoTimeStart: currentTime, videoTimeEnd: currentTime }, 0, "customdatachange")
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
