@@ -349,7 +349,7 @@ sub onDestroy()
 end sub
 
 function shouldFinishRunningSample()
-  return m.currentState = m.playerStates.PLAYING or m.currentState = m.playerStates.PAUSED or m.currentState = m.playerStates.STALLING
+  return m.currentState = m.playerStates.PLAYING or m.currentState = m.playerStates.PAUSED
 end function
 
 function setCustomData(customData)
@@ -371,15 +371,7 @@ sub finishRunningSampleForCustomDataUpdate()
   else if m.currentState = m.playerStates.PAUSED
     sendAnalyticsRequestAndClearValues({ paused: duration }, duration, m.currentState)
     m.playerStateTimer.Mark()
-  else if m.currentState = m.playerStates.STALLING
-    setVideoTimeEnd()
-    sendAnalyticsRequestAndClearValues({ buffered: duration }, duration, m.currentState)
-    m.playerStateTimer.Mark()
-    setVideoTimeStart()
   end if
-
-  currentTime = getCurrentPlayerTimeInMs()
-  createTempMetadataSampleAndSendAnalyticsRequest({ videoTimeStart: currentTime, videoTimeEnd: currentTime }, 0, "customdatachange")
 end sub
 
 sub setCustomDataOnce(customData)
