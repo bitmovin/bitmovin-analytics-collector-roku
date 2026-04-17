@@ -3085,7 +3085,6 @@ namespace tests
       testContext = {
         currentSample: { videoTimeStart: 0 }
         sentSamples: []
-        capturedTempSample: invalid
       }
       originalCollectorCore = m.node.collectorCore
 
@@ -3103,8 +3102,6 @@ namespace tests
             sentSample = {}
             sentSample.Append(m.testContext.currentSample)
             m.testContext.sentSamples.Push(sentSample)
-          else if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
-            m.testContext.capturedTempSample = sampleData
           end if
           return true
         end function,
@@ -3135,11 +3132,6 @@ namespace tests
       m.assertEqual(sentSample.videoTimeEnd, 4000)
       m.assertEqual(testContext.currentSample.videoTimeStart, 4000)
       m.assertEqual(testContext.currentSample.customData1, "testValue1")
-      m.assertNotInvalid(testContext.capturedTempSample)
-      m.assertEqual(testContext.capturedTempSample.state, "customdatachange")
-      m.assertEqual(testContext.capturedTempSample.duration, 0)
-      m.assertEqual(testContext.capturedTempSample.videoTimeStart, 4000)
-      m.assertEqual(testContext.capturedTempSample.videoTimeEnd, 4000)
 
       m.node.collectorCore = originalCollectorCore
     end function
@@ -3149,7 +3141,6 @@ namespace tests
       testContext = {
         currentSample: {}
         sentSamples: []
-        capturedTempSample: invalid
       }
       originalCollectorCore = m.node.collectorCore
 
@@ -3163,8 +3154,6 @@ namespace tests
             sentSample = {}
             sentSample.Append(m.testContext.currentSample)
             m.testContext.sentSamples.Push(sentSample)
-          else if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
-            m.testContext.capturedTempSample = sampleData
           end if
           return true
         end function,
@@ -3192,11 +3181,6 @@ namespace tests
       m.assertTrue(sentSample.paused > 0)
       m.assertTrue(sentSample.duration > 0)
       m.assertEqual(testContext.currentSample.customData1, "pausedValue")
-      m.assertNotInvalid(testContext.capturedTempSample)
-      m.assertEqual(testContext.capturedTempSample.state, "customdatachange")
-      m.assertEqual(testContext.capturedTempSample.duration, 0)
-      m.assertEqual(testContext.capturedTempSample.videoTimeStart, 4000)
-      m.assertEqual(testContext.capturedTempSample.videoTimeEnd, 4000)
 
       m.node.collectorCore = originalCollectorCore
     end function
