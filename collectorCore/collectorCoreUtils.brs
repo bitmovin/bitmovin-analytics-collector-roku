@@ -25,6 +25,18 @@ function isArray(v)
   return getInterface(v, "ifArray") <> invalid
 end function
 
+function extractCustomDataFields(data)
+  if data = invalid then return {}
+
+  result = {}
+  for each key in getCustomDataValueKeys()
+    if data.DoesExist(key)
+      result[key] = data[key]
+    end if
+  end for
+  return result
+end function
+
 function getAnalyticsRequestTypes()
   analyticsRequestTypes = {
     REGULAR: 0,
