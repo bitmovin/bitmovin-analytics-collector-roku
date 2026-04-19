@@ -247,6 +247,7 @@ sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData, analytics
     requestData: sendOnceSample
     isSsaiRelated: isCurrentSampleSsaiRelated()
   }
+  m.sample.sequenceNumber++
 
   sendAnalyticsRequest()
 end sub
