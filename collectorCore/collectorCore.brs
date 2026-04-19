@@ -241,13 +241,13 @@ end sub
 sub createTempMetadataSampleAndSendAnalyticsRequest(updatedSampleData, analyticsRequestType = m.AnalyticsRequestTypes.REGULAR)
   if updatedSampleData = invalid return
 
-  m.sample.sequenceNumber++
   sendOnceSample = createSendOnceSample(updatedSampleData)
   m.AnalyticsDataTask.eventData = {
     requestType: analyticsRequestType
     requestData: sendOnceSample
     isSsaiRelated: isCurrentSampleSsaiRelated()
   }
+  m.sample.sequenceNumber++
 
   sendAnalyticsRequest()
 end sub
