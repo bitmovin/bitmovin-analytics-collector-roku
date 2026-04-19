@@ -19,6 +19,7 @@
     <function name="createTempMetadataSampleAndSendAnalyticsRequest"/>
     <function name="updateSample"/>
     <function name="isCustomDataChanging"/>
+    <function name="extractCustomDataFields"/>
     <function name="setVideoTimeStart"/>
     <function name="setVideoTimeEnd"/>
     <function name="updateAnalyticsConfig"/>

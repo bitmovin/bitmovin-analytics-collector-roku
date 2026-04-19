@@ -354,7 +354,7 @@ end function
 
 function setCustomData(customData)
   if customData = invalid then return invalid
-  sanitized = extractCustomDataFields(customData)
+  sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
   if not m.collectorCore.callFunc("isCustomDataChanging", sanitized) then return invalid
 
   if shouldFinishRunningSample() then finishRunningSampleForCustomDataUpdate()
@@ -380,7 +380,7 @@ sub setCustomDataOnce(customData)
 
   currentTime = getCurrentPlayerTimeInMs()
   sampleData = {}
-  sampleData.Append(extractCustomDataFields(customData))
+  sampleData.Append(m.collectorCore.callFunc("extractCustomDataFields", customData))
   sampleData.Append({ videoTimeStart: currentTime, videoTimeEnd: currentTime })
   createTempMetadataSampleAndSendAnalyticsRequest(sampleData, 0, "customdatachange")
 end sub

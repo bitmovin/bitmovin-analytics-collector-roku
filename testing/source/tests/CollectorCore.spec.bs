@@ -83,6 +83,53 @@ namespace tests
       m.assertTrue(result)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("extractCustomDataFields")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns only customData fields from input")
+    function _()
+      input = { customData1: "a", customData2: "b", adImpressionId: "n/a", state: "playing" }
+
+      'bs:disable-next-line
+      result = extractCustomDataFields(input)
+
+      m.assertEqual(result.customData1, "a")
+      m.assertEqual(result.customData2, "b")
+      m.assertFalse(result.DoesExist("adImpressionId"))
+      m.assertFalse(result.DoesExist("state"))
+    end function
+
+    @it("returns empty AA when input contains no customData fields")
+    function _()
+      input = { adImpressionId: "n/a", videoTimeStart: 0 }
+
+      'bs:disable-next-line
+      result = extractCustomDataFields(input)
+
+      m.assertEqual(result.Count(), 0)
+    end function
+
+    @it("returns empty AA when input is invalid")
+    function _()
+      'bs:disable-next-line
+      result = extractCustomDataFields(invalid)
+
+      m.assertEqual(result.Count(), 0)
+    end function
+
+    @it("preserves invalid customData field values")
+    function _()
+      input = { customData1: invalid, customData3: "value" }
+
+      'bs:disable-next-line
+      result = extractCustomDataFields(input)
+
+      m.assertInvalid(result.customData1)
+      m.assertEqual(result.customData3, "value")
+      m.assertFalse(result.DoesExist("customData2"))
+    end function
+
   end class
 
 end namespace

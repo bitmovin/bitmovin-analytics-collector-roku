@@ -3051,7 +3051,9 @@ namespace tests
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "updateSample"
+          if funcName = "extractCustomDataFields"
+            return sampleData
+          else if funcName = "updateSample"
             m.testContext.capturedSample = sampleData
           else if funcName = "isCustomDataChanging"
             return true
@@ -3090,7 +3092,9 @@ namespace tests
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "isCustomDataChanging"
+          if funcName = "extractCustomDataFields"
+            return sampleData
+          else if funcName = "isCustomDataChanging"
             return true
           else if funcName = "setVideoTimeEnd"
             m.testContext.currentSample.videoTimeEnd = sampleData
@@ -3146,7 +3150,9 @@ namespace tests
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "isCustomDataChanging"
+          if funcName = "extractCustomDataFields"
+            return sampleData
+          else if funcName = "isCustomDataChanging"
             return true
           else if funcName = "updateSample"
             m.testContext.currentSample.Append(sampleData)
@@ -3192,7 +3198,9 @@ namespace tests
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "isCustomDataChanging"
+          if funcName = "extractCustomDataFields"
+            return sampleData
+          else if funcName = "isCustomDataChanging"
             return true
           else if funcName = "sendAnalyticsRequestAndClearValues"
             m.testContext.sendAnalyticsCalled = true
@@ -3273,7 +3281,9 @@ namespace tests
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
+          if funcName = "extractCustomDataFields"
+            return sampleData
+          else if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
             m.testContext.capturedTempSample = sampleData
           else if funcName = "sendAnalyticsRequestAndClearValues"
             m.testContext.sendAnalyticsCalled = true
@@ -3314,10 +3324,11 @@ namespace tests
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "sendAnalyticsRequestAndClearValues"
+          if funcName = "extractCustomDataFields"
+            return sampleData
+          else if funcName = "sendAnalyticsRequestAndClearValues"
             m.testContext.sendAnalyticsCalled = true
-          end if
-          if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
+          else if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
             m.testContext.capturedTempSample = sampleData
           end if
           return true
