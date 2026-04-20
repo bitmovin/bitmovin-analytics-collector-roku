@@ -107,6 +107,7 @@ sub onPlayerStateChanged()
 
   m.playerStateTimer.Mark()
   setVideoTimeStart()
+  m.top.currentState = m.currentState
 end sub
 
 sub handlePreviousState(previousState)
