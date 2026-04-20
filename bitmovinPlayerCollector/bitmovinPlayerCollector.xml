@@ -8,6 +8,5 @@
   </children>
   <interface>
     <field id="error" type="assocarray" alwaysnotify="true"/>
-    <field id="currentState" type="string"/>
   </interface>
 </component>
