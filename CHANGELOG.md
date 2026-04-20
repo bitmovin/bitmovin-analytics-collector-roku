@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased]
 
 ### Fixed
-- `setCustomDataOnce` not dispatching `customdatachange` samples siimilar to collectors on other platforms
 - `setCustomData` missing state-specific attributes
 
 ## v2.16.0
