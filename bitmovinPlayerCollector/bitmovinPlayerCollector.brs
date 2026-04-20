@@ -107,7 +107,6 @@ sub onPlayerStateChanged()
 
   m.playerStateTimer.Mark()
   setVideoTimeStart()
-  m.top.currentState = m.currentState
 end sub
 
 sub handlePreviousState(previousState)
@@ -378,12 +377,17 @@ end sub
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
+  finishRunningSample()
 
-  currentTime = getCurrentPlayerTimeInMs()
-  sampleData = {}
-  sampleData.Append(customData)
-  sampleData.Append({ videoTimeStart: currentTime, videoTimeEnd: currentTime })
-  createTempMetadataSampleAndSendAnalyticsRequest(sampleData, 0, "customdatachange")
+  duration = getDuration(m.playerStateTimer)
+  createTempMetadataSampleAndSendAnalyticsRequest(customData, duration)
+end sub
+
+sub finishRunningSample()
+  duration = getDuration(m.playerStateTimer)
+  m.playerStateTimer.Mark()
+
+  sendAnalyticsRequestAndClearValues({}, duration)
 end sub
 
 function setAnalyticsConfig(config)

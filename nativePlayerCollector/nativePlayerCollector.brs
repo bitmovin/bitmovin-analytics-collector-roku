@@ -508,14 +508,18 @@ sub finishRunningSampleForCustomDataUpdate()
   end if
 end sub
 
+sub finishRunningSample()
+  duration = getDuration(m.playerStateTimer)
+  m.playerStateTimer.Mark()
+
+  sendAnalyticsRequestAndClearValues({}, duration)
+end sub
+
 sub setCustomDataOnce(customData)
   if customData = invalid then return
+  finishRunningSample()
 
-  currentTime = getCurrentPlayerTimeInMs()
-  sampleData = {}
-  sampleData.Append(customData)
-  sampleData.Append({ videoTimeStart: currentTime, videoTimeEnd: currentTime })
-  createTempMetadataSampleAndSendAnalyticsRequest(sampleData, 0, "customdatachange")
+  createTempMetadataSampleAndSendAnalyticsRequest(customData)
 end sub
 
 function setAnalyticsConfig(config)

@@ -92,11 +92,17 @@ end function
 sub setCustomDataOnce(customData)
   if customData = invalid then return
 
-  currentTime = getCurrentPlayerTimeInMs()
-  sampleData = {}
-  sampleData.Append(customData)
-  sampleData.Append({ videoTimeStart: currentTime, videoTimeEnd: currentTime })
-  createTempMetadataSampleAndSendAnalyticsRequest(sampleData, 0, "customdatachange")
+  if m.currentState <> m.collectorStates.SETUP then finishRunningSample()
+
+  duration = getDuration(m.playerStateTimer)
+  createTempMetadataSampleAndSendAnalyticsRequest(customData, duration, m.currentState)
+end sub
+
+sub finishRunningSample()
+  duration = getDuration(m.playerStateTimer)
+  m.playerStateTimer.Mark()
+
+  sendAnalyticsRequestAndClearValues({}, duration, m.currentState)
 end sub
 
 sub programChange(newSourceMetadata = invalid)
