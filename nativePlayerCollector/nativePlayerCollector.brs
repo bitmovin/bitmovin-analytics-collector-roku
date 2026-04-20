@@ -495,27 +495,32 @@ function setCustomData(customData)
 end function
 
 sub finishRunningSampleForCustomDataUpdate()
+  setVideoTimeEnd()
   duration = getDuration(m.playerStateTimer)
 
   if m.currentState = m.playerStates.PLAYING
-    setVideoTimeEnd()
     sendAnalyticsRequestAndClearValues({ played: duration }, duration, m.currentState)
     m.playerStateTimer.Mark()
     setVideoTimeStart()
   else if m.currentState = m.playerStates.PAUSED
     sendAnalyticsRequestAndClearValues({ paused: duration }, duration, m.currentState)
     m.playerStateTimer.Mark()
+    setVideoTimeStart()
   end if
+end sub
+
+sub finishRunningSample()
+  duration = getDuration(m.playerStateTimer)
+  m.playerStateTimer.Mark()
+
+  sendAnalyticsRequestAndClearValues({}, duration)
 end sub
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
+  finishRunningSample()
 
-  currentTime = getCurrentPlayerTimeInMs()
-  sampleData = {}
-  sampleData.Append(m.collectorCore.callFunc("extractCustomDataFields", customData))
-  sampleData.Append({ videoTimeStart: currentTime, videoTimeEnd: currentTime })
-  createTempMetadataSampleAndSendAnalyticsRequest(sampleData, 0, "customdatachange")
+  createTempMetadataSampleAndSendAnalyticsRequest(customData)
 end sub
 
 function setAnalyticsConfig(config)

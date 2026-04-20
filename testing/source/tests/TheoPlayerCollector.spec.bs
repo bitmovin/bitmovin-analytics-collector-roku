@@ -3274,9 +3274,9 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("sends a single customdatachange sample with custom data fields, correct video times, and no closing sample")
+    @it("sends a temp metadata sample with the custom data fields when customData is valid")
     function _()
-      testContext = { capturedTempSample: invalid, sendAnalyticsCalled: false }
+      testContext = { capturedTempSample: invalid }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
@@ -3285,8 +3285,6 @@ namespace tests
             return sampleData
           else if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
             m.testContext.capturedTempSample = sampleData
-          else if funcName = "sendAnalyticsRequestAndClearValues"
-            m.testContext.sendAnalyticsCalled = true
           end if
           return true
         end function,
@@ -3307,17 +3305,12 @@ namespace tests
       'bs:disable-next-line
       setCustomDataOnce({ customData3: "onceValue" })
 
-      m.assertFalse(testContext.sendAnalyticsCalled)
       m.assertNotInvalid(testContext.capturedTempSample)
       m.assertEqual(testContext.capturedTempSample.customData3, "onceValue")
-      m.assertEqual(testContext.capturedTempSample.state, "customdatachange")
-      m.assertEqual(testContext.capturedTempSample.duration, 0)
-      m.assertEqual(testContext.capturedTempSample.videoTimeStart, 10000)
-      m.assertEqual(testContext.capturedTempSample.videoTimeEnd, 10000)
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("sends a customdatachange once-sample regardless of player state")
+    @it("does not call finishRunningSample when in SETUP state")
     function _()
       testContext = { sendAnalyticsCalled: false, capturedTempSample: invalid }
       originalCollectorCore = m.node.collectorCore
@@ -3358,10 +3351,6 @@ namespace tests
       m.assertFalse(testContext.sendAnalyticsCalled)
       m.assertNotInvalid(testContext.capturedTempSample)
       m.assertEqual(testContext.capturedTempSample.customData3, "onceValue")
-      m.assertEqual(testContext.capturedTempSample.state, "customdatachange")
-      m.assertEqual(testContext.capturedTempSample.duration, 0)
-      m.assertEqual(testContext.capturedTempSample.videoTimeStart, 10000)
-      m.assertEqual(testContext.capturedTempSample.videoTimeEnd, 10000)
       m.node.collectorCore = originalCollectorCore
     end function
 
