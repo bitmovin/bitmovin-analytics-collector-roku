@@ -494,16 +494,17 @@ function setCustomData(customData)
 end function
 
 sub finishRunningSampleForCustomDataUpdate()
+  setVideoTimeEnd()
   duration = getDuration(m.playerStateTimer)
 
   if m.currentState = m.playerStates.PLAYING
-    setVideoTimeEnd()
     sendAnalyticsRequestAndClearValues({ played: duration }, duration, m.currentState)
     m.playerStateTimer.Mark()
     setVideoTimeStart()
   else if m.currentState = m.playerStates.PAUSED
     sendAnalyticsRequestAndClearValues({ paused: duration }, duration, m.currentState)
     m.playerStateTimer.Mark()
+    setVideoTimeStart()
   end if
 end sub
 
