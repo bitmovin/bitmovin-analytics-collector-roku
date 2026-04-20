@@ -518,9 +518,10 @@ end sub
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
+  sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
   finishRunningSample()
 
-  createTempMetadataSampleAndSendAnalyticsRequest(customData)
+  createTempMetadataSampleAndSendAnalyticsRequest(sanitized)
 end sub
 
 function setAnalyticsConfig(config)

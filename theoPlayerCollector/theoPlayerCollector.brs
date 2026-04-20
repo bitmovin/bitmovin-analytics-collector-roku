@@ -92,11 +92,12 @@ end function
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
+  sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
 
   if m.currentState <> m.collectorStates.SETUP then finishRunningSample()
 
   duration = getDuration(m.playerStateTimer)
-  createTempMetadataSampleAndSendAnalyticsRequest(customData, duration, m.currentState)
+  createTempMetadataSampleAndSendAnalyticsRequest(sanitized, duration, m.currentState)
 end sub
 
 sub finishRunningSample()
