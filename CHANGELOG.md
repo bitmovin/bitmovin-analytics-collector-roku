@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Fixed
+- `setCustomData` missing state-specific attributes
+
 ### Changed
 - `setCustomDataOnce`/`setCustomData` to be safeguarded and only respect valid `customData<n>` keys in the parameter object
-- `setCustomData` missing state-specific attributes
 
 ## v2.16.0
 
