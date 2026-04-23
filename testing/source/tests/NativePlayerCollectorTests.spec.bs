@@ -136,6 +136,116 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setCustomDataOnce")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing when customData is invalid")
+    function _()
+      testContext = { tempSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
+            m.testContext.tempSampleCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      setCustomDataOnce(invalid)
+
+      m.assertFalse(testContext.tempSampleCalled)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends a customdatachange sample with duration=0, videoTimeStart=videoTimeEnd=currentTime, and the custom data fields")
+    function _()
+      testContext = { capturedTempSample: invalid, sendAnalyticsCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "extractCustomDataFields"
+            return sampleData
+          else if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendAnalyticsCalled = true
+          else if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
+            m.testContext.capturedTempSample = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.position = 10
+      m.mockPlayer.availableAudioTracks = []
+      m.mockPlayer.availableSubtitleTracks = []
+      m.node.player = m.mockPlayer
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      'bs:disable-next-line
+      setCustomDataOnce({ customData3: "onceValue" })
+
+      m.assertNotInvalid(testContext.capturedTempSample)
+      m.assertEqual(testContext.capturedTempSample.customData3, "onceValue")
+      m.assertEqual(testContext.capturedTempSample.state, "customdatachange")
+      m.assertEqual(testContext.capturedTempSample.duration, 0)
+      m.assertEqual(testContext.capturedTempSample.videoTimeStart, 10000)
+      m.assertEqual(testContext.capturedTempSample.videoTimeEnd, 10000)
+      m.assertFalse(testContext.sendAnalyticsCalled)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not close the running sample regardless of player state")
+    function _()
+      testContext = { sendAnalyticsCalled: false, capturedTempSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "extractCustomDataFields"
+            return sampleData
+          else if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendAnalyticsCalled = true
+          else if funcName = "createTempMetadataSampleAndSendAnalyticsRequest"
+            m.testContext.capturedTempSample = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.availableAudioTracks = []
+      m.mockPlayer.availableSubtitleTracks = []
+      m.node.player = m.mockPlayer
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      for each state in ["setup", "playing", "paused"]
+        testContext.sendAnalyticsCalled = false
+        testContext.capturedTempSample = invalid
+        'bs:disable-next-line
+        m.node.currentState = state
+
+        'bs:disable-next-line
+        setCustomDataOnce({ customData3: "onceValue" })
+
+        m.assertFalse(testContext.sendAnalyticsCalled)
+        m.assertNotInvalid(testContext.capturedTempSample)
+      end for
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
   end class
 
 end namespace
