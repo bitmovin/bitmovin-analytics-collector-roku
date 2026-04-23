@@ -3080,6 +3080,111 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("sends a played sample with video times before updating custom data when in PLAYING state")
+    function _()
+      testContext = {
+        currentSample: { videoTimeStart: 0 }
+        sentSamples: []
+      }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "isCustomDataChanging"
+            return true
+          else if funcName = "setVideoTimeEnd"
+            m.testContext.currentSample.videoTimeEnd = sampleData
+          else if funcName = "setVideoTimeStart"
+            m.testContext.currentSample.videoTimeStart = sampleData
+          else if funcName = "updateSample"
+            m.testContext.currentSample.Append(sampleData)
+          else if funcName = "sendAnalyticsRequestAndClearValues"
+            sentSample = {}
+            sentSample.Append(m.testContext.currentSample)
+            m.testContext.sentSamples.Push(sentSample)
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 4
+      mockVideoNode({ height: 1080, width: 1920 })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      sleep(10)
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      'bs:disable-next-line
+      setCustomData({ customData1: "testValue1" })
+
+      m.assertEqual(testContext.sentSamples.Count(), 1)
+      sentSample = testContext.sentSamples[0]
+      m.assertEqual(sentSample.state, "playing")
+      m.assertTrue(sentSample.played > 0)
+      m.assertTrue(sentSample.duration > 0)
+      m.assertEqual(sentSample.videoTimeStart, 0)
+      m.assertEqual(sentSample.videoTimeEnd, 4000)
+      m.assertEqual(testContext.currentSample.videoTimeStart, 4000)
+      m.assertEqual(testContext.currentSample.customData1, "testValue1")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends a paused sample before updating custom data when in PAUSED state")
+    function _()
+      testContext = {
+        currentSample: {}
+        sentSamples: []
+      }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "isCustomDataChanging"
+            return true
+          else if funcName = "updateSample"
+            m.testContext.currentSample.Append(sampleData)
+          else if funcName = "sendAnalyticsRequestAndClearValues"
+            sentSample = {}
+            sentSample.Append(m.testContext.currentSample)
+            m.testContext.sentSamples.Push(sentSample)
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 4
+      mockVideoNode({ height: 1080, width: 1920 })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      sleep(10)
+      'bs:disable-next-line
+      m.node.currentState = "paused"
+
+      'bs:disable-next-line
+      setCustomData({ customData1: "pausedValue" })
+
+      m.assertEqual(testContext.sentSamples.Count(), 1)
+      sentSample = testContext.sentSamples[0]
+      m.assertEqual(sentSample.state, "paused")
+      m.assertTrue(sentSample.paused > 0)
+      m.assertTrue(sentSample.duration > 0)
+      m.assertEqual(testContext.currentSample.customData1, "pausedValue")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("does not call finishRunningSample when in SETUP state")
     function _()
       testContext = { sendAnalyticsCalled: false, capturedSample: invalid }

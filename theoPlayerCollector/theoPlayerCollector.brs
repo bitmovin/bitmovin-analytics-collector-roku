@@ -77,11 +77,15 @@ sub applyPendingMetadata()
   m.pendingMetadata = invalid
 end sub
 
+function shouldFinishRunningSample()
+  return m.currentState = m.collectorStates.PLAYING or m.currentState = m.collectorStates.PAUSED
+end function
+
 function setCustomData(customData)
   if customData = invalid then return invalid
   if not m.collectorCore.callFunc("isCustomDataChanging", customData) then return invalid
 
-  if m.currentState <> m.collectorStates.SETUP then finishRunningSample()
+  if shouldFinishRunningSample() then finishRunningSampleForCustomDataUpdate()
   return updateSample(customData)
 end function
 
@@ -92,6 +96,13 @@ sub setCustomDataOnce(customData)
 
   duration = getDuration(m.playerStateTimer)
   createTempMetadataSampleAndSendAnalyticsRequest(customData, duration, m.currentState)
+end sub
+
+sub finishRunningSample()
+  duration = getDuration(m.playerStateTimer)
+  m.playerStateTimer.Mark()
+
+  sendAnalyticsRequestAndClearValues({}, duration, m.currentState)
 end sub
 
 sub programChange(newSourceMetadata = invalid)
@@ -155,11 +166,19 @@ end function
 
 ' ===== HELPER METHODS =====
 
-sub finishRunningSample()
-  duration = getDuration(m.playerStateTimer)
-  m.playerStateTimer.Mark()
+sub finishRunningSampleForCustomDataUpdate()
+  setVideoTimeEnd()
+  stateDuration = m.playerStateTimer.TotalMilliseconds()
 
-  sendAnalyticsRequestAndClearValues({}, duration, m.currentState)
+  if m.currentState = m.collectorStates.PLAYING
+    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+  else if m.currentState = m.collectorStates.PAUSED
+    sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+  end if
 end sub
 
 sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)

@@ -481,13 +481,32 @@ sub videoStartFailed(reason, duration, state, additionalEventData = invalid)
   sendAnalyticsRequestAndClearValues(eventData, duration, state)
 end sub
 
+function shouldFinishRunningSample()
+  return m.currentState = m.playerStates.PLAYING or m.currentState = m.playerStates.PAUSED
+end function
+
 function setCustomData(customData)
   if customData = invalid then return invalid
   if not m.collectorCore.callFunc("isCustomDataChanging", customData) then return invalid
 
-  finishRunningSample()
+  if shouldFinishRunningSample() then finishRunningSampleForCustomDataUpdate()
   return updateSample(customData)
 end function
+
+sub finishRunningSampleForCustomDataUpdate()
+  setVideoTimeEnd()
+  duration = getDuration(m.playerStateTimer)
+
+  if m.currentState = m.playerStates.PLAYING
+    sendAnalyticsRequestAndClearValues({ played: duration }, duration, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+  else if m.currentState = m.playerStates.PAUSED
+    sendAnalyticsRequestAndClearValues({ paused: duration }, duration, m.currentState)
+    m.playerStateTimer.Mark()
+    setVideoTimeStart()
+  end if
+end sub
 
 sub finishRunningSample()
   duration = getDuration(m.playerStateTimer)
