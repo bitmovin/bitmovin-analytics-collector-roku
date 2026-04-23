@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+## v2.17.0
+
 ### Fixed
 - `setCustomData` missing state-specific attributes
 
