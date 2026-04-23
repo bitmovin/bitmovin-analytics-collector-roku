@@ -354,10 +354,11 @@ end function
 
 function setCustomData(customData)
   if customData = invalid then return invalid
-  if not m.collectorCore.callFunc("isCustomDataChanging", customData) then return invalid
+  sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
+  if not m.collectorCore.callFunc("isCustomDataChanging", sanitized) then return invalid
 
   if shouldFinishRunningSample() then finishRunningSampleForCustomDataUpdate()
-  return updateSample(customData)
+  return updateSample(sanitized)
 end function
 
 sub finishRunningSampleForCustomDataUpdate()
@@ -377,10 +378,11 @@ end sub
 
 sub setCustomDataOnce(customData)
   if customData = invalid then return
+  sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
   finishRunningSample()
 
   duration = getDuration(m.playerStateTimer)
-  createTempMetadataSampleAndSendAnalyticsRequest(customData, duration)
+  createTempMetadataSampleAndSendAnalyticsRequest(sanitized, duration)
 end sub
 
 sub finishRunningSample()

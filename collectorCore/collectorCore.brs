@@ -270,6 +270,18 @@ function updateSample(newSampleData)
   return true
 end function
 
+function extractCustomDataFields(data)
+  if data = invalid then return {}
+
+  result = {}
+  for each key in getCustomDataValueKeys()
+    if data.DoesExist(key)
+      result[key] = data[key]
+    end if
+  end for
+  return result
+end function
+
 function isCustomDataChanging(newCustomData)
   for each key in newCustomData
     if not m.sample.DoesExist(key) or m.sample[key] <> newCustomData[key] then return true
