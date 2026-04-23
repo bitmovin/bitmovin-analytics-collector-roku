@@ -175,12 +175,7 @@ sub finishRunningSampleForCustomDataUpdate()
     m.playerStateTimer.Mark()
     setVideoTimeStart()
   else if m.currentState = m.collectorStates.PAUSED
-    if m.isBuffering
-      sample = { videoTimeStart: m.currentTimeAtPauseStart, buffered: stateDuration }
-      sendAnalyticsRequestAndClearValues(sample, stateDuration, m.currentState)
-    else
-      sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
-    end if
+    sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
     m.playerStateTimer.Mark()
     setVideoTimeStart()
   end if
