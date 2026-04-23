@@ -94,10 +94,18 @@ sub setCustomDataOnce(customData)
   if customData = invalid then return
   sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
 
-  if m.currentState <> m.collectorStates.SETUP then finishRunningSample()
+  currentTime = getCurrentPlayerTimeInMs()
+  sampleData = sanitized
+  sampleData.Append({
+    state: "customdatachange",
+    duration: 0,
+    videoTimeStart: currentTime,
+    videoTimeEnd: currentTime,
+    time: getCurrentTimeInMilliseconds()
+  })
+  decorateSampleWithPlaybackData(sampleData)
 
-  duration = getDuration(m.playerStateTimer)
-  createTempMetadataSampleAndSendAnalyticsRequest(sanitized, duration, m.currentState)
+  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 sub finishRunningSample()
