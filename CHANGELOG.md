@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Fixed
+- missing `customdatachange`-event when calling `setCustomDataOnce`
+
 ## v2.17.0
 
 ### Fixed
