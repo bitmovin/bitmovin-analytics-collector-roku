@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- tracking for `autoplay` config on THEO and Bitmovin collectors
+
 ### Fixed
 - missing `customdatachange`-event when calling `setCustomDataOnce`
 
