@@ -881,6 +881,7 @@ namespace tests
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
+      m.mockPlayer.autoplay = true
 
       'bs:disable-next-line
       m.node.videoStartupTimer = CreateObject("roTimeSpan")
@@ -894,6 +895,7 @@ namespace tests
       m.assertEqual(testContext.capturedSampleData.state, "startup")
       m.assertNotInvalid(testContext.capturedSampleData.videoStartupTime)
       m.assertNotInvalid(testContext.capturedSampleData.startupTime)
+      m.assertEqual(testContext.capturedSampleData.autoplay, true)
 
       'bs:disable-next-line
       m.assertTrue(m.node.videoStartUpTime >= 0)
@@ -3006,7 +3008,7 @@ namespace tests
     function _()
       mockVideoNode({ height: 1080, width: 1920 })
       realCollectorCore = m.node.collectorCore
-      analyticsDataTask = realCollectorCore.findNode("analyticsDataTask")
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
 
       ' Simulate the programChange final sample: set isProgramChange and send
       realCollectorCore.callFunc("updateSample", { isProgramChange: true })
