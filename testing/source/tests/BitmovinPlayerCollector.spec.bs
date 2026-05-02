@@ -277,6 +277,53 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stopVideoStartUpTimer")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sends correct autoplay value for each config shape")
+    @params(invalid, false)
+    @params({}, false)
+    @params({ playback: {} }, false)
+    @params({ playback: { autoplay: true } }, true)
+    @params({ playback: { autoplay: false } }, false)
+    function _(playerConfig, expectedAutoplay)
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getConfig" then return m.playerConfig
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return invalid
+        return invalid
+      end function
+      m.mockPlayer.playerConfig = playerConfig
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+
+      'bs:disable-next-line
+      stopVideoStartUpTimer()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.autoplay, expectedAutoplay)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("does not close the running sample regardless of player state")
     function _()
       testContext = { sendAnalyticsCalled: false, capturedTempSample: invalid }
