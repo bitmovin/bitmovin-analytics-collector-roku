@@ -393,7 +393,8 @@ sub stopVideoStartUpTimer()
 
   startupEventData = {
     videoStartupTime: m.videoStartUpTime,
-    startupTime: m.videoStartUpTime
+    startupTime: m.videoStartUpTime,
+    autoplay: m.player.autoplay
   }
 
   sendAnalyticsRequestAndClearValues(startupEventData, m.videoStartUpTime, "startup")
