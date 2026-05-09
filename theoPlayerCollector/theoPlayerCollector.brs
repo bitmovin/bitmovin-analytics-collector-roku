@@ -449,12 +449,18 @@ sub onSourceChange(eventData = invalid)
     resetCollectorState()
   end if
 
+  if m.player.autoplay
+    startVideoStartUpTimer()
+  end if
+
   detectSourceFormat()
   applyPendingMetadata()
 end sub
 
 sub onPlay(eventData = invalid)
-  startVideoStartUpTimer()
+  if not m.player.autoplay and m.currentState = m.collectorStates.SETUP
+    startVideoStartUpTimer()
+  end if
 
   if m.didAttemptPlay = false and m.didVideoPlay = false then startVideoStartTimeout()
   m.didAttemptPlay = true
