@@ -311,6 +311,7 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", m.player.Event.playing, m.top, "onPlaying")
   m.player.callFunc("addEventListener", m.player.Event.pause, m.top, "onPause")
   m.player.callFunc("addEventListener", m.player.Event.sourcechange, m.top, "onSourceChange")
+  m.player.callFunc("addEventListener", m.player.Event.canplay, m.top, "onCanPlay")
   m.player.callFunc("addEventListener", m.player.Event.destroy, m.top, "onDestroy")
   m.player.callFunc("addEventListener", m.player.Event.seeking, m.top, "onSeeking")
   m.player.callFunc("addEventListener", m.player.Event.timeupdate, m.top, "onTimeUpdate")
@@ -340,6 +341,7 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", m.player.Event.playing, m.top, "onPlaying")
     m.player.callFunc("removeEventListener", m.player.Event.pause, m.top, "onPause")
     m.player.callFunc("removeEventListener", m.player.Event.sourcechange, m.top, "onSourceChange")
+    m.player.callFunc("removeEventListener", m.player.Event.canplay, m.top, "onCanPlay")
     m.player.callFunc("removeEventListener", m.player.Event.destroy, m.top, "onDestroy")
     m.player.callFunc("removeEventListener", m.player.Event.seeking, m.top, "onSeeking")
     m.player.callFunc("removeEventListener", m.player.Event.timeupdate, m.top, "onTimeUpdate")
@@ -457,8 +459,14 @@ sub onSourceChange(eventData = invalid)
   applyPendingMetadata()
 end sub
 
+sub onCanPlay(eventData = invalid)
+  if m.player.autoplay or m.currentState <> m.collectorStates.SETUP or m.videoStartupTimer <> invalid then return
+
+  startVideoStartUpTimer()
+end sub
+
 sub onPlay(eventData = invalid)
-  if not m.player.autoplay and m.currentState = m.collectorStates.SETUP
+  if not m.player.autoplay and m.currentState = m.collectorStates.SETUP and m.videoStartupTimer = invalid
     startVideoStartUpTimer()
   end if
 
