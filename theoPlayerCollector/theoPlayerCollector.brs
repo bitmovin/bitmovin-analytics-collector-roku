@@ -459,14 +459,18 @@ sub onSourceChange(eventData = invalid)
   applyPendingMetadata()
 end sub
 
-sub onCanPlay(eventData = invalid)
-  if m.player.autoplay or m.currentState <> m.collectorStates.SETUP or m.videoStartupTimer <> invalid then return
+function shouldMeasureVideoStartup()
+  return not m.player.autoplay and m.currentState = m.collectorStates.SETUP and m.videoStartupTimer = invalid
+end function
 
-  startVideoStartUpTimer()
+sub onCanPlay(eventData = invalid)
+  if shouldMeasureVideoStartup()
+    startVideoStartUpTimer()
+  end if
 end sub
 
 sub onPlay(eventData = invalid)
-  if not m.player.autoplay and m.currentState = m.collectorStates.SETUP and m.videoStartupTimer = invalid
+  if shouldMeasureVideoStartup()
     startVideoStartUpTimer()
   end if
 
