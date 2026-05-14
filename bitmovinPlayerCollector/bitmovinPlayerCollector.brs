@@ -531,17 +531,6 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
   m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
 end sub
 
-sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
-  sampleData = eventData
-  sampleData.Append({
-    state: state,
-    duration: duration,
-    time: getCurrentTimeInMilliseconds()
-  })
-  decorateSampleWithPlaybackData(sampleData)
-
-  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
-end sub
 
 function getCurrentPlayerTimeInMs()
   playerCurrentTime = m.player.callFunc("getCurrentTime")

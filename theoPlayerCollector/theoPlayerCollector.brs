@@ -191,18 +191,6 @@ sub finishRunningSampleForCustomDataUpdate()
   end if
 end sub
 
-sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
-  sampleData = eventData
-  sampleData.Append({
-    state: state,
-    duration: duration,
-    time: getCurrentTimeInMilliseconds()
-  })
-  decorateSampleWithPlaybackData(sampleData)
-
-  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
-end sub
-
 sub detectSourceFormat()
   source = getActiveSource(m.player)
   if source = invalid then return
