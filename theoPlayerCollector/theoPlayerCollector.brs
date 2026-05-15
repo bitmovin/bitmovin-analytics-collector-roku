@@ -94,10 +94,18 @@ sub setCustomDataOnce(customData)
   if customData = invalid then return
   sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
 
-  if m.currentState <> m.collectorStates.SETUP then finishRunningSample()
+  currentTime = getCurrentPlayerTimeInMs()
+  sampleData = sanitized
+  sampleData.Append({
+    state: "customdatachange",
+    duration: 0,
+    videoTimeStart: currentTime,
+    videoTimeEnd: currentTime,
+    time: getCurrentTimeInMilliseconds()
+  })
+  decorateSampleWithPlaybackData(sampleData)
 
-  duration = getDuration(m.playerStateTimer)
-  createTempMetadataSampleAndSendAnalyticsRequest(sanitized, duration, m.currentState)
+  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 sub finishRunningSample()
@@ -181,18 +189,6 @@ sub finishRunningSampleForCustomDataUpdate()
     m.playerStateTimer.Mark()
     setVideoTimeStart()
   end if
-end sub
-
-sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
-  sampleData = eventData
-  sampleData.Append({
-    state: state,
-    duration: duration,
-    time: getCurrentTimeInMilliseconds()
-  })
-  decorateSampleWithPlaybackData(sampleData)
-
-  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 sub detectSourceFormat()
@@ -303,6 +299,7 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", m.player.Event.playing, m.top, "onPlaying")
   m.player.callFunc("addEventListener", m.player.Event.pause, m.top, "onPause")
   m.player.callFunc("addEventListener", m.player.Event.sourcechange, m.top, "onSourceChange")
+  m.player.callFunc("addEventListener", m.player.Event.canplay, m.top, "onCanPlay")
   m.player.callFunc("addEventListener", m.player.Event.destroy, m.top, "onDestroy")
   m.player.callFunc("addEventListener", m.player.Event.seeking, m.top, "onSeeking")
   m.player.callFunc("addEventListener", m.player.Event.timeupdate, m.top, "onTimeUpdate")
@@ -332,6 +329,7 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", m.player.Event.playing, m.top, "onPlaying")
     m.player.callFunc("removeEventListener", m.player.Event.pause, m.top, "onPause")
     m.player.callFunc("removeEventListener", m.player.Event.sourcechange, m.top, "onSourceChange")
+    m.player.callFunc("removeEventListener", m.player.Event.canplay, m.top, "onCanPlay")
     m.player.callFunc("removeEventListener", m.player.Event.destroy, m.top, "onDestroy")
     m.player.callFunc("removeEventListener", m.player.Event.seeking, m.top, "onSeeking")
     m.player.callFunc("removeEventListener", m.player.Event.timeupdate, m.top, "onTimeUpdate")
@@ -385,7 +383,8 @@ sub stopVideoStartUpTimer()
 
   startupEventData = {
     videoStartupTime: m.videoStartUpTime,
-    startupTime: m.videoStartUpTime
+    startupTime: m.videoStartUpTime,
+    autoplay: m.player.autoplay
   }
 
   sendAnalyticsRequestAndClearValues(startupEventData, m.videoStartUpTime, "startup")
@@ -440,12 +439,28 @@ sub onSourceChange(eventData = invalid)
     resetCollectorState()
   end if
 
+  if m.player.autoplay
+    startVideoStartUpTimer()
+  end if
+
   detectSourceFormat()
   applyPendingMetadata()
 end sub
 
+function shouldMeasureVideoStartup()
+  return not m.player.autoplay and m.currentState = m.collectorStates.SETUP and m.videoStartupTimer = invalid
+end function
+
+sub onCanPlay(eventData = invalid)
+  if shouldMeasureVideoStartup()
+    startVideoStartUpTimer()
+  end if
+end sub
+
 sub onPlay(eventData = invalid)
-  startVideoStartUpTimer()
+  if shouldMeasureVideoStartup()
+    startVideoStartUpTimer()
+  end if
 
   if m.didAttemptPlay = false and m.didVideoPlay = false then startVideoStartTimeout()
   m.didAttemptPlay = true

@@ -379,10 +379,19 @@ end sub
 sub setCustomDataOnce(customData)
   if customData = invalid then return
   sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
-  finishRunningSample()
 
-  duration = getDuration(m.playerStateTimer)
-  createTempMetadataSampleAndSendAnalyticsRequest(sanitized, duration)
+  currentTime = getCurrentPlayerTimeInMs()
+  sampleData = sanitized
+  sampleData.Append({
+    state: "customdatachange",
+    duration: 0,
+    videoTimeStart: currentTime,
+    videoTimeEnd: currentTime,
+    time: getCurrentTimeInMilliseconds()
+  })
+  decorateSampleWithPlaybackData(sampleData)
+
+  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
 end sub
 
 sub finishRunningSample()
@@ -436,13 +445,27 @@ sub stopVideoStartUpTimer()
   if m.videoStartupTimer = invalid or m.videoStartupTime >= 0 then return
 
   m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
+
   eventData = {
     videoStartupTime: m.videoStartupTime,
-    startupTime: m.videoStartUpTime
+    startupTime: m.videoStartUpTime,
+    autoplay: getAutoplay(m.player.callFunc("getConfig"))
   }
 
   sendAnalyticsRequestAndClearValues(eventData, m.videoStartUpTime, "startup")
 end sub
+
+function getAutoplay(config)
+  autoplay = false
+
+  if config <> invalid
+    if config.playback <> invalid
+      autoplay = config.playback.autoplay = true
+    end if
+  end if
+
+  return autoplay
+end function
 
 sub onFinished()
   m.videoStartUpTime = -1
@@ -522,17 +545,6 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
   m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
 end sub
 
-sub createTempMetadataSampleAndSendAnalyticsRequest(eventData, duration, state = m.previousState)
-  sampleData = eventData
-  sampleData.Append({
-    state: state,
-    duration: duration,
-    time: getCurrentTimeInMilliseconds()
-  })
-  decorateSampleWithPlaybackData(sampleData)
-
-  m.collectorCore.callFunc("createTempMetadataSampleAndSendAnalyticsRequest", sampleData)
-end sub
 
 function getCurrentPlayerTimeInMs()
   playerCurrentTime = m.player.callFunc("getCurrentTime")
