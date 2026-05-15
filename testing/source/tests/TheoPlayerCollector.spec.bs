@@ -670,6 +670,54 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("starts video startup timer when autoplay is true")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function
+      }
+
+      m.mockPlayer.autoplay = true
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      'bs:disable-next-line
+      m.assertNotInvalid(m.node.videoStartupTimer)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not start video startup timer when autoplay is false")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function
+      }
+
+      m.mockPlayer.autoplay = false
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      'bs:disable-next-line
+      m.assertInvalid(m.node.videoStartupTimer)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("initializePlayer")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -775,13 +823,127 @@ namespace tests
     @describe("onPlay")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("initializes the video startup timer")
+    @it("initializes the video startup timer when autoplay is false and in setup state")
     function _()
+      m.mockPlayer.autoplay = false
+      'bs:disable-next-line
+      m.node.currentState = "setup"
       'bs:disable-next-line
       m.node.videoStartupTimer = invalid
 
       'bs:disable-next-line
       onPlay()
+
+      'bs:disable-next-line
+      m.assertNotInvalid(m.node.videoStartupTimer)
+    end function
+
+    @it("does not initialize the video startup timer when autoplay is true")
+    function _()
+      m.mockPlayer.autoplay = true
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+
+      'bs:disable-next-line
+      onPlay()
+
+      'bs:disable-next-line
+      m.assertInvalid(m.node.videoStartupTimer)
+    end function
+
+    @it("does not reinitialize the video startup timer when resuming from pause")
+    function _()
+      m.mockPlayer.autoplay = false
+      'bs:disable-next-line
+      m.node.currentState = "paused"
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+
+      'bs:disable-next-line
+      onPlay()
+
+      'bs:disable-next-line
+      m.assertInvalid(m.node.videoStartupTimer)
+    end function
+
+    @it("does not reinitialize the video startup timer if canplay already started it")
+    function _()
+      m.mockPlayer.autoplay = false
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      existingTimer = CreateObject("roTimeSpan")
+      'bs:disable-next-line
+      m.node.videoStartupTimer = existingTimer
+
+      'bs:disable-next-line
+      onPlay()
+
+      'bs:disable-next-line
+      m.assertNotInvalid(m.node.videoStartupTimer)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onCanPlay")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("starts the startup timer when autoplay is false and in setup state")
+    function _()
+      m.mockPlayer.autoplay = false
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+
+      'bs:disable-next-line
+      onCanPlay()
+
+      'bs:disable-next-line
+      m.assertNotInvalid(m.node.videoStartupTimer)
+    end function
+
+    @it("does not start the startup timer when autoplay is true")
+    function _()
+      m.mockPlayer.autoplay = true
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+
+      'bs:disable-next-line
+      onCanPlay()
+
+      'bs:disable-next-line
+      m.assertInvalid(m.node.videoStartupTimer)
+    end function
+
+    @it("does not start the startup timer when not in setup state")
+    function _()
+      m.mockPlayer.autoplay = false
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+
+      'bs:disable-next-line
+      onCanPlay()
+
+      'bs:disable-next-line
+      m.assertInvalid(m.node.videoStartupTimer)
+    end function
+
+    @it("does not restart the startup timer if already running")
+    function _()
+      m.mockPlayer.autoplay = false
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      existingTimer = CreateObject("roTimeSpan")
+      'bs:disable-next-line
+      m.node.videoStartupTimer = existingTimer
+
+      'bs:disable-next-line
+      onCanPlay()
 
       'bs:disable-next-line
       m.assertNotInvalid(m.node.videoStartupTimer)
@@ -881,6 +1043,7 @@ namespace tests
       m.mockPlayer.audioTracks = []
       m.mockPlayer.textTracks = []
       m.mockPlayer.duration = 60
+      m.mockPlayer.autoplay = true
 
       'bs:disable-next-line
       m.node.videoStartupTimer = CreateObject("roTimeSpan")
@@ -894,6 +1057,7 @@ namespace tests
       m.assertEqual(testContext.capturedSampleData.state, "startup")
       m.assertNotInvalid(testContext.capturedSampleData.videoStartupTime)
       m.assertNotInvalid(testContext.capturedSampleData.startupTime)
+      m.assertEqual(testContext.capturedSampleData.autoplay, true)
 
       'bs:disable-next-line
       m.assertTrue(m.node.videoStartUpTime >= 0)
@@ -3006,7 +3170,7 @@ namespace tests
     function _()
       mockVideoNode({ height: 1080, width: 1920 })
       realCollectorCore = m.node.collectorCore
-      analyticsDataTask = realCollectorCore.findNode("analyticsDataTask")
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
 
       ' Simulate the programChange final sample: set isProgramChange and send
       realCollectorCore.callFunc("updateSample", { isProgramChange: true })

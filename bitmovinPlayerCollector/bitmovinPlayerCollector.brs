@@ -445,13 +445,27 @@ sub stopVideoStartUpTimer()
   if m.videoStartupTimer = invalid or m.videoStartupTime >= 0 then return
 
   m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
+
   eventData = {
     videoStartupTime: m.videoStartupTime,
-    startupTime: m.videoStartUpTime
+    startupTime: m.videoStartUpTime,
+    autoplay: getAutoplay(m.player.callFunc("getConfig"))
   }
 
   sendAnalyticsRequestAndClearValues(eventData, m.videoStartUpTime, "startup")
 end sub
+
+function getAutoplay(config)
+  autoplay = false
+
+  if config <> invalid
+    if config.playback <> invalid
+      autoplay = config.playback.autoplay = true
+    end if
+  end if
+
+  return autoplay
+end function
 
 sub onFinished()
   m.videoStartUpTime = -1
