@@ -439,7 +439,7 @@ sub onSourceChange(eventData = invalid)
     resetCollectorState()
   end if
 
-  if m.player.autoplay
+  if m.player.autoplay = true
     startVideoStartUpTimer()
   end if
 
@@ -448,7 +448,7 @@ sub onSourceChange(eventData = invalid)
 end sub
 
 function shouldMeasureVideoStartup()
-  return not m.player.autoplay and m.currentState = m.collectorStates.SETUP and m.videoStartupTimer = invalid
+  return m.player.autoplay <> true and m.currentState = m.collectorStates.SETUP and m.videoStartupTimer = invalid
 end function
 
 sub onCanPlay(eventData = invalid)
