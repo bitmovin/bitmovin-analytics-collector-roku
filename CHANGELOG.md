@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - missing `customdatachange`-event when calling `setCustomDataOnce`
+- reported startup time in THEO collector being too low
 
 ## v2.17.0
 
