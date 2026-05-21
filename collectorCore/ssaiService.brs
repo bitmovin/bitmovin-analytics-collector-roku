@@ -23,6 +23,10 @@ sub resetSsaiHelpers()
   m.adCustomData = {}
   m.lastAdStartTimer = invalid
   m.hasErrorBeenReportedForCurrentAd = false
+  m.ssaiExpectedPaidAds = invalid
+  m.ssaiExpectedSlates = invalid
+  m.currentAdIsSlate = invalid
+  m.currentAdDurationMs = invalid
 
   resetAdValues = {
     adIndex: invalid
@@ -58,6 +62,11 @@ sub adBreakStart(adBreakMetadata = invalid)
 
   m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
   m.currentAdMetadata = adBreakMetadata
+
+  if adBreakMetadata <> invalid
+    m.ssaiExpectedPaidAds = adBreakMetadata.expectedPaidAds
+    m.ssaiExpectedSlates = adBreakMetadata.expectedSlates
+  end if
 end sub
 
 function checkAdPositionValidity(adBreakMetadata)
@@ -75,6 +84,9 @@ sub adStart(adMetadata = invalid)
   m.lastAdStartTimer = CreateObject("roTimespan")
   resetReportedQuartiles()
   m.hasErrorBeenReportedForCurrentAd = false
+
+  m.currentAdIsSlate = invalid
+  m.currentAdDurationMs = invalid
 
   m.top.fireHeartbeat = true
 
@@ -94,6 +106,10 @@ sub adStart(adMetadata = invalid)
       adSystem: adMetadata.adSystem,
       customData: m.adCustomData
     }
+    m.currentAdIsSlate = adMetadata.isSlate
+    if adMetadata.duration <> invalid
+      m.currentAdDurationMs = cint(adMetadata.duration * 1000)
+    end if
   end if
 
   adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
