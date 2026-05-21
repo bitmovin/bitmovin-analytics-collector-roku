@@ -16,6 +16,11 @@ sub resetReportedQuartiles()
   end for
 end sub
 
+sub resetSsaiAdState()
+  m.currentAdIsSlate = invalid
+  m.currentAdDurationMs = invalid
+end sub
+
 sub resetSsaiHelpers()
   m.ssaiState = m.SSAI_STATES.IDLE
   m.currentAdMetadata = {}
@@ -25,8 +30,9 @@ sub resetSsaiHelpers()
   m.hasErrorBeenReportedForCurrentAd = false
   m.ssaiExpectedPaidAds = invalid
   m.ssaiExpectedSlates = invalid
-  m.currentAdIsSlate = invalid
-  m.currentAdDurationMs = invalid
+  m.completedPaidAds = invalid
+  m.completedSlates = invalid
+  resetSsaiAdState()
 
   resetAdValues = {
     adIndex: invalid
@@ -66,6 +72,8 @@ sub adBreakStart(adBreakMetadata = invalid)
   if adBreakMetadata <> invalid
     m.ssaiExpectedPaidAds = adBreakMetadata.expectedPaidAds
     m.ssaiExpectedSlates = adBreakMetadata.expectedSlates
+    if m.ssaiExpectedPaidAds <> invalid then m.completedPaidAds = 0
+    if m.ssaiExpectedSlates <> invalid then m.completedSlates = 0
   end if
 end sub
 
@@ -85,8 +93,7 @@ sub adStart(adMetadata = invalid)
   resetReportedQuartiles()
   m.hasErrorBeenReportedForCurrentAd = false
 
-  m.currentAdIsSlate = invalid
-  m.currentAdDurationMs = invalid
+  resetSsaiAdState()
 
   m.top.fireHeartbeat = true
 
@@ -197,6 +204,14 @@ end function
 function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.ACTIVE or hasQuartileAlreadyBeenReported(adQuartile) then return invalid
   if adQuartileMetadata <> invalid and type(adQuartileMetadata.failedBeaconUrl) = "roString" then adQuartileMetadata.failedBeaconUrl = adQuartileMetadata.failedBeaconUrl.Left(500)
+
+  if adQuartile = m.AD_QUARTILES.COMPLETED
+    if m.currentAdIsSlate = true and m.completedSlates <> invalid
+      m.completedSlates++
+    else if m.currentAdIsSlate = false and m.completedPaidAds <> invalid
+      m.completedPaidAds++
+    end if
+  end if
 
   adSample = getSsaiAdSample()
 
