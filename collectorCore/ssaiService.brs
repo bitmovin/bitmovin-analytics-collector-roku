@@ -56,6 +56,14 @@ function getSsaiAdSample()
     adSample.timeSinceAdStartedInMs = m.lastAdStartTimer.TotalMilliseconds()
   end if
 
+  if m.currentAdDurationMs <> invalid then adSample.adDuration = m.currentAdDurationMs
+  if m.currentAdIsSlate <> invalid then adSample.isSlate = m.currentAdIsSlate
+  if m.ssaiExpectedPaidAds <> invalid then adSample.expectedPaidAds = m.ssaiExpectedPaidAds
+  if m.ssaiExpectedSlates <> invalid then adSample.expectedSlates = m.ssaiExpectedSlates
+  if m.completedPaidAds <> invalid then adSample.completedPaidAds = m.completedPaidAds
+  if m.completedSlates <> invalid then adSample.completedSlates = m.completedSlates
+  adSample.exitedAdBreak = false
+
   return adSample
 end function
 
