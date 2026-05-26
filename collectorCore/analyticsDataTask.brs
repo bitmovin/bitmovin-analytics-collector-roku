@@ -34,6 +34,7 @@ sub runTask(param = invalid)
   m.top.observeFieldScoped(m.AnalyticsDataTaskFieldNames.CHECK_LICENSE, m.port)
   m.top.observeFieldScoped(m.AnalyticsDataTaskFieldNames.SEND_DATA, m.port)
   m.top.observeFieldScoped(m.AnalyticsDataTaskFieldNames.EVENT_DATA, m.port)
+  m.top.observeFieldScoped(m.AnalyticsDataTaskFieldNames.FINAL_EVENT_DATA, m.port)
 
   m.top.control = m.AnalyticsDataTaskControlValues.RUN
 end sub
@@ -50,6 +51,7 @@ sub stopTask(param = invalid)
   if not isInvalid(m.port) then m.port = invalid
 
 end sub
+
 
 function isTaskRunning(param = invalid)
   return m.top.state = m.AnalyticsDataTaskControlValues.RUN
@@ -75,6 +77,22 @@ sub monitor()
       else if field = m.AnalyticsDataTaskFieldNames.CHECK_LICENSE and data = true
         ' Get licensing data from collectorCore
         sendAnalyticsLicensingRequest(m.top.licensingData)
+      else if field = m.AnalyticsDataTaskFieldNames.FINAL_EVENT_DATA
+        events = data.events
+        if events <> invalid
+          print m.tag; "sending "; events.Count(); " final event(s) before stop"
+          for each event in events
+            sendAnalyticsData(event)
+          end for
+        end if
+        print m.tag; "final send complete, stopping task"
+        m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.CHECK_LICENSE)
+        m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.SEND_DATA)
+        m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.EVENT_DATA)
+        m.top.unobserveFieldScoped(m.AnalyticsDataTaskFieldNames.FINAL_EVENT_DATA)
+        m.top.control = m.AnalyticsDataTaskControlValues.STOP
+        m.port = invalid
+        exit while
       end if
     end if
 

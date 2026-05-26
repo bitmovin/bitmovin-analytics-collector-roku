@@ -28,9 +28,23 @@ sub initializeAnalytics(config = invalid)
   updateAnalyticsConfig(config)
 end sub
 
-' Clean up AnalyticsDataTask
+' Send a final sample then stop the task via field signal (callFunc runs on render thread
+' where roUrlTransfer is unavailable, so the task thread must handle the network call).
 sub internalDestroy(param = invalid)
-  m.AnalyticsDataTask.callFunc("stopTask", invalid)
+  manipulateSampleForSsai()
+  manipulateSampleForCsai()
+
+  sampleSnapshot = {}
+  sampleSnapshot.Append(m.sample)
+  m.sample.sequenceNumber++
+
+  finalEvent = {
+    requestType: m.AnalyticsRequestTypes.REGULAR
+    requestData: sampleSnapshot
+    isSsaiRelated: isCurrentSampleSsaiRelated()
+  }
+  print m.tag; "internalDestroy | queuing final sample | state: "; sampleSnapshot.state; " | duration: "; sampleSnapshot.duration; "ms | played: "; sampleSnapshot.played; " | paused: "; sampleSnapshot.paused; " | seq: "; sampleSnapshot.sequenceNumber
+  m.AnalyticsDataTask.finalEventData = { events: [finalEvent] }
 end sub
 
 ' #region Licensing
