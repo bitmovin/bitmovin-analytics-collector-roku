@@ -41,6 +41,15 @@ namespace tests
       }
 
       m.node.player = m.mockPlayer
+      'bs:disable-next-line
+      m.node.playerStates = {
+        PLAYING: "playing"
+        PAUSED: "paused"
+        READY: "ready"
+        STALLING: "stalling"
+        FINISHED: "finished"
+        SETUP: "setup"
+      }
     end function
 
     protected override function afterEach()
@@ -524,8 +533,6 @@ namespace tests
         return invalid
       end function
 
-      'bs:disable-next-line
-      m.node.playerStates = { PLAYING: "playing", PAUSED: "paused", READY: "ready" }
       'bs:disable-next-line
       m.node.currentState = "ready"
       'bs:disable-next-line
