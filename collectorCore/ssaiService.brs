@@ -115,8 +115,10 @@ sub adStart(adMetadata = invalid)
 
   if adMetadata <> invalid
     m.adCustomData = adMetadata.customData
+    adPosition = invalid
+    if m.currentAdMetadata <> invalid then adPosition = m.currentAdMetadata.adPosition
     m.currentAdMetadata = {
-      adPosition: m.currentAdMetadata.adPosition,
+      adPosition: adPosition,
       adId: adMetadata.adId,
       adSystem: adMetadata.adSystem,
       customData: m.adCustomData
