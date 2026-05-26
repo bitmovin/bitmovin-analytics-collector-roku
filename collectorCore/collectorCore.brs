@@ -43,7 +43,6 @@ sub internalDestroy(param = invalid)
     requestData: sampleSnapshot
     isSsaiRelated: isCurrentSampleSsaiRelated()
   }
-  print m.tag; "internalDestroy | queuing final sample | state: "; sampleSnapshot.state; " | duration: "; sampleSnapshot.duration; "ms | played: "; sampleSnapshot.played; " | paused: "; sampleSnapshot.paused; " | seq: "; sampleSnapshot.sequenceNumber
   m.AnalyticsDataTask.finalEventData = { events: [finalEvent] }
 end sub
 
