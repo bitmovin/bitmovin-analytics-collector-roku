@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - ad abandonment tracking metrics for SSAI
+- sending of a final sample when player or collector are `destroy`ed
 
 ## v2.18.0
 
