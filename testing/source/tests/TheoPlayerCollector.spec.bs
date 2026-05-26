@@ -1714,6 +1714,117 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("sends final sample with played duration when state is playing")
+    function _()
+      testContext = { capturedSampleData: invalid, internalDestroyCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          else if funcName = "internalDestroy"
+            m.testContext.internalDestroyCalled = true
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onDestroy()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "playing")
+      m.assertNotInvalid(testContext.capturedSampleData.played)
+      m.assertTrue(testContext.internalDestroyCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends final sample with paused duration when state is paused")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.currentState = "paused"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onDestroy()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "paused")
+      m.assertNotInvalid(testContext.capturedSampleData.paused)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends final sample without played/paused when state is setup")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onDestroy()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertInvalid(testContext.capturedSampleData.played)
+      m.assertInvalid(testContext.capturedSampleData.paused)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("handlePreviousState - seek detection")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
