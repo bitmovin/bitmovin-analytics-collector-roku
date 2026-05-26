@@ -97,6 +97,246 @@ namespace tests
       end try
     end function
 
+    @describe("ad break abandonment - getSsaiAdSample fields")
+
+    @it("includes expectedPaidAds and initialises completedPaidAds to 0 when expectedPaidAds is set")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 3 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.expectedPaidAds, 3)
+      m.assertEqual(sample.completedPaidAds, 0)
+    end function
+
+    @it("includes expectedSlates and initialises completedSlates to 0 when expectedSlates is set")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedSlates: 2 })
+      'bs:disable-next-line
+      adStart({ isSlate: true })
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.expectedSlates, 2)
+      m.assertEqual(sample.completedSlates, 0)
+    end function
+
+    @it("does not include completedPaidAds or completedSlates when expected counts not set")
+    function _()
+      m.enterFakeSsaiAd()
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertInvalid(sample.completedPaidAds)
+      m.assertInvalid(sample.completedSlates)
+      m.assertInvalid(sample.expectedPaidAds)
+      m.assertInvalid(sample.expectedSlates)
+    end function
+
+    @it("includes isSlate from adMetadata")
+    @params(true)
+    @params(false)
+    function _(isSlate)
+      'bs:disable-next-line
+      adBreakStart()
+      'bs:disable-next-line
+      adStart({ isSlate: isSlate })
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.isSlate, isSlate)
+    end function
+
+    @it("does not include isSlate when not provided in adMetadata")
+    function _()
+      m.enterFakeSsaiAd()
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertInvalid(sample.isSlate)
+    end function
+
+    @it("includes adDuration in milliseconds when duration provided")
+    function _()
+      'bs:disable-next-line
+      adBreakStart()
+      'bs:disable-next-line
+      adStart({ duration: 30.0 })
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.adDuration, 30000)
+    end function
+
+    @it("does not include adDuration when duration not provided")
+    function _()
+      m.enterFakeSsaiAd()
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertInvalid(sample.adDuration)
+    end function
+
+    @it("sets exitedAdBreak to false on mid-break samples")
+    function _()
+      m.enterFakeSsaiAd()
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.exitedAdBreak, false)
+    end function
+
+    @describe("ad break abandonment - counter tracking")
+
+    @it("increments completedPaidAds when paid ad fires completed quartile")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 2 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      sample = adQuartileFinished("completed")
+
+      m.assertEqual(sample.completedPaidAds, 1)
+    end function
+
+    @it("increments completedSlates when slate ad fires completed quartile")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedSlates: 1 })
+      'bs:disable-next-line
+      adStart({ isSlate: true })
+
+      'bs:disable-next-line
+      sample = adQuartileFinished("completed")
+
+      m.assertEqual(sample.completedSlates, 1)
+    end function
+
+    @it("does not increment counter when isSlate not set on adMetadata")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
+      'bs:disable-next-line
+      adStart()
+
+      'bs:disable-next-line
+      sample = adQuartileFinished("completed")
+
+      m.assertEqual(sample.completedPaidAds, 0)
+    end function
+
+    @it("does not increment counter on non-completed quartiles")
+    @params("first")
+    @params("midpoint")
+    @params("third")
+    function _(quartile)
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      sample = adQuartileFinished(quartile)
+
+      m.assertEqual(sample.completedPaidAds, 0)
+    end function
+
+    @it("completedPaidAds persists across multiple ads in the same break")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 3 })
+
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      sample = adQuartileFinished("completed")
+
+      m.assertEqual(sample.completedPaidAds, 2)
+    end function
+
+    @it("tracks paid and slate counters independently within the same break")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 1, expectedSlates: 1 })
+
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      'bs:disable-next-line
+      adStart({ isSlate: true })
+      'bs:disable-next-line
+      sample = adQuartileFinished("completed")
+
+      m.assertEqual(sample.completedPaidAds, 1)
+      m.assertEqual(sample.completedSlates, 1)
+    end function
+
+    @it("counters reset after adBreakEnd and reflect only the new break")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 2 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+      'bs:disable-next-line
+      adBreakEnd()
+
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "midroll", expectedPaidAds: 1 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      sample = adQuartileFinished("completed")
+
+      m.assertEqual(sample.completedPaidAds, 1)
+      m.assertEqual(sample.expectedPaidAds, 1)
+    end function
+
+    @it("isSlate resets between ads so previous ad type does not bleed into next")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
+
+      'bs:disable-next-line
+      adStart({ isSlate: true })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      'bs:disable-next-line
+      adStart()
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertInvalid(sample.isSlate)
+    end function
+
     ' UTILITY FUNCTIONS
     function enterFakeSsaiAd()
       'bs:disable-next-line
