@@ -141,6 +141,13 @@ sub adBreakEnd()
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
   if m.ssaiState = m.SSAI_STATES.ACTIVE
+    adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
+    if adEngagementEnabled <> invalid and adEngagementEnabled = true
+      exitSample = getSsaiAdSample()
+      exitSample.exitedAdBreak = true
+      sendAnalyticsSampleOnce(exitSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+    end if
+
     m.top.fireHeartbeat = true
     updateSample(m.analyticsConfig)
   end if
