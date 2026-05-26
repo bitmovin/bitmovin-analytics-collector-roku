@@ -40,6 +40,30 @@ sub destroy(param = invalid)
   unobserveFields(true)
 
   if m.collectorCore <> invalid
+    setVideoTimeEnd()
+
+    ' When the Bitmovin SDK fires PLAYING/PAUSED→READY just before the destroy event,
+    ' the playerStateTimer is reset during that transition — use the saved pre-READY values.
+    if m.priorStateBeforeReady <> invalid and m.priorDurationBeforeReady > 0
+      duration = m.priorDurationBeforeReady
+      effectiveState = m.priorStateBeforeReady
+    else
+      duration = getDuration(m.playerStateTimer)
+      effectiveState = m.currentState
+    end if
+
+    sampleData = {
+      state: effectiveState,
+      duration: duration,
+      time: getCurrentTimeInMilliseconds()
+    }
+    if effectiveState = m.playerStates.PLAYING
+      sampleData.played = duration
+    else if effectiveState = m.playerStates.PAUSED
+      sampleData.paused = duration
+    end if
+    decorateSampleWithPlaybackData(sampleData)
+    updateSample(sampleData)
     m.collectorCore.callFunc("internalDestroy", invalid)
   end if
 end sub
@@ -95,6 +119,9 @@ sub setUpHelperVariables()
 
   m.didAttemptPlay = false
   m.didVideoPlay = false
+
+  m.priorStateBeforeReady = invalid
+  m.priorDurationBeforeReady = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -104,6 +131,18 @@ sub onPlayerStateChanged()
   setVideoTimeEnd()
   handlePreviousState(m.previousState)
   handleCurrentState()
+
+  ' The Bitmovin SDK fires PLAYING/PAUSED→READY synchronously before the destroy event.
+  ' handlePreviousState's <> READY guard (which prevents double-counting on source changes)
+  ' blocks the played/paused sample and the timer is reset below — so we save the duration
+  ' here for destroy() to recover it when it finds the state is READY.
+  if m.currentState = m.playerStates.READY and (m.previousState = m.playerStates.PLAYING or m.previousState = m.playerStates.PAUSED)
+    m.priorStateBeforeReady = m.previousState
+    m.priorDurationBeforeReady = m.playerStateTimer.TotalMilliseconds()
+  else
+    m.priorStateBeforeReady = invalid
+    m.priorDurationBeforeReady = invalid
+  end if
 
   m.playerStateTimer.Mark()
   setVideoTimeStart()
