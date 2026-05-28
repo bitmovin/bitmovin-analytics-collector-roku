@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- ad abandonment tracking metrics for SSAI
+
 ## v2.18.0
 
 ### Added

@@ -159,9 +159,11 @@ Signals the beginning of an SSAI ad break. No-op if already in an ad break.
 |-----------|------|----------|-------------|
 | `adBreakMetadata` | AssociativeArray | No | Ad break details. |
 | `adBreakMetadata.adPosition` | String | No | Position of the ad break: `"preroll"`, `"midroll"`, or `"postroll"`. |
+| `adBreakMetadata.expectedPaidAds` | Integer | No | Number of paid ads expected in this break. Enables `completedPaidAds` tracking on all samples within the break. |
+| `adBreakMetadata.expectedSlates` | Integer | No | Number of slate/filler ads expected in this break. Enables `completedSlates` tracking on all samples within the break. |
 
 ```brightscript
-m.collector.callFunc("adBreakStart", { adPosition: "midroll" })
+m.collector.callFunc("adBreakStart", { adPosition: "midroll", expectedPaidAds: 3, expectedSlates: 1 })
 ```
 
 ---
@@ -176,11 +178,15 @@ Signals the start of an individual ad within the current ad break. Must be calle
 | `adMetadata.adId` | String | No | Identifier for the ad. |
 | `adMetadata.adSystem` | String | No | Ad system/provider name. |
 | `adMetadata.customData` | AssociativeArray | No | Custom data fields (`customData1`–`customData100`) scoped to this ad. |
+| `adMetadata.isSlate` | Boolean | No | Whether this ad is a slate/filler ad rather than a paid ad. Used for `completedSlates` vs `completedPaidAds` tracking. |
+| `adMetadata.duration` | Float | No | Declared duration of the ad in seconds. Reported as `adDuration` (milliseconds) in the analytics sample. |
 
 ```brightscript
 m.collector.callFunc("adStart", {
   adId: "ad-001",
   adSystem: "my-ad-server",
+  isSlate: false,
+  duration: 30.0,
   customData: { customData1: "campaign-X" }
 })
 ```

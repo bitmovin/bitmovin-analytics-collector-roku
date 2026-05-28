@@ -16,6 +16,11 @@ sub resetReportedQuartiles()
   end for
 end sub
 
+sub resetSsaiAdState()
+  m.currentAdIsSlate = false
+  m.currentAdDurationMs = invalid
+end sub
+
 sub resetSsaiHelpers()
   m.ssaiState = m.SSAI_STATES.IDLE
   m.currentAdMetadata = {}
@@ -23,6 +28,11 @@ sub resetSsaiHelpers()
   m.adCustomData = {}
   m.lastAdStartTimer = invalid
   m.hasErrorBeenReportedForCurrentAd = false
+  m.ssaiExpectedPaidAds = invalid
+  m.ssaiExpectedSlates = invalid
+  m.completedPaidAds = invalid
+  m.completedSlates = invalid
+  resetSsaiAdState()
 
   resetAdValues = {
     adIndex: invalid
@@ -46,8 +56,30 @@ function getSsaiAdSample()
     adSample.timeSinceAdStartedInMs = m.lastAdStartTimer.TotalMilliseconds()
   end if
 
+  if m.currentAdDurationMs <> invalid then adSample.adDuration = m.currentAdDurationMs
+  adSample.isSlate = m.currentAdIsSlate = true
+  if m.ssaiExpectedPaidAds <> invalid then adSample.expectedPaidAds = m.ssaiExpectedPaidAds
+  if m.ssaiExpectedSlates <> invalid then adSample.expectedSlates = m.ssaiExpectedSlates
+  if m.completedPaidAds <> invalid then adSample.completedPaidAds = m.completedPaidAds
+  if m.completedSlates <> invalid then adSample.completedSlates = m.completedSlates
+  adSample.exitedAdBreak = false
+
   return adSample
 end function
+
+function sanitizeAdCount(value)
+  if value = invalid then return invalid
+  if value < 0
+    print "Warning: Ad count metadata (expectedPaidAds, expectedSlates) must not be negative. Sanitising to 0."
+    return 0
+  end if
+  return value
+end function
+
+sub ssaiOnSourceChange()
+  if m.SSAI_STATES = invalid then return
+  adBreakEnd()
+end sub
 
 sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
@@ -58,6 +90,13 @@ sub adBreakStart(adBreakMetadata = invalid)
 
   m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
   m.currentAdMetadata = adBreakMetadata
+
+  if adBreakMetadata <> invalid
+    m.ssaiExpectedPaidAds = sanitizeAdCount(adBreakMetadata.expectedPaidAds)
+    if m.ssaiExpectedPaidAds <> invalid then m.completedPaidAds = 0
+    m.ssaiExpectedSlates = sanitizeAdCount(adBreakMetadata.expectedSlates)
+    if m.ssaiExpectedSlates <> invalid then m.completedSlates = 0
+  end if
 end sub
 
 function checkAdPositionValidity(adBreakMetadata)
@@ -76,6 +115,8 @@ sub adStart(adMetadata = invalid)
   resetReportedQuartiles()
   m.hasErrorBeenReportedForCurrentAd = false
 
+  resetSsaiAdState()
+
   m.top.fireHeartbeat = true
 
   sampleUpdate = {
@@ -88,12 +129,18 @@ sub adStart(adMetadata = invalid)
 
   if adMetadata <> invalid
     m.adCustomData = adMetadata.customData
+    adPosition = invalid
+    if m.currentAdMetadata <> invalid then adPosition = m.currentAdMetadata.adPosition
     m.currentAdMetadata = {
-      adPosition: m.currentAdMetadata.adPosition,
+      adPosition: adPosition,
       adId: adMetadata.adId,
       adSystem: adMetadata.adSystem,
       customData: m.adCustomData
     }
+    m.currentAdIsSlate = adMetadata.isSlate = true
+    if adMetadata.duration <> invalid
+      m.currentAdDurationMs = cint(adMetadata.duration * 1000)
+    end if
   end if
 
   adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
@@ -108,6 +155,13 @@ sub adBreakEnd()
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
   if m.ssaiState = m.SSAI_STATES.ACTIVE
+    adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
+    if adEngagementEnabled <> invalid and adEngagementEnabled = true
+      exitSample = getSsaiAdSample()
+      exitSample.exitedAdBreak = true
+      sendAnalyticsSampleOnce(exitSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
+    end if
+
     m.top.fireHeartbeat = true
     updateSample(m.analyticsConfig)
   end if
@@ -181,6 +235,14 @@ end function
 function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.ACTIVE or hasQuartileAlreadyBeenReported(adQuartile) then return invalid
   if adQuartileMetadata <> invalid and type(adQuartileMetadata.failedBeaconUrl) = "roString" then adQuartileMetadata.failedBeaconUrl = adQuartileMetadata.failedBeaconUrl.Left(500)
+
+  if adQuartile = m.AD_QUARTILES.COMPLETED
+    if m.currentAdIsSlate = true and m.completedSlates <> invalid
+      m.completedSlates++
+    else if m.currentAdIsSlate = false and m.completedPaidAds <> invalid
+      m.completedPaidAds++
+    end if
+  end if
 
   adSample = getSsaiAdSample()
 
