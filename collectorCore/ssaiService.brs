@@ -17,7 +17,7 @@ sub resetReportedQuartiles()
 end sub
 
 sub resetSsaiAdState()
-  m.currentAdIsSlate = invalid
+  m.currentAdIsSlate = false
   m.currentAdDurationMs = invalid
 end sub
 
@@ -57,7 +57,7 @@ function getSsaiAdSample()
   end if
 
   if m.currentAdDurationMs <> invalid then adSample.adDuration = m.currentAdDurationMs
-  if m.currentAdIsSlate <> invalid then adSample.isSlate = m.currentAdIsSlate
+  adSample.isSlate = m.currentAdIsSlate = true
   if m.ssaiExpectedPaidAds <> invalid then adSample.expectedPaidAds = m.ssaiExpectedPaidAds
   if m.ssaiExpectedSlates <> invalid then adSample.expectedSlates = m.ssaiExpectedSlates
   if m.completedPaidAds <> invalid then adSample.completedPaidAds = m.completedPaidAds
@@ -66,6 +66,20 @@ function getSsaiAdSample()
 
   return adSample
 end function
+
+function sanitizeAdCount(value)
+  if value = invalid then return invalid
+  if value < 0
+    print "Warning: Ad count metadata (expectedPaidAds, expectedSlates) must not be negative. Sanitising to 0."
+    return 0
+  end if
+  return value
+end function
+
+sub ssaiOnSourceChange()
+  if m.SSAI_STATES = invalid then return
+  adBreakEnd()
+end sub
 
 sub adBreakStart(adBreakMetadata = invalid)
   if m.ssaiState <> m.SSAI_STATES.IDLE then return
@@ -78,9 +92,9 @@ sub adBreakStart(adBreakMetadata = invalid)
   m.currentAdMetadata = adBreakMetadata
 
   if adBreakMetadata <> invalid
-    m.ssaiExpectedPaidAds = adBreakMetadata.expectedPaidAds
-    m.ssaiExpectedSlates = adBreakMetadata.expectedSlates
+    m.ssaiExpectedPaidAds = sanitizeAdCount(adBreakMetadata.expectedPaidAds)
     if m.ssaiExpectedPaidAds <> invalid then m.completedPaidAds = 0
+    m.ssaiExpectedSlates = sanitizeAdCount(adBreakMetadata.expectedSlates)
     if m.ssaiExpectedSlates <> invalid then m.completedSlates = 0
   end if
 end sub
@@ -123,7 +137,7 @@ sub adStart(adMetadata = invalid)
       adSystem: adMetadata.adSystem,
       customData: m.adCustomData
     }
-    m.currentAdIsSlate = adMetadata.isSlate
+    m.currentAdIsSlate = adMetadata.isSlate = true
     if adMetadata.duration <> invalid
       m.currentAdDurationMs = cint(adMetadata.duration * 1000)
     end if

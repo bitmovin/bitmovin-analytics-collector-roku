@@ -89,6 +89,9 @@ end sub
 
 ' Sets up sample that is sent to Bitmovin Analytics.
 sub setupSample()
+  ' Must run before impressionId is replaced so the exit sample carries the outgoing impression.
+  ssaiOnSourceChange()
+
   if isInvalid(m.sample)
     m.sample = getAnalyticsSample()
   end if
