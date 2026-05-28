@@ -77,6 +77,7 @@ function sanitizeAdCount(value)
 end function
 
 sub ssaiOnSourceChange()
+  if m.SSAI_STATES = invalid then return
   adBreakEnd()
 end sub
 
@@ -146,6 +147,7 @@ sub adStart(adMetadata = invalid)
   if adEngagementEnabled <> invalid and adEngagementEnabled = true
     adStartedEngagementSample = getSsaiAdSample()
     adStartedEngagementSample.append({ started: 1 })
+    print "[SSAI Engagement] adStart | adId: "; adStartedEngagementSample.adId; " | isSlate: "; adStartedEngagementSample.isSlate; " | adDuration: "; adStartedEngagementSample.adDuration; " | expectedPaidAds: "; adStartedEngagementSample.expectedPaidAds; " | expectedSlates: "; adStartedEngagementSample.expectedSlates; " | completedPaidAds: "; adStartedEngagementSample.completedPaidAds; " | completedSlates: "; adStartedEngagementSample.completedSlates; " | exitedAdBreak: "; adStartedEngagementSample.exitedAdBreak
     sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
   end if
 end sub
@@ -158,6 +160,7 @@ sub adBreakEnd()
     if adEngagementEnabled <> invalid and adEngagementEnabled = true
       exitSample = getSsaiAdSample()
       exitSample.exitedAdBreak = true
+      print "[SSAI Engagement] adBreakEnd | adId: "; exitSample.adId; " | isSlate: "; exitSample.isSlate; " | expectedPaidAds: "; exitSample.expectedPaidAds; " | expectedSlates: "; exitSample.expectedSlates; " | completedPaidAds: "; exitSample.completedPaidAds; " | completedSlates: "; exitSample.completedSlates; " | exitedAdBreak: "; exitSample.exitedAdBreak
       sendAnalyticsSampleOnce(exitSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
     end if
 
@@ -252,6 +255,7 @@ function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
 
   adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
   if adEngagementEnabled <> invalid and adEngagementEnabled = true
+    print "[SSAI Engagement] adQuartileFinished ("; adQuartile; ") | adId: "; adSample.adId; " | isSlate: "; adSample.isSlate; " | completedPaidAds: "; adSample.completedPaidAds; " | completedSlates: "; adSample.completedSlates; " | exitedAdBreak: "; adSample.exitedAdBreak
     sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
   end if
 

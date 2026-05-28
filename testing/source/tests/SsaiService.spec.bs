@@ -367,6 +367,18 @@ namespace tests
 
     @describe("ssaiOnSourceChange")
 
+    @it("does not crash when called before SSAI service is initialised")
+    function _()
+      ' setupSample() is called by initializeAnalytics() before setupSsaiService(),
+      ' so ssaiOnSourceChange() must tolerate m.SSAI_STATES being invalid.
+      m.SSAI_STATES = invalid
+      'bs:disable-next-line
+      ssaiOnSourceChange()
+      ' Re-init so subsequent tests are unaffected.
+      'bs:disable-next-line
+      setupSsaiService()
+    end function
+
     @it("is a no-op when SSAI state is idle")
     function _()
       ' Should not crash and leave state clean so a new break can start normally.
