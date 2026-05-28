@@ -137,7 +137,7 @@ sub adStart(adMetadata = invalid)
       adSystem: adMetadata.adSystem,
       customData: m.adCustomData
     }
-    m.currentAdIsSlate = adMetadata.isSlate
+    m.currentAdIsSlate = adMetadata.isSlate = true
     if adMetadata.duration <> invalid
       m.currentAdDurationMs = cint(adMetadata.duration * 1000)
     end if

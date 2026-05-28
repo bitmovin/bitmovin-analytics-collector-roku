@@ -226,7 +226,7 @@ namespace tests
       m.assertEqual(sample.completedSlates, 1)
     end function
 
-    @it("does not increment counter when isSlate not set on adMetadata")
+    @it("increments completedPaidAds when isSlate not set on adMetadata (defaults to false)")
     function _()
       'bs:disable-next-line
       adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
@@ -236,7 +236,7 @@ namespace tests
       'bs:disable-next-line
       sample = adQuartileFinished("completed")
 
-      m.assertEqual(sample.completedPaidAds, 0)
+      m.assertEqual(sample.completedPaidAds, 1)
     end function
 
     @it("does not increment counter on non-completed quartiles")
