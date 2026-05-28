@@ -17,7 +17,7 @@ sub resetReportedQuartiles()
 end sub
 
 sub resetSsaiAdState()
-  m.currentAdIsSlate = invalid
+  m.currentAdIsSlate = false
   m.currentAdDurationMs = invalid
 end sub
 
