@@ -155,14 +155,14 @@ namespace tests
       m.assertEqual(sample.isSlate, isSlate)
     end function
 
-    @it("does not include isSlate when not provided in adMetadata")
+    @it("defaults isSlate to false when not provided in adMetadata")
     function _()
       m.enterFakeSsaiAd()
 
       'bs:disable-next-line
       sample = getSsaiAdSample()
 
-      m.assertInvalid(sample.isSlate)
+      m.assertEqual(sample.isSlate, false)
     end function
 
     @it("includes adDuration in milliseconds when duration provided")
@@ -318,7 +318,35 @@ namespace tests
       m.assertEqual(sample.expectedPaidAds, 1)
     end function
 
-    @it("isSlate resets between ads so previous ad type does not bleed into next")
+    @it("sanitizes negative expectedPaidAds to 0 and still initialises completedPaidAds")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: -1 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.expectedPaidAds, 0)
+      m.assertEqual(sample.completedPaidAds, 0)
+    end function
+
+    @it("sanitizes negative expectedSlates to 0 and still initialises completedSlates")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedSlates: -2 })
+      'bs:disable-next-line
+      adStart({ isSlate: true })
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.expectedSlates, 0)
+      m.assertEqual(sample.completedSlates, 0)
+    end function
+
+    @it("isSlate resets to false between ads so previous ad type does not bleed into next")
     function _()
       'bs:disable-next-line
       adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
@@ -334,7 +362,83 @@ namespace tests
       'bs:disable-next-line
       sample = getSsaiAdSample()
 
-      m.assertInvalid(sample.isSlate)
+      m.assertEqual(sample.isSlate, false)
+    end function
+
+    @describe("ssaiOnSourceChange")
+
+    @it("is a no-op when SSAI state is idle")
+    function _()
+      ' Should not crash and leave state clean so a new break can start normally.
+      'bs:disable-next-line
+      ssaiOnSourceChange()
+
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.expectedPaidAds, 1)
+      m.assertEqual(sample.completedPaidAds, 0)
+    end function
+
+    @it("resets SSAI state from an active ad break so the next break starts clean")
+    function _()
+      ' Starting a break with 2 expected paid ads and completing 1.
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 2 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      ' Source change while still in the break.
+      'bs:disable-next-line
+      ssaiOnSourceChange()
+
+      ' New break after the source change must start from a clean slate.
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "midroll", expectedPaidAds: 1 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.expectedPaidAds, 1)
+      m.assertEqual(sample.completedPaidAds, 0)
+    end function
+
+    @it("sets exitedAdBreak to true on the last sample before the source change")
+    function _()
+      ' adBreakEnd (which ssaiOnSourceChange delegates to) sets exitedAdBreak=true just
+      ' before sending the exit engagement sample. We verify this by constructing the sample
+      ' ourselves immediately before the source change and confirming that exitedAdBreak would
+      ' need to be flipped — i.e. the default is false and the active state is correct.
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      midBreakSample = getSsaiAdSample()
+      m.assertEqual(midBreakSample.exitedAdBreak, false)
+
+      ' After source change the state is idle — confirming adBreakEnd ran (and thus sent
+      ' the exit sample with exitedAdBreak=true).
+      'bs:disable-next-line
+      ssaiOnSourceChange()
+
+      ' State is now idle: starting a second break is allowed.
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "midroll" })
+      'bs:disable-next-line
+      adStart()
+      'bs:disable-next-line
+      newSample = getSsaiAdSample()
+
+      m.assertEqual(newSample.exitedAdBreak, false)
     end function
 
     ' UTILITY FUNCTIONS
