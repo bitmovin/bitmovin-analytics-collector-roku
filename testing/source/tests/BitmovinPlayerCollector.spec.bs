@@ -553,6 +553,161 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onVideoDownloadQualityChanged / processQualityChangeEvent")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("only updates sample when not in playing state (initial quality)")
+    function _()
+      testContext = { capturedSamples: [], sendRequestCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          else if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendRequestCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.videoDownloadQualityChanged = { targetQuality: { bitrate: 5000000 } }
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+
+      'bs:disable-next-line
+      onVideoDownloadQualityChanged()
+
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 5000000)
+      m.assertFalse(testContext.sendRequestCalled)
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentVideoBitrate, 5000000)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends qualityChange sample when player is playing")
+    function _()
+      testContext = { capturedSamples: [], sendRequestCount: 0 }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          else if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendRequestCount++
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getCurrentTime" then return 30
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return 60
+        return invalid
+      end function
+
+      m.mockPlayer.videoDownloadQualityChanged = { targetQuality: { bitrate: 5000000 } }
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentVideoBitrate = 2000000
+
+      'bs:disable-next-line
+      onVideoDownloadQualityChanged()
+
+      ' Should send 2 analytics requests: one for played duration, one for qualityChange
+      m.assertEqual(testContext.sendRequestCount, 2)
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentVideoBitrate, 5000000)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends played sample before qualityChange sample when playing")
+    function _()
+      testContext = { capturedSamples: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getCurrentTime" then return 30
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return 60
+        return invalid
+      end function
+
+      m.mockPlayer.videoDownloadQualityChanged = { targetQuality: { bitrate: 5000000 } }
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentVideoBitrate = 2000000
+
+      'bs:disable-next-line
+      onVideoDownloadQualityChanged()
+
+      m.assertTrue(testContext.capturedSamples.Count() >= 2)
+      m.assertEqual(testContext.capturedSamples[0].state, "playing")
+      m.assertNotInvalid(testContext.capturedSamples[0].played)
+      m.assertEqual(testContext.capturedSamples[1].state, "qualityChange")
+      m.assertEqual(testContext.capturedSamples[1].videoBitrate, 5000000)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not send qualityChange sample when paused")
+    function _()
+      testContext = { capturedSamples: [], sendRequestCount: 0 }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSamples.Push(sampleData)
+          else if funcName = "sendAnalyticsRequestAndClearValues"
+            m.testContext.sendRequestCount++
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.videoDownloadQualityChanged = { targetQuality: { bitrate: 5000000 } }
+      'bs:disable-next-line
+      m.node.currentState = "paused"
+
+      'bs:disable-next-line
+      onVideoDownloadQualityChanged()
+
+      m.assertEqual(testContext.sendRequestCount, 0)
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 5000000)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
   end class
 end namespace
 
