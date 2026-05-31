@@ -41,6 +41,15 @@ namespace tests
       }
 
       m.node.player = m.mockPlayer
+      'bs:disable-next-line
+      m.node.playerStates = {
+        PLAYING: "playing"
+        PAUSED: "paused"
+        READY: "ready"
+        STALLING: "stalling"
+        FINISHED: "finished"
+        SETUP: "setup"
+      }
     end function
 
     protected override function afterEach()
@@ -366,6 +375,180 @@ namespace tests
         m.assertFalse(testContext.sendAnalyticsCalled)
         m.assertNotInvalid(testContext.capturedTempSample)
       end for
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("destroy")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sends final sample with played duration when state is playing")
+    function _()
+      testContext = { capturedSampleData: invalid, internalDestroyCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          else if funcName = "internalDestroy"
+            m.testContext.internalDestroyCalled = true
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getCurrentTime" then return 10
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return 60
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      destroy()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "playing")
+      m.assertNotInvalid(testContext.capturedSampleData.played)
+      m.assertTrue(testContext.internalDestroyCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends final sample with paused duration when state is paused")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getCurrentTime" then return 10
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return 60
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.currentState = "paused"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      destroy()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "paused")
+      m.assertNotInvalid(testContext.capturedSampleData.paused)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends final sample without played/paused when state is setup")
+    function _()
+      testContext = { capturedSampleData: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getCurrentTime" then return 0
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return invalid
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      destroy()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertInvalid(testContext.capturedSampleData.played)
+      m.assertInvalid(testContext.capturedSampleData.paused)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("sends final sample with played duration when SDK fires PLAYING→READY before destroy event")
+    function _()
+      testContext = { capturedSampleData: invalid, internalDestroyCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateSample"
+            m.testContext.capturedSampleData = sampleData
+          else if funcName = "internalDestroy"
+            m.testContext.internalDestroyCalled = true
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getCurrentTime" then return 20
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return 60
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.currentState = "ready"
+      'bs:disable-next-line
+      m.node.priorStateBeforeReady = "playing"
+      'bs:disable-next-line
+      m.node.priorDurationBeforeReady = 19500
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      destroy()
+
+      m.assertNotInvalid(testContext.capturedSampleData)
+      m.assertEqual(testContext.capturedSampleData.state, "playing")
+      m.assertEqual(testContext.capturedSampleData.played, 19500)
+      m.assertTrue(testContext.internalDestroyCalled)
 
       m.node.collectorCore = originalCollectorCore
     end function

@@ -13,6 +13,7 @@
     <field id="url" type="string"/>
     <field id="licensingData" type="assocarray"/>
     <field id="eventData" type="assocarray" alwaysNotify="true"/>
+    <field id="finalEventData" type="assocarray" alwaysNotify="true"/>
     <field id="sendData" type="bool" alwaysNotify="true"/>
     <field id="checkLicenseKey" type="bool" alwaysNotify="true"/>
     <field id="licensingState" type="string"/>

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- sending of a final sample when player or collector are `destroy`ed
+
 ## v2.19.0
 
 ### Added

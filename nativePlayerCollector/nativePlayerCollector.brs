@@ -38,6 +38,20 @@ sub destroy(param = invalid)
   unobserveFields(true)
 
   if m.collectorCore <> invalid
+    setVideoTimeEnd()
+    duration = getDuration(m.playerStateTimer)
+    sampleData = {
+      state: m.currentState,
+      duration: duration,
+      time: getCurrentTimeInMilliseconds()
+    }
+    if m.currentState = m.playerStates.PLAYING
+      sampleData.played = duration
+    else if m.currentState = m.playerStates.PAUSED
+      sampleData.paused = duration
+    end if
+    decorateSampleWithPlaybackData(sampleData)
+    updateSample(sampleData)
     m.collectorCore.callFunc("internalDestroy", invalid)
   end if
 end sub
