@@ -453,6 +453,90 @@ namespace tests
       m.assertEqual(newSample.exitedAdBreak, false)
     end function
 
+    @describe("getSsaiBreakExitEventForDestroy")
+
+    @it("returns invalid when ssai state is idle")
+    function _()
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns invalid when in AD_BREAK_STARTED state (no ad started yet)")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns invalid when engagement tracking is not enabled")
+    function _()
+      m.enterFakeSsaiAd()
+      'bs:disable-next-line
+      m.node.analyticsConfig = { ssaiEngagementTrackingEnabled: false }
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns invalid when ssaiEngagementTrackingEnabled is not set")
+    function _()
+      m.enterFakeSsaiAd()
+      'bs:disable-next-line
+      m.node.analyticsConfig = {}
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns AD_ENGAGEMENT event with exitedAdBreak:true when active and tracking enabled")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      m.node.analyticsConfig = { ssaiEngagementTrackingEnabled: true }
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertNotInvalid(result)
+      m.assertEqual(result.requestType, 1) ' AD_ENGAGEMENT
+      m.assertEqual(result.isSsaiRelated, true)
+      m.assertEqual(result.requestData.exitedAdBreak, true)
+      m.assertEqual(result.requestData.expectedPaidAds, 1)
+    end function
+
+    @it("exit event counters reflect completedPaidAds at time of destroy")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 2 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      m.node.analyticsConfig = { ssaiEngagementTrackingEnabled: true }
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertEqual(result.requestData.completedPaidAds, 1)
+      m.assertEqual(result.requestData.exitedAdBreak, true)
+    end function
+
     ' UTILITY FUNCTIONS
     function enterFakeSsaiAd()
       'bs:disable-next-line
