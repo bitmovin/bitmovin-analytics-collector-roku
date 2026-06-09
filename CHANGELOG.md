@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - missing `qualityChange` events and video bitrates for the Bitmovin Player collector
 
+### Internal
+- removed `testing-legacy`
+
 ## v2.19.0
 
 ### Added
