@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - sending of a final sample when player or collector are `destroy`ed
 
+### Fixed
+- missing `qualityChange` events and video bitrates for the Bitmovin Player collector
+
 ## v2.19.0
 
 ### Added

@@ -78,6 +78,8 @@ sub setUpObservers()
   m.player.observeFieldScoped("play", "onPlay")
   m.player.observeFieldScoped("sourceUnloaded", "onSourceUnloaded")
 
+  m.player.observeFieldScoped("videoDownloadQualityChanged", "onVideoDownloadQualityChanged")
+
   m.player.observeFieldScoped("error", "onError")
   m.player.observeFieldScoped("destroy", "onDestroy")
 
@@ -96,6 +98,8 @@ sub unobserveFields(isDestroy = false)
     if isDestroy then m.player.unobserveFieldScoped("sourceLoaded")
 
     m.player.unobserveFieldScoped("sourceUnloaded")
+
+    m.player.unobserveFieldScoped("videoDownloadQualityChanged")
 
     m.player.unobserveFieldScoped("error")
     m.player.unobserveFieldScoped("destroy")
@@ -122,6 +126,8 @@ sub setUpHelperVariables()
 
   m.priorStateBeforeReady = invalid
   m.priorDurationBeforeReady = invalid
+
+  m.currentVideoBitrate = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -243,16 +249,14 @@ sub onBufferingEnd()
 end sub
 
 sub onHeartbeat()
-  setVideoTimeEnd()
+  flushPlayingSegment()
+end sub
 
+sub flushPlayingSegment()
+  setVideoTimeEnd()
   duration = getDuration(m.playerStateTimer)
   m.playerStateTimer.Mark()
-
-  eventData = {
-    played: duration
-  }
-
-  sendAnalyticsRequestAndClearValues(eventData, duration, m.player.playerState)
+  sendAnalyticsRequestAndClearValues({ played: duration }, duration, m.currentState)
   setVideoTimeStart()
 end sub
 
@@ -316,6 +320,34 @@ sub onSeeked()
   sendAnalyticsRequestAndClearValues(eventData, duration, "seeked")
   setVideoTimeStart() 'Finished seeking does not trigger a state change, need to manually set videoTimeStart
   resetSeekHelperVariables()
+end sub
+
+sub onVideoDownloadQualityChanged()
+  eventData = m.player.videoDownloadQualityChanged
+  if eventData = invalid then return
+  targetQuality = eventData.targetQuality
+  if targetQuality = invalid then return
+  processQualityChangeEvent(targetQuality.bitrate)
+end sub
+
+sub processQualityChangeEvent(newBitrate)
+  if newBitrate = invalid then return
+
+  m.currentVideoBitrate = newBitrate
+
+  ' Only send a qualityChange sample when playing; on the initial event the player is not playing yet
+  if m.currentState = m.playerStates.PLAYING
+    flushPlayingSegment()
+
+    sample = {
+      videoBitrate: m.currentVideoBitrate,
+      videoTimeStart: getCurrentPlayerTimeInMs(),
+      videoTimeEnd: getCurrentPlayerTimeInMs()
+    }
+    sendAnalyticsRequestAndClearValues(sample, 0, "qualityChange")
+  end if
+
+  updateSample({ videoBitrate: m.currentVideoBitrate })
 end sub
 
 sub onVideoStart()
