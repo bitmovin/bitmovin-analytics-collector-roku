@@ -249,16 +249,14 @@ sub onBufferingEnd()
 end sub
 
 sub onHeartbeat()
-  setVideoTimeEnd()
+  flushPlayingSegment()
+end sub
 
+sub flushPlayingSegment()
+  setVideoTimeEnd()
   duration = getDuration(m.playerStateTimer)
   m.playerStateTimer.Mark()
-
-  eventData = {
-    played: duration
-  }
-
-  sendAnalyticsRequestAndClearValues(eventData, duration, m.player.playerState)
+  sendAnalyticsRequestAndClearValues({ played: duration }, duration, m.currentState)
   setVideoTimeStart()
 end sub
 
@@ -339,11 +337,7 @@ sub processQualityChangeEvent(newBitrate)
 
   ' Only send a qualityChange sample when playing; on the initial event the player is not playing yet
   if m.currentState = m.playerStates.PLAYING
-    setVideoTimeEnd()
-    stateDuration = m.playerStateTimer.TotalMilliseconds()
-    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
-    m.playerStateTimer.Mark()
-    setVideoTimeStart()
+    flushPlayingSegment()
 
     sample = {
       videoBitrate: m.currentVideoBitrate,
