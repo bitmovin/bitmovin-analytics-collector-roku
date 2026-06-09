@@ -265,6 +265,23 @@ function isCurrentSampleSsaiRelated()
   return m.ssaiState = m.SSAI_STATES.ACTIVE or m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
 end function
 
+' Returns a finalEventData-compatible event AA with exitedAdBreak:true when the session is
+' destroyed mid-ad-break and engagement tracking is enabled, or invalid otherwise.
+' Only fires for ACTIVE state (an ad has actually started); AD_BREAK_STARTED alone has no ad sample.
+function getSsaiBreakExitEventForDestroy()
+  if m.ssaiState <> m.SSAI_STATES.ACTIVE then return invalid
+  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
+  if adEngagementEnabled = invalid or adEngagementEnabled <> true then return invalid
+
+  exitSample = getSsaiAdSample()
+  exitSample.exitedAdBreak = true
+  return {
+    requestType: m.AnalyticsRequestTypes.AD_ENGAGEMENT
+    requestData: exitSample
+    isSsaiRelated: true
+  }
+end function
+
 function hasQuartileAlreadyBeenReported(adQuartile)
   return m.reportedQuartilesForCurrentAd[adQuartile]
 end function
