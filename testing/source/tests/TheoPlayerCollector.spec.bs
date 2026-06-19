@@ -868,7 +868,7 @@ namespace tests
       m.assertInvalid(m.node.videoStartupTimer)
     end function
 
-    @it("does not reinitialize the video startup timer if canplay already started it")
+    @it("does not reinitialize the video startup timer if already running")
     function _()
       m.mockPlayer.autoplay = false
       'bs:disable-next-line
@@ -888,8 +888,10 @@ namespace tests
     @describe("onCanPlay")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("starts the startup timer when autoplay is false and in setup state")
+    @it("does not start the startup timer even when autoplay is false and in setup state")
     function _()
+      ' THEOplayer 11.4+: canplay fires after first segment downloads (possibly before play is pressed),
+      ' so we must not start the startup timer here. The timer is started by onPlay instead.
       m.mockPlayer.autoplay = false
       'bs:disable-next-line
       m.node.currentState = "setup"
@@ -900,7 +902,7 @@ namespace tests
       onCanPlay()
 
       'bs:disable-next-line
-      m.assertNotInvalid(m.node.videoStartupTimer)
+      m.assertInvalid(m.node.videoStartupTimer)
     end function
 
     @it("does not start the startup timer when autoplay is true")
@@ -933,7 +935,7 @@ namespace tests
       m.assertInvalid(m.node.videoStartupTimer)
     end function
 
-    @it("does not restart the startup timer if already running")
+    @it("does not affect the startup timer if already running")
     function _()
       m.mockPlayer.autoplay = false
       'bs:disable-next-line
