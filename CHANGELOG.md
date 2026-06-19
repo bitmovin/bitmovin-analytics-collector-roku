@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- support for new startup event order in THEOplayer `11.4.0`
+
 ## v2.20.0
 
 ### Added
