@@ -26,6 +26,5 @@
     <function name="onAdMidpoint" />
     <function name="onAdThirdQuartile" />
     <function name="onAdError" />
-    <function name="onCanPlay" />
   </interface>
 </component>
