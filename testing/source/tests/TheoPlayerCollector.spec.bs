@@ -16,6 +16,7 @@ namespace tests
         playing: "playing"
         pause: "pause"
         sourcechange: "sourcechange"
+        canplay: "canplay"
         destroy: "destroy"
         seeking: "seeking"
         timeupdate: "timeupdate"
@@ -52,6 +53,70 @@ namespace tests
       returnedPlayerVersion = getPlayerVersion()
 
       m.assertEqual(returnedPlayerVersion, "theoplayer-0.0.0")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("isTheoVersionAtLeast")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns true for the exact matching version")
+    function _()
+      m.mockPlayer.version = "11.4.0"
+
+      'bs:disable-next-line
+      result = isTheoVersionAtLeast(11, 4)
+
+      m.assertTrue(result)
+    end function
+
+    @it("returns true when the major version is greater")
+    function _()
+      m.mockPlayer.version = "12.0.0"
+
+      'bs:disable-next-line
+      result = isTheoVersionAtLeast(11, 4)
+
+      m.assertTrue(result)
+    end function
+
+    @it("returns true when the minor version is greater")
+    function _()
+      m.mockPlayer.version = "11.5.0"
+
+      'bs:disable-next-line
+      result = isTheoVersionAtLeast(11, 4)
+
+      m.assertTrue(result)
+    end function
+
+    @it("returns false when the minor version is less")
+    function _()
+      m.mockPlayer.version = "11.3.9"
+
+      'bs:disable-next-line
+      result = isTheoVersionAtLeast(11, 4)
+
+      m.assertFalse(result)
+    end function
+
+    @it("returns false when the major version is less")
+    function _()
+      m.mockPlayer.version = "10.9.9"
+
+      'bs:disable-next-line
+      result = isTheoVersionAtLeast(11, 4)
+
+      m.assertFalse(result)
+    end function
+
+    @it("returns false when the player version is invalid")
+    function _()
+      m.mockPlayer.version = invalid
+
+      'bs:disable-next-line
+      result = isTheoVersionAtLeast(11, 4)
+
+      m.assertFalse(result)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -106,6 +171,64 @@ namespace tests
       m.assertEqual(testContext.listeners.Count(), 1)
       m.assertEqual(testContext.listeners[0].eventName, "activequalitychanged")
       m.assertEqual(testContext.listeners[0].handler, "onActiveQualityChanged")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setUpObservers")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("registers canplay event listener for versions < 11.4.0")
+    function _()
+      testContext = { listeners: [] }
+
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "addEventListener"
+          m.testContext.listeners.Push({
+            eventName: arg1
+            handler: arg3
+          })
+        end if
+        return invalid
+      end function
+      m.mockPlayer.testContext = testContext
+      'bs:disable-next-line
+      m.node.isLegacyStartupMeasurement = true
+
+      'bs:disable-next-line
+      setUpObservers()
+
+      hasCanplay = false
+      for each listener in testContext.listeners
+        if listener.eventName = "canplay" then hasCanplay = true
+      end for
+      m.assertTrue(hasCanplay)
+    end function
+
+    @it("does not register canplay event listener for versions >= 11.4.0")
+    function _()
+      testContext = { listeners: [] }
+
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "addEventListener"
+          m.testContext.listeners.Push({
+            eventName: arg1
+            handler: arg3
+          })
+        end if
+        return invalid
+      end function
+      m.mockPlayer.testContext = testContext
+      'bs:disable-next-line
+      m.node.isLegacyStartupMeasurement = false
+
+      'bs:disable-next-line
+      setUpObservers()
+
+      hasCanplay = false
+      for each listener in testContext.listeners
+        if listener.eventName = "canplay" then hasCanplay = true
+      end for
+      m.assertFalse(hasCanplay)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -868,7 +991,7 @@ namespace tests
       m.assertInvalid(m.node.videoStartupTimer)
     end function
 
-    @it("does not reinitialize the video startup timer if canplay already started it")
+    @it("does not reinitialize the video startup timer if already running")
     function _()
       m.mockPlayer.autoplay = false
       'bs:disable-next-line
@@ -933,7 +1056,7 @@ namespace tests
       m.assertInvalid(m.node.videoStartupTimer)
     end function
 
-    @it("does not restart the startup timer if already running")
+    @it("does not reinitialize the startup timer if already running")
     function _()
       m.mockPlayer.autoplay = false
       'bs:disable-next-line

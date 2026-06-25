@@ -22,6 +22,7 @@ sub initializePlayer(player)
 
   m.playerStateTimer = CreateObject("roTimespan")
   m.videoNode = m.player.callFunc("getVideoNode")
+  m.isLegacyStartupMeasurement = not isTheoVersionAtLeast(11, 4)
 
   resetCollectorState()
 
@@ -70,6 +71,20 @@ end sub
 
 function getPlayerVersion()
   return "theoplayer-" + m.player.version
+end function
+
+function isTheoVersionAtLeast(major as integer, minor as integer) as boolean
+  if m.player = invalid or m.player.version = invalid then return false
+
+  versionParts = m.player.version.split(".")
+  if versionParts.Count() < 2 then return false
+
+  majorVersion = Val(versionParts[0])
+  minorVersion = Val(versionParts[1])
+
+  if majorVersion > major then return true
+  if majorVersion = major and minorVersion >= minor then return true
+  return false
 end function
 
 function setAnalyticsConfig(config)
@@ -313,11 +328,14 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", m.player.Event.playing, m.top, "onPlaying")
   m.player.callFunc("addEventListener", m.player.Event.pause, m.top, "onPause")
   m.player.callFunc("addEventListener", m.player.Event.sourcechange, m.top, "onSourceChange")
-  m.player.callFunc("addEventListener", m.player.Event.canplay, m.top, "onCanPlay")
   m.player.callFunc("addEventListener", m.player.Event.destroy, m.top, "onDestroy")
   m.player.callFunc("addEventListener", m.player.Event.seeking, m.top, "onSeeking")
   m.player.callFunc("addEventListener", m.player.Event.timeupdate, m.top, "onTimeUpdate")
   m.player.callFunc("addEventListener", m.player.Event.error, m.top, "onError")
+
+  if m.isLegacyStartupMeasurement and m.player.Event.canplay <> invalid
+    m.player.callFunc("addEventListener", m.player.Event.canplay, m.top, "onCanPlay")
+  end if
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 
@@ -343,11 +361,14 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", m.player.Event.playing, m.top, "onPlaying")
     m.player.callFunc("removeEventListener", m.player.Event.pause, m.top, "onPause")
     m.player.callFunc("removeEventListener", m.player.Event.sourcechange, m.top, "onSourceChange")
-    m.player.callFunc("removeEventListener", m.player.Event.canplay, m.top, "onCanPlay")
     m.player.callFunc("removeEventListener", m.player.Event.destroy, m.top, "onDestroy")
     m.player.callFunc("removeEventListener", m.player.Event.seeking, m.top, "onSeeking")
     m.player.callFunc("removeEventListener", m.player.Event.timeupdate, m.top, "onTimeUpdate")
     m.player.callFunc("removeEventListener", m.player.Event.error, m.top, "onError")
+
+    if m.isLegacyStartupMeasurement and m.player.Event.canplay <> invalid
+      m.player.callFunc("removeEventListener", m.player.Event.canplay, m.top, "onCanPlay")
+    end if
 
     if m.player.Event.activequalitychanged <> invalid then
       m.player.callFunc("removeEventListener", m.player.Event.activequalitychanged, m.top, "onActiveQualityChanged")
@@ -465,6 +486,7 @@ function shouldMeasureVideoStartup()
   return m.player.autoplay <> true and m.currentState = m.collectorStates.SETUP and m.videoStartupTimer = invalid
 end function
 
+' Only registered for THEOplayer < 11.4.0; in 11.4.0+ canplay fires before the user presses play.
 sub onCanPlay(eventData = invalid)
   if shouldMeasureVideoStartup()
     startVideoStartUpTimer()
