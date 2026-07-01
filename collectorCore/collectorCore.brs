@@ -413,3 +413,7 @@ function updateAnalyticsConfig(unsanitizedConfig)
 
   return updateSample(m.analyticsConfig)
 end function
+
+sub ssaiOnAdError(errorSample)
+  onError(errorSample)
+end sub
