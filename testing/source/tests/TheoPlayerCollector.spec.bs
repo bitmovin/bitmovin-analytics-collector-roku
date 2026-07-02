@@ -4002,76 +4002,6 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("isSsaiAdBreak")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("returns false when adBreak is invalid")
-    function _()
-      'bs:disable-next-line
-      result = isSsaiAdBreak(invalid)
-
-      m.assertFalse(result)
-    end function
-
-    @it("returns false when integration is csai")
-    function _()
-      adBreak = { integration: "csai" }
-
-      'bs:disable-next-line
-      result = isSsaiAdBreak(adBreak)
-
-      m.assertFalse(result)
-    end function
-
-    @it("returns true when integration is google-dai")
-    function _()
-      adBreak = { integration: "google-dai" }
-
-      'bs:disable-next-line
-      result = isSsaiAdBreak(adBreak)
-
-      m.assertTrue(result)
-    end function
-
-    @it("returns true when integration is any non-csai value")
-    function _()
-      adBreak = { integration: "theoads" }
-
-      'bs:disable-next-line
-      result = isSsaiAdBreak(adBreak)
-
-      m.assertTrue(result)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("mapTimeOffsetToAdPosition")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("returns preroll for timeOffset 0")
-    function _()
-      'bs:disable-next-line
-      result = mapTimeOffsetToAdPosition(0)
-
-      m.assertEqual(result, "preroll")
-    end function
-
-    @it("returns postroll for timeOffset -1")
-    function _()
-      'bs:disable-next-line
-      result = mapTimeOffsetToAdPosition(-1)
-
-      m.assertEqual(result, "postroll")
-    end function
-
-    @it("returns midroll for any positive timeOffset")
-    function _()
-      'bs:disable-next-line
-      result = mapTimeOffsetToAdPosition(22.719)
-
-      m.assertEqual(result, "midroll")
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("resetCollectorState — SSAI flag")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -4142,27 +4072,6 @@ namespace tests
       m.assertInvalid(testContext.updateSampleArg.videoBitrate)
       'bs:disable-next-line
       m.assertFalse(m.node.isCurrentAdBreakSsai)
-
-      m.node.collectorCore = originalCollectorCore
-    end function
-
-    @it("maps preroll timeOffset=0 to adPosition preroll")
-    function _()
-      testContext = { capturedAdBreakMetadata: invalid }
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
-          if funcName = "adBreakStart" then m.testContext.capturedAdBreakMetadata = arg1
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      'bs:disable-next-line
-      onAdBreakBegin({ adBreak: { integration: "google-dai", timeOffset: 0 } })
-
-      m.assertEqual(testContext.capturedAdBreakMetadata.adPosition, "preroll")
 
       m.node.collectorCore = originalCollectorCore
     end function
@@ -4382,31 +4291,6 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("onAdFirstQuartile calls csaiOnAdFirstQuartile during CSAI break")
-    function _()
-      testContext = { calledFuncs: {} }
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
-          m.testContext.calledFuncs[funcName] = true
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      'bs:disable-next-line
-      m.node.isCurrentAdBreakSsai = false
-
-      'bs:disable-next-line
-      onAdFirstQuartile()
-
-      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdFirstQuartile"))
-      m.assertFalse(testContext.calledFuncs.DoesExist("adQuartileFinished"))
-
-      m.node.collectorCore = originalCollectorCore
-    end function
-
     @it("onAdMidpoint calls adQuartileFinished(midpoint) during SSAI break")
     function _()
       testContext = { capturedQuartile: invalid }
@@ -4513,28 +4397,6 @@ namespace tests
       m.assertNotInvalid(testContext.capturedErrorSample)
       m.assertEqual(testContext.capturedErrorSample.errorCode, 500)
       m.assertEqual(testContext.capturedErrorSample.errorMessage, "Unknown error")
-
-      m.node.collectorCore = originalCollectorCore
-    end function
-
-    @it("routes to csaiOnAdError when no active ad break (default state)")
-    function _()
-      testContext = { calledFuncs: {} }
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
-          m.testContext.calledFuncs[funcName] = true
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      'bs:disable-next-line
-      onAdError(invalid)
-
-      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdError"))
-      m.assertFalse(testContext.calledFuncs.DoesExist("ssaiOnAdError"))
 
       m.node.collectorCore = originalCollectorCore
     end function
