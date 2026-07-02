@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- distinguishing between SSAI and CSAI ad events for THEOplayer
+
 ## v2.21.0
 
 ### Added
