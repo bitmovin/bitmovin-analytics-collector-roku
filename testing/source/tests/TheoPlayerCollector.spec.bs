@@ -4001,6 +4001,544 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("isSsaiAdBreak")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false when adBreak is invalid")
+    function _()
+      'bs:disable-next-line
+      result = isSsaiAdBreak(invalid)
+
+      m.assertFalse(result)
+    end function
+
+    @it("returns false when integration is csai")
+    function _()
+      adBreak = { integration: "csai" }
+
+      'bs:disable-next-line
+      result = isSsaiAdBreak(adBreak)
+
+      m.assertFalse(result)
+    end function
+
+    @it("returns true when integration is google-dai")
+    function _()
+      adBreak = { integration: "google-dai" }
+
+      'bs:disable-next-line
+      result = isSsaiAdBreak(adBreak)
+
+      m.assertTrue(result)
+    end function
+
+    @it("returns true when integration is any non-csai value")
+    function _()
+      adBreak = { integration: "theoads" }
+
+      'bs:disable-next-line
+      result = isSsaiAdBreak(adBreak)
+
+      m.assertTrue(result)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("mapTimeOffsetToAdPosition")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns preroll for timeOffset 0")
+    function _()
+      'bs:disable-next-line
+      result = mapTimeOffsetToAdPosition(0)
+
+      m.assertEqual(result, "preroll")
+    end function
+
+    @it("returns postroll for timeOffset -1")
+    function _()
+      'bs:disable-next-line
+      result = mapTimeOffsetToAdPosition(-1)
+
+      m.assertEqual(result, "postroll")
+    end function
+
+    @it("returns midroll for any positive timeOffset")
+    function _()
+      'bs:disable-next-line
+      result = mapTimeOffsetToAdPosition(22.719)
+
+      m.assertEqual(result, "midroll")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("resetCollectorState — SSAI flag")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("initializes isCurrentAdBreakSsai to false")
+    function _()
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = true
+
+      'bs:disable-next-line
+      resetCollectorState()
+
+      'bs:disable-next-line
+      m.assertFalse(m.node.isCurrentAdBreakSsai)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("SSAI ad event routing — onAdBreakBegin")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("routes to SSAI path and calls adBreakStart for non-csai integration")
+    function _()
+      testContext = { calledFuncs: {}, capturedAdBreakMetadata: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          if funcName = "adBreakStart" then m.testContext.capturedAdBreakMetadata = arg1
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { integration: "google-dai", timeOffset: 22.719 } })
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("adBreakStart"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("csaiOnAdBreakBegin"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("updateSample"))
+      m.assertNotInvalid(testContext.capturedAdBreakMetadata)
+      m.assertEqual(testContext.capturedAdBreakMetadata.adPosition, "midroll")
+      'bs:disable-next-line
+      m.assertTrue(m.node.isCurrentAdBreakSsai)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("routes to CSAI path and calls csaiOnAdBreakBegin for csai integration")
+    function _()
+      testContext = { calledFuncs: {}, updateSampleArg: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          if funcName = "updateSample" then m.testContext.updateSampleArg = arg1
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { integration: "csai", timeOffset: 0 } })
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdBreakBegin"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("adBreakStart"))
+      m.assertNotInvalid(testContext.updateSampleArg)
+      m.assertInvalid(testContext.updateSampleArg.videoBitrate)
+      'bs:disable-next-line
+      m.assertFalse(m.node.isCurrentAdBreakSsai)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("maps preroll timeOffset=0 to adPosition preroll")
+    function _()
+      testContext = { capturedAdBreakMetadata: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          if funcName = "adBreakStart" then m.testContext.capturedAdBreakMetadata = arg1
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { integration: "google-dai", timeOffset: 0 } })
+
+      m.assertEqual(testContext.capturedAdBreakMetadata.adPosition, "preroll")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("SSAI ad event routing — onAdBegin")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("calls adStart and does not transition to AD state during SSAI break")
+    function _()
+      testContext = { calledFuncs: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = true
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      'bs:disable-next-line
+      onAdBegin({ ad: { id: "ad-123", duration: 30 } })
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("adStart"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("csaiOnAdBegin"))
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "playing")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("calls csaiOnAdBegin and transitions to AD state during CSAI break")
+    function _()
+      testContext = { calledFuncs: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        if funcName = "getVideoNode" then return { height: 1080, width: 1920 }
+        return invalid
+      end function
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = false
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      'bs:disable-next-line
+      onAdBegin({ ad: { id: "ad-123", duration: 30 } })
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdBegin"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("adStart"))
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "ad")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("SSAI ad event routing — onAdEnd")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("calls adQuartileFinished(completed) during SSAI break")
+    function _()
+      testContext = { calledFuncs: {}, capturedQuartile: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          if funcName = "adQuartileFinished" then m.testContext.capturedQuartile = arg1
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = true
+
+      'bs:disable-next-line
+      onAdEnd({ ad: { id: "ad-123" } })
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("adQuartileFinished"))
+      m.assertEqual(testContext.capturedQuartile, "completed")
+      m.assertFalse(testContext.calledFuncs.DoesExist("csaiOnAdEnd"))
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("calls csaiOnAdEnd during CSAI break")
+    function _()
+      testContext = { calledFuncs: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = false
+
+      'bs:disable-next-line
+      onAdEnd({ ad: { id: "ad-123" } })
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdEnd"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("adQuartileFinished"))
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("SSAI ad event routing — onAdBreakEnd")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("calls adBreakEnd during SSAI break")
+    function _()
+      testContext = { calledFuncs: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = true
+
+      'bs:disable-next-line
+      onAdBreakEnd()
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("adBreakEnd"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("csaiOnAdBreakEnd"))
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("calls csaiOnAdBreakEnd during CSAI break")
+    function _()
+      testContext = { calledFuncs: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = false
+
+      'bs:disable-next-line
+      onAdBreakEnd()
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdBreakEnd"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("adBreakEnd"))
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("SSAI ad event routing — quartile handlers")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("onAdFirstQuartile calls adQuartileFinished(first) during SSAI break")
+    function _()
+      testContext = { capturedQuartile: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          if funcName = "adQuartileFinished" then m.testContext.capturedQuartile = arg1
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = true
+
+      'bs:disable-next-line
+      onAdFirstQuartile()
+
+      m.assertEqual(testContext.capturedQuartile, "first")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("onAdFirstQuartile calls csaiOnAdFirstQuartile during CSAI break")
+    function _()
+      testContext = { calledFuncs: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = false
+
+      'bs:disable-next-line
+      onAdFirstQuartile()
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdFirstQuartile"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("adQuartileFinished"))
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("onAdMidpoint calls adQuartileFinished(midpoint) during SSAI break")
+    function _()
+      testContext = { capturedQuartile: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          if funcName = "adQuartileFinished" then m.testContext.capturedQuartile = arg1
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = true
+
+      'bs:disable-next-line
+      onAdMidpoint()
+
+      m.assertEqual(testContext.capturedQuartile, "midpoint")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("onAdThirdQuartile calls adQuartileFinished(third) during SSAI break")
+    function _()
+      testContext = { capturedQuartile: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          if funcName = "adQuartileFinished" then m.testContext.capturedQuartile = arg1
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = true
+
+      'bs:disable-next-line
+      onAdThirdQuartile()
+
+      m.assertEqual(testContext.capturedQuartile, "third")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("SSAI ad event routing — onAdError")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("routes to ssaiOnAdError during SSAI break")
+    function _()
+      testContext = { calledFuncs: {}, capturedErrorSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          if funcName = "ssaiOnAdError" then m.testContext.capturedErrorSample = arg1
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = true
+
+      'bs:disable-next-line
+      onAdError({ errcode: "401", errmsg: "Ad not found" })
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("ssaiOnAdError"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("csaiOnAdError"))
+      m.assertNotInvalid(testContext.capturedErrorSample)
+      m.assertEqual(testContext.capturedErrorSample.errorCode, 401)
+      m.assertEqual(testContext.capturedErrorSample.errorMessage, "Ad not found")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("routes to csaiOnAdError during CSAI break")
+    function _()
+      testContext = { calledFuncs: {}, capturedErrorSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          if funcName = "csaiOnAdError" then m.testContext.capturedErrorSample = arg1
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = false
+
+      'bs:disable-next-line
+      onAdError({ errcode: "500", errmsg: "Unknown error" })
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdError"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("ssaiOnAdError"))
+      m.assertNotInvalid(testContext.capturedErrorSample)
+      m.assertEqual(testContext.capturedErrorSample.errorCode, 500)
+      m.assertEqual(testContext.capturedErrorSample.errorMessage, "Unknown error")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("routes to csaiOnAdError when no active ad break (default state)")
+    function _()
+      testContext = { calledFuncs: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      onAdError(invalid)
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdError"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("ssaiOnAdError"))
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
   end class
 
 end namespace
