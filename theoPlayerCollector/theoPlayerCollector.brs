@@ -816,6 +816,7 @@ sub onAdBreakBegin(eventData = invalid)
 
   m.isCurrentAdBreakSsai = isSsaiAdBreak(adBreak)
   if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
     adBreakStart({ adPosition: mapTimeOffsetToAdPosition(adBreak?.timeOffset) })
   else
     updateSample({ videoBitrate: invalid })
@@ -829,6 +830,7 @@ sub onAdBegin(eventData = invalid)
   print m.tag; "onAdBegin: id="; ad?.id; " duration="; ad?.duration
 
   if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
     adStart(invalid)
   else
     m.collectorCore.callFunc("csaiOnAdBegin", ad)
@@ -842,6 +844,7 @@ sub onAdEnd(eventData = invalid)
   print m.tag; "onAdEnd: id="; ad?.id
 
   if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
     adQuartileFinished("completed")
   else
     m.collectorCore.callFunc("csaiOnAdEnd", ad)
@@ -851,6 +854,7 @@ end sub
 sub onAdBreakEnd(eventData = invalid)
   print m.tag; "onAdBreakEnd"
   if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
     adBreakEnd()
   else
     m.collectorCore.callFunc("csaiOnAdBreakEnd")
@@ -860,6 +864,7 @@ end sub
 sub onAdFirstQuartile(eventData = invalid)
   print m.tag; "onAdFirstQuartile"
   if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
     adQuartileFinished("first")
   else
     m.collectorCore.callFunc("csaiOnAdFirstQuartile")
@@ -869,6 +874,7 @@ end sub
 sub onAdMidpoint(eventData = invalid)
   print m.tag; "onAdMidpoint"
   if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
     adQuartileFinished("midpoint")
   else
     m.collectorCore.callFunc("csaiOnAdMidpoint")
@@ -878,6 +884,7 @@ end sub
 sub onAdThirdQuartile(eventData = invalid)
   print m.tag; "onAdThirdQuartile"
   if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
     adQuartileFinished("third")
   else
     m.collectorCore.callFunc("csaiOnAdThirdQuartile")
