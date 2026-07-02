@@ -895,7 +895,7 @@ sub onAdError(eventData = invalid)
   errorCode = invalid
   errorMessage = invalid
   if eventData <> invalid
-    if eventData.errcode <> invalid then errorCode = Val(eventData.errcode)
+    if eventData.errcode <> invalid then errorCode = CInt(Val(eventData.errcode))
     if eventData.errmsg <> invalid then errorMessage = eventData.errmsg
   end if
   errorSample = { errorCode: errorCode, errorMessage: errorMessage }
