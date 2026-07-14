@@ -859,6 +859,7 @@ sub onAdBreakEnd(eventData = invalid)
   else
     m.collectorCore.callFunc("csaiOnAdBreakEnd")
   end if
+  m.isCurrentAdBreakSsai = false
 end sub
 
 sub onAdFirstQuartile(eventData = invalid)
