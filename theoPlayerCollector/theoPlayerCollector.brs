@@ -5,6 +5,7 @@ sub init()
   m.collectorStates = getCollectorStates()
   m.videoStartFailedEvents = getVideoStartFailedEvents()
   m.errorSeverities = getErrorSeverities()
+  m.supportedSsaiIntegrations = getSupportedSsaiIntegrations()
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.videoNode = invalid
@@ -913,7 +914,10 @@ end sub
 function isSsaiAdBreak(adBreak)
   if adBreak = invalid or adBreak.integration = invalid then return false
   normalized = LCase(adBreak.integration)
-  return normalized = "google-dai" or normalized = "mediakind"
+  for each supportedIntegration in m.supportedSsaiIntegrations
+    if supportedIntegration = normalized then return true
+  end for
+  return false
 end function
 
 function mapTimeOffsetToAdPosition(timeOffset)
