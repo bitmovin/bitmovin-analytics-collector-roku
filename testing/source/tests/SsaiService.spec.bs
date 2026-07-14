@@ -453,6 +453,38 @@ namespace tests
       m.assertEqual(newSample.exitedAdBreak, false)
     end function
 
+    @describe("ssaiOnAdError")
+
+    @it("returns invalid if no ad is in progress")
+    function _()
+      'bs:disable-next-line
+      result = ssaiOnAdError({ errorCode: 100, errorMessage: "test error" })
+
+      m.assertInvalid(result)
+    end function
+
+    @it("stamps errorSeverity=CRITICAL alongside errorCode and errorMessage")
+    function _()
+      m.enterFakeSsaiAd()
+      'bs:disable-next-line
+      sample = ssaiOnAdError({ errorCode: 100, errorMessage: "ad load failed" })
+
+      m.assertEqual(sample.errorCode, 100)
+      m.assertEqual(sample.errorMessage, "ad load failed")
+      m.assertEqual(sample.errorSeverity, "CRITICAL")
+    end function
+
+    @it("only reports the first error during an ad - subsequent calls return invalid")
+    function _()
+      m.enterFakeSsaiAd()
+      'bs:disable-next-line
+      ssaiOnAdError({ errorCode: 100, errorMessage: "test error" })
+      'bs:disable-next-line
+      result = ssaiOnAdError({ errorCode: 200, errorMessage: "second error" })
+
+      m.assertInvalid(result)
+    end function
+
     ' UTILITY FUNCTIONS
     function enterFakeSsaiAd()
       'bs:disable-next-line
