@@ -4021,8 +4021,11 @@ namespace tests
     @describe("SSAI ad event routing — onAdBreakBegin")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("routes to SSAI path and calls adBreakStart for non-csai integration")
-    function _()
+    @it("routes to SSAI path and calls adBreakStart for known SSAI integrations")
+    @params("google-dai")
+    @params("mediakind")
+    @params("GOOGLE-DAI")
+    function _(integration)
       testContext = { calledFuncs: {}, capturedAdBreakMetadata: invalid }
       originalCollectorCore = m.node.collectorCore
 
@@ -4036,7 +4039,7 @@ namespace tests
       }
 
       'bs:disable-next-line
-      onAdBreakBegin({ adBreak: { integration: "google-dai", timeOffset: 22.719 } })
+      onAdBreakBegin({ adBreak: { integration: integration, timeOffset: 22.719 } })
 
       m.assertTrue(testContext.calledFuncs.DoesExist("adBreakStart"))
       m.assertFalse(testContext.calledFuncs.DoesExist("csaiOnAdBreakBegin"))
@@ -4070,6 +4073,54 @@ namespace tests
       m.assertFalse(testContext.calledFuncs.DoesExist("adBreakStart"))
       m.assertNotInvalid(testContext.updateSampleArg)
       m.assertInvalid(testContext.updateSampleArg.videoBitrate)
+      'bs:disable-next-line
+      m.assertFalse(m.node.isCurrentAdBreakSsai)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("routes to CSAI path (fails closed) for an unknown integration")
+    function _()
+      testContext = { calledFuncs: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { integration: "freewheel", timeOffset: 0 } })
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdBreakBegin"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("adBreakStart"))
+      'bs:disable-next-line
+      m.assertFalse(m.node.isCurrentAdBreakSsai)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("routes to CSAI path (fails closed) when integration is missing")
+    function _()
+      testContext = { calledFuncs: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          m.testContext.calledFuncs[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0 } })
+
+      m.assertTrue(testContext.calledFuncs.DoesExist("csaiOnAdBreakBegin"))
+      m.assertFalse(testContext.calledFuncs.DoesExist("adBreakStart"))
       'bs:disable-next-line
       m.assertFalse(m.node.isCurrentAdBreakSsai)
 
@@ -4234,6 +4285,8 @@ namespace tests
 
       m.assertTrue(testContext.calledFuncs.DoesExist("adBreakEnd"))
       m.assertFalse(testContext.calledFuncs.DoesExist("csaiOnAdBreakEnd"))
+      'bs:disable-next-line
+      m.assertFalse(m.node.isCurrentAdBreakSsai)
 
       m.node.collectorCore = originalCollectorCore
     end function
@@ -4427,23 +4480,9 @@ namespace tests
       m.assertEqual(postroll.adPosition, "postroll")
     end function
 
-    @it("includes expectedPaidAds from customData.totalads")
+    @it("does not include expectedPaidAds - no known mediakind customData field for it")
     function _()
-      adBreak = {
-        timeOffset: 22.719
-        customData: { totalads: 3 }
-      }
-
-      'bs:disable-next-line
-      result = buildSsaiAdBreakMetadata(adBreak)
-
-      m.assertEqual(result.adPosition, "midroll")
-      m.assertEqual(result.expectedPaidAds, 3)
-    end function
-
-    @it("does not include expectedPaidAds when customData is absent")
-    function _()
-      adBreak = { timeOffset: 0 }
+      adBreak = { timeOffset: 22.719, customData: { totalads: 3 } }
 
       'bs:disable-next-line
       result = buildSsaiAdBreakMetadata(adBreak)
@@ -4538,7 +4577,7 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("onAdBreakBegin passes expectedPaidAds to adBreakStart when customData.totalads is present")
+    @it("onAdBreakBegin passes adPosition to adBreakStart, without inferring expectedPaidAds from customData")
     function _()
       testContext = { capturedAdBreakMetadata: invalid }
       originalCollectorCore = m.node.collectorCore
