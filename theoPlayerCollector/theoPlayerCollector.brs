@@ -907,9 +907,13 @@ sub onAdError(eventData = invalid)
   end if
 end sub
 
+' Allow-list of SSAI integrations we've smoke-tested / explicitly support. Anything else,
+' including a missing/unknown `integration`, fails closed to the legacy CSAI path instead of
+' silently opting an untested integration into SSAI tracking.
 function isSsaiAdBreak(adBreak)
-  if adBreak = invalid then return false
-  return adBreak.integration <> "csai"
+  if adBreak = invalid or adBreak.integration = invalid then return false
+  normalized = LCase(adBreak.integration)
+  return normalized = "google-dai" or normalized = "mediakind"
 end function
 
 function mapTimeOffsetToAdPosition(timeOffset)
