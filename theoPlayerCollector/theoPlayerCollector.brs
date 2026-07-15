@@ -902,7 +902,7 @@ sub onAdError(eventData = invalid)
   end if
   errorSample = { errorCode: errorCode, errorMessage: errorMessage }
   if m.isCurrentAdBreakSsai
-    m.collectorCore.callFunc("ssaiOnAdError", errorSample)
+    m.collectorCore.callFunc("onError", errorSample)
   else
     m.collectorCore.callFunc("csaiOnAdError", errorSample)
   end if
