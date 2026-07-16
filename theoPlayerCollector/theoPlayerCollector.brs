@@ -946,10 +946,20 @@ function buildSsaiAdMetadata(ad)
   if ad.id <> invalid then metadata.adId = ad.id
   if ad.adSystem <> invalid then metadata.adSystem = ad.adSystem
   if ad.duration <> invalid then metadata.duration = ad.duration
-  ' ad.customData will be mapped in a followup PR
+  if ad.creativeId <> invalid then metadata.creativeId = ad.creativeId
 
-  ' isSlate is currently not exposed by the Roku THEO SDK
-  metadata.isSlate = false
+  customData = ad.customData
+  if customData <> invalid
+    if metadata.creativeId = invalid and customData.creativeId <> invalid then metadata.creativeId = customData.creativeId
+    if customData.creativeAdId <> invalid then metadata.creativeAdId = customData.creativeAdId
+    if customData.advertiserName <> invalid then metadata.advertiserName = customData.advertiserName
+    if customData.title <> invalid then metadata.title = customData.title
+    if customData.universalAdIdValue <> invalid then metadata.universalAdIdValue = customData.universalAdIdValue
+    if customData.universalAdIdRegistry <> invalid then metadata.universalAdIdRegistry = customData.universalAdIdRegistry
+    if customData.isSlate <> invalid then metadata.isSlate = coerceToBoolean(customData.isSlate)
+  end if
+
+  if metadata.isSlate = invalid then metadata.isSlate = false
   return metadata
 end function
 
