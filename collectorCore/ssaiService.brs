@@ -40,6 +40,12 @@ sub resetSsaiHelpers()
     adSystem: invalid
     adPosition: invalid
     adImpressionId: invalid
+    creativeId: invalid
+    creativeAdId: invalid
+    advertiserName: invalid
+    title: invalid
+    universalAdIdValue: invalid
+    universalAdIdRegistry: invalid
   }
   resetReportedQuartiles()
   updateSample(resetAdValues)
@@ -135,7 +141,13 @@ sub adStart(adMetadata = invalid)
       adPosition: adPosition,
       adId: adMetadata.adId,
       adSystem: adMetadata.adSystem,
-      customData: m.adCustomData
+      customData: m.adCustomData,
+      creativeId: adMetadata.creativeId,
+      creativeAdId: adMetadata.creativeAdId,
+      advertiserName: adMetadata.advertiserName,
+      title: adMetadata.title,
+      universalAdIdValue: adMetadata.universalAdIdValue,
+      universalAdIdRegistry: adMetadata.universalAdIdRegistry
     }
     m.currentAdIsSlate = adMetadata.isSlate = true
     if adMetadata.duration <> invalid
@@ -180,6 +192,12 @@ sub manipulateSampleForSsai()
     sampleUpdate.adId = m.currentAdMetadata.adId
     sampleUpdate.adSystem = m.currentAdMetadata.adSystem
     sampleUpdate.adPosition = m.currentAdMetadata.adPosition
+    if m.currentAdMetadata.creativeId <> invalid then sampleUpdate.creativeId = m.currentAdMetadata.creativeId
+    if m.currentAdMetadata.creativeAdId <> invalid then sampleUpdate.creativeAdId = m.currentAdMetadata.creativeAdId
+    if m.currentAdMetadata.advertiserName <> invalid then sampleUpdate.advertiserName = m.currentAdMetadata.advertiserName
+    if m.currentAdMetadata.title <> invalid then sampleUpdate.title = m.currentAdMetadata.title
+    if m.currentAdMetadata.universalAdIdValue <> invalid then sampleUpdate.universalAdIdValue = m.currentAdMetadata.universalAdIdValue
+    if m.currentAdMetadata.universalAdIdRegistry <> invalid then sampleUpdate.universalAdIdRegistry = m.currentAdMetadata.universalAdIdRegistry
   end if
 
   if m.isFirstSampleOfAd
