@@ -4544,6 +4544,127 @@ namespace tests
       m.assertFalse(result.isSlate)
     end function
 
+    @it("prefers the top-level ad.creativeId field when present")
+    function _()
+      ad = { id: "ad-123", creativeId: "creative-456", customData: { creativeId: "creative-789" } }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.creativeId, "creative-456")
+    end function
+
+    @it("falls back to customData.creativeId when the top-level field is absent")
+    function _()
+      ad = { id: "ad-123", customData: { creativeId: "creative-789" } }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.creativeId, "creative-789")
+    end function
+
+    @it("extracts mediakind-style fields from ad.customData when present, regardless of ad.integration")
+    function _()
+      ad = {
+        id: "ad-123"
+        integration: "google-dai"
+        customData: {
+          creativeAdId: "creative-ad-1"
+          advertiserName: "Acme Corp"
+          title: "Acme Summer Sale"
+          universalAdIdValue: "8465"
+          universalAdIdRegistry: "ad-id.org"
+        }
+      }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.creativeAdId, "creative-ad-1")
+      m.assertEqual(result.advertiserName, "Acme Corp")
+      m.assertEqual(result.title, "Acme Summer Sale")
+      m.assertEqual(result.universalAdIdValue, "8465")
+      m.assertEqual(result.universalAdIdRegistry, "ad-id.org")
+    end function
+
+    @it("does not set customData-sourced fields when absent from ad.customData")
+    function _()
+      ad = { id: "ad-123", customData: {} }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertFalse(result.DoesExist("creativeAdId"))
+      m.assertFalse(result.DoesExist("advertiserName"))
+      m.assertFalse(result.DoesExist("title"))
+      m.assertFalse(result.DoesExist("universalAdIdValue"))
+      m.assertFalse(result.DoesExist("universalAdIdRegistry"))
+    end function
+
+    @it("passes through a native boolean isSlate from customData")
+    @params(true)
+    @params(false)
+    function _(isSlate)
+      ad = { id: "ad-123", customData: { isSlate: isSlate } }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.isSlate, isSlate)
+    end function
+
+    @it("coerces a string isSlate from customData to a real boolean")
+    @params("true", true)
+    @params("false", false)
+    @params("TRUE", true)
+    function _(rawValue, expected)
+      ad = { id: "ad-123", customData: { isSlate: rawValue } }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.isSlate, expected)
+    end function
+
+    @it("defaults isSlate to false when customData.isSlate is absent")
+    function _()
+      ad = { id: "ad-123", customData: {} }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertFalse(result.isSlate)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("coerceToBoolean")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when value is invalid")
+    function _()
+      'bs:disable-next-line
+      m.assertInvalid(coerceToBoolean(invalid))
+    end function
+
+    @it("returns native booleans unchanged")
+    @params(true)
+    @params(false)
+    function _(value)
+      'bs:disable-next-line
+      m.assertEqual(coerceToBoolean(value), value)
+    end function
+
+    @it("coerces case-insensitive string values")
+    @params("true", true)
+    @params("True", true)
+    @params("false", false)
+    @params("nonsense", false)
+    function _(value, expected)
+      'bs:disable-next-line
+      m.assertEqual(coerceToBoolean(value), expected)
+    end function
+
     @it("onAdBegin passes ad metadata to adStart during SSAI break")
     function _()
       testContext = { capturedAdMetadata: invalid }
@@ -4595,7 +4716,7 @@ namespace tests
 
       m.assertNotInvalid(testContext.capturedAdBreakMetadata)
       m.assertEqual(testContext.capturedAdBreakMetadata.adPosition, "midroll")
-      m.assertEqual(testContext.capturedAdBreakMetadata.expectedPaidAds, 3)
+      m.assertFalse(testContext.capturedAdBreakMetadata.DoesExist("expectedPaidAds"))
 
       m.node.collectorCore = originalCollectorCore
     end function
