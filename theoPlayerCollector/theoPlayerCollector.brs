@@ -5,6 +5,7 @@ sub init()
   m.collectorStates = getCollectorStates()
   m.videoStartFailedEvents = getVideoStartFailedEvents()
   m.errorSeverities = getErrorSeverities()
+  m.supportedSsaiIntegrations = getSupportedSsaiIntegrations()
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.videoNode = invalid
@@ -762,6 +763,7 @@ sub resetCollectorState()
   m.seekStartPosition = invalid
   m.currentTimeAtPauseStart = invalid
   m.lastKnownCurrentTime = 0
+  m.isCurrentAdBreakSsai = false
 end sub
 
 sub onVideoNodeStateChanged()
@@ -811,55 +813,118 @@ end sub
 sub onAdBreakBegin(eventData = invalid)
   adBreak = invalid
   if eventData <> invalid then adBreak = eventData.adBreak
-  print m.tag; "onAdBreakBegin: timeOffset="; adBreak?.timeOffset; " maxDuration="; adBreak?.maxDuration
-  updateSample({ videoBitrate: invalid })
-  m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
+  print m.tag; "onAdBreakBegin: timeOffset="; adBreak?.timeOffset; " integration="; adBreak?.integration
+
+  m.isCurrentAdBreakSsai = isSsaiAdBreak(adBreak)
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adBreakStart({ adPosition: mapTimeOffsetToAdPosition(adBreak?.timeOffset) })
+  else
+    updateSample({ videoBitrate: invalid })
+    m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
+  end if
 end sub
 
 sub onAdBegin(eventData = invalid)
   ad = invalid
   if eventData <> invalid then ad = eventData.ad
   print m.tag; "onAdBegin: id="; ad?.id; " duration="; ad?.duration
-  m.collectorCore.callFunc("csaiOnAdBegin", ad)
-  onPlayerStateChanged(m.collectorStates.AD)
+
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adStart(invalid)
+  else
+    m.collectorCore.callFunc("csaiOnAdBegin", ad)
+    onPlayerStateChanged(m.collectorStates.AD)
+  end if
 end sub
 
 sub onAdEnd(eventData = invalid)
   ad = invalid
   if eventData <> invalid then ad = eventData.ad
   print m.tag; "onAdEnd: id="; ad?.id
-  m.collectorCore.callFunc("csaiOnAdEnd", ad)
+
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adQuartileFinished("completed")
+  else
+    m.collectorCore.callFunc("csaiOnAdEnd", ad)
+  end if
 end sub
 
 sub onAdBreakEnd(eventData = invalid)
   print m.tag; "onAdBreakEnd"
-  m.collectorCore.callFunc("csaiOnAdBreakEnd")
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adBreakEnd()
+  else
+    m.collectorCore.callFunc("csaiOnAdBreakEnd")
+  end if
+  m.isCurrentAdBreakSsai = false
 end sub
 
 sub onAdFirstQuartile(eventData = invalid)
   print m.tag; "onAdFirstQuartile"
-  m.collectorCore.callFunc("csaiOnAdFirstQuartile")
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adQuartileFinished("first")
+  else
+    m.collectorCore.callFunc("csaiOnAdFirstQuartile")
+  end if
 end sub
 
 sub onAdMidpoint(eventData = invalid)
   print m.tag; "onAdMidpoint"
-  m.collectorCore.callFunc("csaiOnAdMidpoint")
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adQuartileFinished("midpoint")
+  else
+    m.collectorCore.callFunc("csaiOnAdMidpoint")
+  end if
 end sub
 
 sub onAdThirdQuartile(eventData = invalid)
   print m.tag; "onAdThirdQuartile"
-  m.collectorCore.callFunc("csaiOnAdThirdQuartile")
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adQuartileFinished("third")
+  else
+    m.collectorCore.callFunc("csaiOnAdThirdQuartile")
+  end if
 end sub
 
 sub onAdError(eventData = invalid)
   errorCode = invalid
   errorMessage = invalid
   if eventData <> invalid
-    if eventData.errcode <> invalid then errorCode = Val(eventData.errcode)
+    if eventData.errcode <> invalid then errorCode = CInt(Val(eventData.errcode))
     if eventData.errmsg <> invalid then errorMessage = eventData.errmsg
   end if
-  m.collectorCore.callFunc("csaiOnAdError", { errorCode: errorCode, errorMessage: errorMessage })
+  errorSample = { errorCode: errorCode, errorMessage: errorMessage }
+  if m.isCurrentAdBreakSsai
+    m.collectorCore.callFunc("onError", errorSample)
+  else
+    m.collectorCore.callFunc("csaiOnAdError", errorSample)
+  end if
 end sub
+
+' Allow-list of SSAI integrations we've smoke-tested / explicitly support. Anything else,
+' including a missing/unknown `integration`, fails closed to the legacy CSAI path instead of
+' silently opting an untested integration into SSAI tracking.
+function isSsaiAdBreak(adBreak)
+  if adBreak = invalid or adBreak.integration = invalid then return false
+  normalized = LCase(adBreak.integration)
+  for each supportedIntegration in m.supportedSsaiIntegrations
+    if supportedIntegration = normalized then return true
+  end for
+  return false
+end function
+
+function mapTimeOffsetToAdPosition(timeOffset)
+  if timeOffset = 0 then return "preroll"
+  if timeOffset = -1 then return "postroll"
+  return "midroll"
+end function
 
 ' ====== SSAI related ad callbacks ======
 
