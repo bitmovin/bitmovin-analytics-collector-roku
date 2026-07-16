@@ -928,13 +928,16 @@ end function
 
 function buildSsaiAdBreakMetadata(adBreak)
   if adBreak = invalid then return invalid
-  metadata = {
+  return {
     adPosition: mapTimeOffsetToAdPosition(adBreak.timeOffset)
   }
-  if adBreak.customData <> invalid and adBreak.customData.totalads <> invalid
-    metadata.expectedPaidAds = adBreak.customData.totalads
-  end if
-  return metadata
+end function
+
+function coerceToBoolean(value)
+  if value = invalid then return invalid
+  valueType = type(value)
+  if valueType = "roBoolean" or valueType = "Boolean" then return value
+  return LCase(value.ToStr()) = "true"
 end function
 
 function buildSsaiAdMetadata(ad)
