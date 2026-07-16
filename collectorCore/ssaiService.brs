@@ -273,13 +273,10 @@ sub markQuartileAsReported(adQuartile)
   m.reportedQuartilesForCurrentAd[adQuartile] = true
 end sub
 
-function ssaiOnAdError(errorSample) as object
-  errorSample.errorSeverity = getErrorSeverities().critical
-  return onError(errorSample)
-end function
-
 function onError(errorSample) as object
   if m.ssaiState = m.SSAI_STATES.IDLE or m.hasErrorBeenReportedForCurrentAd then return invalid
+
+  if errorSample.errorSeverity = invalid then errorSample.errorSeverity = getErrorSeverities().critical
 
   adSample = getSsaiAdSample()
   adSample.errorCode = errorSample.errorCode
