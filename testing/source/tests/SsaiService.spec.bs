@@ -365,6 +365,99 @@ namespace tests
       m.assertEqual(sample.isSlate, false)
     end function
 
+    @describe("adPodPosition")
+
+    @it("is 0 for the first ad in a break")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart()
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.adPodPosition, 0)
+    end function
+
+    @it("increments across ads within the same break")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart()
+      'bs:disable-next-line
+      manipulateSampleForSsai()
+
+      'bs:disable-next-line
+      adStart()
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.adPodPosition, 1)
+    end function
+
+    @it("is stamped onto the regular sample by manipulateSampleForSsai")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart()
+      'bs:disable-next-line
+      sendAnalyticsRequestAndClearValues(false)
+
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.adPodPosition, 0)
+    end function
+
+    @it("resets to 0 after adBreakEnd while adIndex keeps incrementing across breaks")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart()
+      'bs:disable-next-line
+      manipulateSampleForSsai()
+      'bs:disable-next-line
+      adBreakEnd()
+
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "midroll" })
+      'bs:disable-next-line
+      adStart()
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.adPodPosition, 0)
+      m.assertTrue(sample.adIndex > 0)
+    end function
+
+    @it("stays stable on quartile and error samples even after a regular heartbeat tick already occurred for this ad")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart()
+
+      'bs:disable-next-line
+      startedSample = getSsaiAdSample()
+
+      ' Simulate a regular playback heartbeat tick firing mid-ad, before any quartile/error -
+      ' this used to advance the counters, causing later samples for this same ad to report
+      ' the next ad's value instead of their own.
+      'bs:disable-next-line
+      manipulateSampleForSsai()
+
+      'bs:disable-next-line
+      quartileSample = adQuartileFinished("first")
+
+      m.assertEqual(quartileSample.adPodPosition, startedSample.adPodPosition)
+      m.assertEqual(quartileSample.adIndex, startedSample.adIndex)
+    end function
+
     @describe("ssaiOnSourceChange")
 
     @it("does not crash when called before SSAI service is initialised")
