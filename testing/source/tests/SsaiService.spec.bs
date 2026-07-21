@@ -398,7 +398,7 @@ namespace tests
       m.assertEqual(sample.adPodPosition, 1)
     end function
 
-    @it("is stamped onto the regular sample by manipulateSampleForSsai")
+    @it("is not stamped onto the regular sample by manipulateSampleForSsai, unlike adIndex")
     function _()
       'bs:disable-next-line
       adBreakStart({ adPosition: "preroll" })
@@ -409,7 +409,9 @@ namespace tests
 
       analyticsDataTask = m.top.findNode("analyticsDataTask")
       'bs:disable-next-line
-      m.assertEqual(analyticsDataTask.eventData.requestData.adPodPosition, 0)
+      m.assertInvalid(analyticsDataTask.eventData.requestData.adPodPosition)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.adIndex, 0)
     end function
 
     @it("resets to 0 after adBreakEnd while adIndex keeps incrementing across breaks")
