@@ -5,6 +5,7 @@ sub init()
   m.collectorStates = getCollectorStates()
   m.videoStartFailedEvents = getVideoStartFailedEvents()
   m.errorSeverities = getErrorSeverities()
+  m.supportedSsaiIntegrations = getSupportedSsaiIntegrations()
   m.appInfo = CreateObject("roAppInfo")
   m.deviceInfo = CreateObject("roDeviceInfo")
   m.videoNode = invalid
@@ -22,6 +23,7 @@ sub initializePlayer(player)
 
   m.playerStateTimer = CreateObject("roTimespan")
   m.videoNode = m.player.callFunc("getVideoNode")
+  m.isLegacyStartupMeasurement = not isTheoVersionAtLeast(11, 4)
 
   resetCollectorState()
 
@@ -70,6 +72,20 @@ end sub
 
 function getPlayerVersion()
   return "theoplayer-" + m.player.version
+end function
+
+function isTheoVersionAtLeast(major as integer, minor as integer) as boolean
+  if m.player = invalid or m.player.version = invalid then return false
+
+  versionParts = m.player.version.split(".")
+  if versionParts.Count() < 2 then return false
+
+  majorVersion = Val(versionParts[0])
+  minorVersion = Val(versionParts[1])
+
+  if majorVersion > major then return true
+  if majorVersion = major and minorVersion >= minor then return true
+  return false
 end function
 
 function setAnalyticsConfig(config)
@@ -313,11 +329,14 @@ sub setUpObservers()
   m.player.callFunc("addEventListener", m.player.Event.playing, m.top, "onPlaying")
   m.player.callFunc("addEventListener", m.player.Event.pause, m.top, "onPause")
   m.player.callFunc("addEventListener", m.player.Event.sourcechange, m.top, "onSourceChange")
-  m.player.callFunc("addEventListener", m.player.Event.canplay, m.top, "onCanPlay")
   m.player.callFunc("addEventListener", m.player.Event.destroy, m.top, "onDestroy")
   m.player.callFunc("addEventListener", m.player.Event.seeking, m.top, "onSeeking")
   m.player.callFunc("addEventListener", m.player.Event.timeupdate, m.top, "onTimeUpdate")
   m.player.callFunc("addEventListener", m.player.Event.error, m.top, "onError")
+
+  if m.isLegacyStartupMeasurement and m.player.Event.canplay <> invalid
+    m.player.callFunc("addEventListener", m.player.Event.canplay, m.top, "onCanPlay")
+  end if
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 
@@ -343,11 +362,14 @@ sub unobserveFields(isDestroy = false)
     m.player.callFunc("removeEventListener", m.player.Event.playing, m.top, "onPlaying")
     m.player.callFunc("removeEventListener", m.player.Event.pause, m.top, "onPause")
     m.player.callFunc("removeEventListener", m.player.Event.sourcechange, m.top, "onSourceChange")
-    m.player.callFunc("removeEventListener", m.player.Event.canplay, m.top, "onCanPlay")
     m.player.callFunc("removeEventListener", m.player.Event.destroy, m.top, "onDestroy")
     m.player.callFunc("removeEventListener", m.player.Event.seeking, m.top, "onSeeking")
     m.player.callFunc("removeEventListener", m.player.Event.timeupdate, m.top, "onTimeUpdate")
     m.player.callFunc("removeEventListener", m.player.Event.error, m.top, "onError")
+
+    if m.isLegacyStartupMeasurement and m.player.Event.canplay <> invalid
+      m.player.callFunc("removeEventListener", m.player.Event.canplay, m.top, "onCanPlay")
+    end if
 
     if m.player.Event.activequalitychanged <> invalid then
       m.player.callFunc("removeEventListener", m.player.Event.activequalitychanged, m.top, "onActiveQualityChanged")
@@ -465,6 +487,7 @@ function shouldMeasureVideoStartup()
   return m.player.autoplay <> true and m.currentState = m.collectorStates.SETUP and m.videoStartupTimer = invalid
 end function
 
+' Only registered for THEOplayer < 11.4.0; in 11.4.0+ canplay fires before the user presses play.
 sub onCanPlay(eventData = invalid)
   if shouldMeasureVideoStartup()
     startVideoStartUpTimer()
@@ -740,6 +763,7 @@ sub resetCollectorState()
   m.seekStartPosition = invalid
   m.currentTimeAtPauseStart = invalid
   m.lastKnownCurrentTime = 0
+  m.isCurrentAdBreakSsai = false
 end sub
 
 sub onVideoNodeStateChanged()
@@ -789,55 +813,118 @@ end sub
 sub onAdBreakBegin(eventData = invalid)
   adBreak = invalid
   if eventData <> invalid then adBreak = eventData.adBreak
-  print m.tag; "onAdBreakBegin: timeOffset="; adBreak?.timeOffset; " maxDuration="; adBreak?.maxDuration
-  updateSample({ videoBitrate: invalid })
-  m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
+  print m.tag; "onAdBreakBegin: timeOffset="; adBreak?.timeOffset; " integration="; adBreak?.integration
+
+  m.isCurrentAdBreakSsai = isSsaiAdBreak(adBreak)
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adBreakStart({ adPosition: mapTimeOffsetToAdPosition(adBreak?.timeOffset) })
+  else
+    updateSample({ videoBitrate: invalid })
+    m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
+  end if
 end sub
 
 sub onAdBegin(eventData = invalid)
   ad = invalid
   if eventData <> invalid then ad = eventData.ad
   print m.tag; "onAdBegin: id="; ad?.id; " duration="; ad?.duration
-  m.collectorCore.callFunc("csaiOnAdBegin", ad)
-  onPlayerStateChanged(m.collectorStates.AD)
+
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adStart(invalid)
+  else
+    m.collectorCore.callFunc("csaiOnAdBegin", ad)
+    onPlayerStateChanged(m.collectorStates.AD)
+  end if
 end sub
 
 sub onAdEnd(eventData = invalid)
   ad = invalid
   if eventData <> invalid then ad = eventData.ad
   print m.tag; "onAdEnd: id="; ad?.id
-  m.collectorCore.callFunc("csaiOnAdEnd", ad)
+
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adQuartileFinished("completed")
+  else
+    m.collectorCore.callFunc("csaiOnAdEnd", ad)
+  end if
 end sub
 
 sub onAdBreakEnd(eventData = invalid)
   print m.tag; "onAdBreakEnd"
-  m.collectorCore.callFunc("csaiOnAdBreakEnd")
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adBreakEnd()
+  else
+    m.collectorCore.callFunc("csaiOnAdBreakEnd")
+  end if
+  m.isCurrentAdBreakSsai = false
 end sub
 
 sub onAdFirstQuartile(eventData = invalid)
   print m.tag; "onAdFirstQuartile"
-  m.collectorCore.callFunc("csaiOnAdFirstQuartile")
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adQuartileFinished("first")
+  else
+    m.collectorCore.callFunc("csaiOnAdFirstQuartile")
+  end if
 end sub
 
 sub onAdMidpoint(eventData = invalid)
   print m.tag; "onAdMidpoint"
-  m.collectorCore.callFunc("csaiOnAdMidpoint")
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adQuartileFinished("midpoint")
+  else
+    m.collectorCore.callFunc("csaiOnAdMidpoint")
+  end if
 end sub
 
 sub onAdThirdQuartile(eventData = invalid)
   print m.tag; "onAdThirdQuartile"
-  m.collectorCore.callFunc("csaiOnAdThirdQuartile")
+  if m.isCurrentAdBreakSsai
+    'bs:disable-next-line
+    adQuartileFinished("third")
+  else
+    m.collectorCore.callFunc("csaiOnAdThirdQuartile")
+  end if
 end sub
 
 sub onAdError(eventData = invalid)
   errorCode = invalid
   errorMessage = invalid
   if eventData <> invalid
-    if eventData.errcode <> invalid then errorCode = Val(eventData.errcode)
+    if eventData.errcode <> invalid then errorCode = CInt(Val(eventData.errcode))
     if eventData.errmsg <> invalid then errorMessage = eventData.errmsg
   end if
-  m.collectorCore.callFunc("csaiOnAdError", { errorCode: errorCode, errorMessage: errorMessage })
+  errorSample = { errorCode: errorCode, errorMessage: errorMessage }
+  if m.isCurrentAdBreakSsai
+    m.collectorCore.callFunc("onError", errorSample)
+  else
+    m.collectorCore.callFunc("csaiOnAdError", errorSample)
+  end if
 end sub
+
+' Allow-list of SSAI integrations we've smoke-tested / explicitly support. Anything else,
+' including a missing/unknown `integration`, fails closed to the legacy CSAI path instead of
+' silently opting an untested integration into SSAI tracking.
+function isSsaiAdBreak(adBreak)
+  if adBreak = invalid or adBreak.integration = invalid then return false
+  normalized = LCase(adBreak.integration)
+  for each supportedIntegration in m.supportedSsaiIntegrations
+    if supportedIntegration = normalized then return true
+  end for
+  return false
+end function
+
+function mapTimeOffsetToAdPosition(timeOffset)
+  if timeOffset = 0 then return "preroll"
+  if timeOffset = -1 then return "postroll"
+  return "midroll"
+end function
 
 ' ====== SSAI related ad callbacks ======
 

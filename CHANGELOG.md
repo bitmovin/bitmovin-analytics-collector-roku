@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- distinguishing between SSAI and CSAI ad events for THEOplayer
+
+## v2.21.0
+
+### Added
+- support for new startup event order in THEOplayer `11.4.0`
+
 ## v2.20.0
 
 ### Added
