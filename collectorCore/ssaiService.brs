@@ -38,7 +38,6 @@ sub resetSsaiHelpers()
 
   resetAdValues = {
     adIndex: invalid
-    adPodPosition: invalid
     adId: invalid
     adSystem: invalid
     adPosition: invalid
@@ -209,10 +208,9 @@ sub manipulateSampleForSsai()
 
   if m.isFirstSampleOfAd
     sampleUpdate.adIndex = m.adIndex
-    sampleUpdate.adPodPosition = m.ssaiAdPodPosition
     m.isFirstSampleOfAd = false
   else
-    updateSample({adIndex: invalid, adPodPosition: invalid})
+    updateSample({adIndex: invalid})
   end if
 
   customData = m.adCustomData
