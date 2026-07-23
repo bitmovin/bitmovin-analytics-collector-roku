@@ -937,6 +937,7 @@ function coerceToBoolean(value)
   if value = invalid then return invalid
   valueType = type(value)
   if valueType = "roBoolean" or valueType = "Boolean" then return value
+  if valueType <> "roString" and valueType <> "String" then return false
   return LCase(value.ToStr()) = "true"
 end function
 
