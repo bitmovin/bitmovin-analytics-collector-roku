@@ -56,6 +56,15 @@ function getSsaiAdSample()
 
   adSample.adType = m.AD_TYPE.SSAI
 
+  if m.currentAdMetadata <> invalid
+    adSample.creativeId = m.currentAdMetadata.creativeId
+    adSample.creativeAdId = m.currentAdMetadata.creativeAdId
+    adSample.advertiserName = m.currentAdMetadata.advertiserName
+    adSample.title = m.currentAdMetadata.title
+    adSample.universalAdIdValue = m.currentAdMetadata.universalAdIdValue
+    adSample.universalAdIdRegistry = m.currentAdMetadata.universalAdIdRegistry
+  end if
+
   if m.lastAdStartTimer = invalid
     adSample.timeSinceAdStartedInMs = m.AD_TIMER_INIT_VALUE
   else
