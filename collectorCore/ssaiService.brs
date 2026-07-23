@@ -207,12 +207,12 @@ sub manipulateSampleForSsai()
     sampleUpdate.adId = m.currentAdMetadata.adId
     sampleUpdate.adSystem = m.currentAdMetadata.adSystem
     sampleUpdate.adPosition = m.currentAdMetadata.adPosition
-    if m.currentAdMetadata.creativeId <> invalid then sampleUpdate.creativeId = m.currentAdMetadata.creativeId
-    if m.currentAdMetadata.creativeAdId <> invalid then sampleUpdate.creativeAdId = m.currentAdMetadata.creativeAdId
-    if m.currentAdMetadata.advertiserName <> invalid then sampleUpdate.advertiserName = m.currentAdMetadata.advertiserName
-    if m.currentAdMetadata.title <> invalid then sampleUpdate.title = m.currentAdMetadata.title
-    if m.currentAdMetadata.universalAdIdValue <> invalid then sampleUpdate.universalAdIdValue = m.currentAdMetadata.universalAdIdValue
-    if m.currentAdMetadata.universalAdIdRegistry <> invalid then sampleUpdate.universalAdIdRegistry = m.currentAdMetadata.universalAdIdRegistry
+    sampleUpdate.creativeId = m.currentAdMetadata.creativeId
+    sampleUpdate.creativeAdId = m.currentAdMetadata.creativeAdId
+    sampleUpdate.advertiserName = m.currentAdMetadata.advertiserName
+    sampleUpdate.title = m.currentAdMetadata.title
+    sampleUpdate.universalAdIdValue = m.currentAdMetadata.universalAdIdValue
+    sampleUpdate.universalAdIdRegistry = m.currentAdMetadata.universalAdIdRegistry
   end if
 
   if m.isFirstSampleOfAd
