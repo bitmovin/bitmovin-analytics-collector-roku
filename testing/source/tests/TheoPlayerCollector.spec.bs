@@ -4665,6 +4665,14 @@ namespace tests
       m.assertEqual(coerceToBoolean(value), expected)
     end function
 
+    @it("defaults to false instead of crashing when value is a non-scalar type")
+    function _()
+      'bs:disable-next-line
+      m.assertFalse(coerceToBoolean({ value: true }))
+      'bs:disable-next-line
+      m.assertFalse(coerceToBoolean([true]))
+    end function
+
     @it("onAdBegin passes ad metadata to adStart during SSAI break")
     function _()
       testContext = { capturedAdMetadata: invalid }
