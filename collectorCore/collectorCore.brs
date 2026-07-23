@@ -133,6 +133,7 @@ function getBaseAdSample()
     analyticsVersion: getVersion(),
     adImpressionId: m.sample.adImpressionId,
     adIndex: m.adIndex,
+    adPodPosition: -1,
     videoId: m.sample.videoId,
     videoTitle: m.sample.videoTitle,
     userId: m.sample.userId,
