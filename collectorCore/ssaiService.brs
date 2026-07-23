@@ -3,7 +3,8 @@ sub setupSsaiService()
   m.AD_TYPE = getAdTypes()
   m.AD_QUARTILES = getAdQuartileTypes()
   m.AD_TIMER_INIT_VALUE = -1
-  m.adIndex = 0
+  m.adIndex = -1
+  m.ssaiAdPodPosition = -1
   resetSsaiHelpers()
 end sub
 
@@ -32,6 +33,7 @@ sub resetSsaiHelpers()
   m.ssaiExpectedSlates = invalid
   m.completedPaidAds = invalid
   m.completedSlates = invalid
+  m.ssaiAdPodPosition = -1
   resetSsaiAdState()
 
   resetAdValues = {
@@ -55,6 +57,7 @@ function getSsaiAdSample()
   adSample = getBaseAdSample()
 
   adSample.adType = m.AD_TYPE.SSAI
+  adSample.adPodPosition = m.ssaiAdPodPosition
 
   if m.lastAdStartTimer = invalid
     adSample.timeSinceAdStartedInMs = m.AD_TIMER_INIT_VALUE
@@ -120,6 +123,9 @@ sub adStart(adMetadata = invalid)
   m.lastAdStartTimer = CreateObject("roTimespan")
   resetReportedQuartiles()
   m.hasErrorBeenReportedForCurrentAd = false
+
+  m.adIndex++
+  m.ssaiAdPodPosition++
 
   resetSsaiAdState()
 
@@ -203,7 +209,6 @@ sub manipulateSampleForSsai()
   if m.isFirstSampleOfAd
     sampleUpdate.adIndex = m.adIndex
     m.isFirstSampleOfAd = false
-    m.adIndex++
   else
     updateSample({adIndex: invalid})
   end if
