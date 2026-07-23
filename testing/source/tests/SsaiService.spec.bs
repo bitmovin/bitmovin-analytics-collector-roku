@@ -365,6 +365,26 @@ namespace tests
       m.assertEqual(sample.isSlate, false)
     end function
 
+    @describe("manipulateSampleForSsai")
+
+    @it("does not leak extended ad metadata from a previous ad in the same pod")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+
+      'bs:disable-next-line
+      adStart({ creativeId: "A" })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      'bs:disable-next-line
+      adStart({})
+      'bs:disable-next-line
+      manipulateSampleForSsai()
+
+      m.assertInvalid(m.node.sample.creativeId)
+    end function
+
     @describe("adPodPosition")
 
     @it("is 0 for the first ad in a break")
