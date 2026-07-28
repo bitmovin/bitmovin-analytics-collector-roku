@@ -609,9 +609,9 @@ namespace tests
       m.assertInvalid(result)
     end function
 
-    @describe("ssaiEngagementTrackingEnabled")
+    @describe("ssaiEngagementTrackingEnabled (deprecated)")
 
-    @it("defaults to true and sends the AD_ENGAGEMENT sample on adStart when not explicitly configured")
+    @it("sends the AD_ENGAGEMENT sample on adStart when not explicitly configured")
     function _()
       'bs:disable-next-line
       updateAnalyticsConfig({ title: "test" })
@@ -625,30 +625,37 @@ namespace tests
       m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
     end function
 
-    @it("applies override and does not send engagement samples if explicitly configured")
+    @it("is ignored - still sends engagement samples on adStart, adQuartileFinished, onError and adBreakEnd even when explicitly disabled")
     function _()
       'bs:disable-next-line
       updateAnalyticsConfig({ title: "test", ssaiEngagementTrackingEnabled: false })
       analyticsDataTask = m.top.findNode("analyticsDataTask")
-      analyticsDataTask.eventData = invalid
 
       'bs:disable-next-line
       adBreakStart({ adPosition: "preroll" })
+      analyticsDataTask.eventData = invalid
       'bs:disable-next-line
       adStart()
-      m.assertInvalid(analyticsDataTask.eventData)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
 
+      analyticsDataTask.eventData = invalid
       'bs:disable-next-line
       adQuartileFinished("first")
-      m.assertInvalid(analyticsDataTask.eventData)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
 
+      analyticsDataTask.eventData = invalid
       'bs:disable-next-line
       onError({ errorCode: 100, errorMessage: "test error" })
-      m.assertInvalid(analyticsDataTask.eventData)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
 
+      analyticsDataTask.eventData = invalid
       'bs:disable-next-line
       adBreakEnd()
-      m.assertInvalid(analyticsDataTask.eventData)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
     end function
 
     ' UTILITY FUNCTIONS
