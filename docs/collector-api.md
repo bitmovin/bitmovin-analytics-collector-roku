@@ -33,7 +33,7 @@ Configuration object accepted by `initializeAnalytics`, `setAnalyticsConfig`, an
 | `experimentName` | String | Arbitrary experiment name. |
 | `isLive` | Boolean | Set to `true` for live streams. Defaults to `false`. |
 | `customData1`–`customData100` | String | Free-form custom dimensions. |
-| `ssaiEngagementTrackingEnabled` | Boolean | Enables sending SSAI ad engagement samples (started, quartiles). Defaults to `false`. |
+| `ssaiEngagementTrackingEnabled` | Boolean | Enables sending SSAI ad engagement samples (started, quartiles). Defaults to `true`. |
 
 ---
 
