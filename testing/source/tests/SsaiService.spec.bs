@@ -609,6 +609,48 @@ namespace tests
       m.assertInvalid(result)
     end function
 
+    @describe("ssaiEngagementTrackingEnabled")
+
+    @it("defaults to true and sends the AD_ENGAGEMENT sample on adStart when not explicitly configured")
+    function _()
+      'bs:disable-next-line
+      updateAnalyticsConfig({ title: "test" })
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart()
+
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+    end function
+
+    @it("applies override and does not send engagement samples if explicitly configured")
+    function _()
+      'bs:disable-next-line
+      updateAnalyticsConfig({ title: "test", ssaiEngagementTrackingEnabled: false })
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+      analyticsDataTask.eventData = invalid
+
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart()
+      m.assertInvalid(analyticsDataTask.eventData)
+
+      'bs:disable-next-line
+      adQuartileFinished("first")
+      m.assertInvalid(analyticsDataTask.eventData)
+
+      'bs:disable-next-line
+      onError({ errorCode: 100, errorMessage: "test error" })
+      m.assertInvalid(analyticsDataTask.eventData)
+
+      'bs:disable-next-line
+      adBreakEnd()
+      m.assertInvalid(analyticsDataTask.eventData)
+    end function
+
     ' UTILITY FUNCTIONS
     function enterFakeSsaiAd()
       'bs:disable-next-line
