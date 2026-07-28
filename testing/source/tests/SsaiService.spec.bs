@@ -624,6 +624,8 @@ namespace tests
       m.assertNotInvalid(analyticsDataTask.eventData)
       'bs:disable-next-line
       m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.started, 1)
     end function
 
     @it("is ignored - still sends engagement samples on adStart, adQuartileFinished, onError and adBreakEnd even when explicitly disabled")
@@ -640,6 +642,8 @@ namespace tests
       m.assertNotInvalid(analyticsDataTask.eventData)
       'bs:disable-next-line
       m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.started, 1)
 
       analyticsDataTask.eventData = invalid
       'bs:disable-next-line
@@ -647,6 +651,8 @@ namespace tests
       m.assertNotInvalid(analyticsDataTask.eventData)
       'bs:disable-next-line
       m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.quartile1, 1)
 
       analyticsDataTask.eventData = invalid
       'bs:disable-next-line
@@ -654,6 +660,8 @@ namespace tests
       m.assertNotInvalid(analyticsDataTask.eventData)
       'bs:disable-next-line
       m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.errorCode, 100)
 
       analyticsDataTask.eventData = invalid
       'bs:disable-next-line
@@ -661,6 +669,8 @@ namespace tests
       m.assertNotInvalid(analyticsDataTask.eventData)
       'bs:disable-next-line
       m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.exitedAdBreak, true)
     end function
 
     ' UTILITY FUNCTIONS
