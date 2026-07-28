@@ -818,7 +818,7 @@ sub onAdBreakBegin(eventData = invalid)
   m.isCurrentAdBreakSsai = isSsaiAdBreak(adBreak)
   if m.isCurrentAdBreakSsai
     'bs:disable-next-line
-    adBreakStart({ adPosition: mapTimeOffsetToAdPosition(adBreak?.timeOffset) })
+    adBreakStart(buildSsaiAdBreakMetadata(adBreak))
   else
     updateSample({ videoBitrate: invalid })
     m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
@@ -832,7 +832,7 @@ sub onAdBegin(eventData = invalid)
 
   if m.isCurrentAdBreakSsai
     'bs:disable-next-line
-    adStart(invalid)
+    adStart(buildSsaiAdMetadata(ad))
   else
     m.collectorCore.callFunc("csaiOnAdBegin", ad)
     onPlayerStateChanged(m.collectorStates.AD)
@@ -924,6 +924,44 @@ function mapTimeOffsetToAdPosition(timeOffset)
   if timeOffset = 0 then return "preroll"
   if timeOffset = -1 then return "postroll"
   return "midroll"
+end function
+
+function buildSsaiAdBreakMetadata(adBreak)
+  if adBreak = invalid then return invalid
+  return {
+    adPosition: mapTimeOffsetToAdPosition(adBreak.timeOffset)
+  }
+end function
+
+function coerceToBoolean(value)
+  if value = invalid then return invalid
+  valueType = type(value)
+  if valueType = "roBoolean" or valueType = "Boolean" then return value
+  if valueType <> "roString" and valueType <> "String" then return false
+  return LCase(value.ToStr()) = "true"
+end function
+
+function buildSsaiAdMetadata(ad)
+  if ad = invalid then return {}
+  metadata = {}
+  if ad.id <> invalid then metadata.adId = ad.id
+  if ad.adSystem <> invalid then metadata.adSystem = ad.adSystem
+  if ad.duration <> invalid then metadata.duration = ad.duration
+  if ad.creativeId <> invalid then metadata.creativeId = ad.creativeId
+
+  customData = ad.customData
+  if customData <> invalid
+    if metadata.creativeId = invalid and customData.creativeId <> invalid then metadata.creativeId = customData.creativeId
+    if customData.creativeAdId <> invalid then metadata.creativeAdId = customData.creativeAdId
+    if customData.advertiserName <> invalid then metadata.advertiserName = customData.advertiserName
+    if customData.title <> invalid then metadata.title = customData.title
+    if customData.universalAdIdValue <> invalid then metadata.universalAdIdValue = customData.universalAdIdValue
+    if customData.universalAdIdRegistry <> invalid then metadata.universalAdIdRegistry = customData.universalAdIdRegistry
+    if customData.isSlate <> invalid then metadata.isSlate = coerceToBoolean(customData.isSlate)
+  end if
+
+  if metadata.isSlate = invalid then metadata.isSlate = false
+  return metadata
 end function
 
 ' ====== SSAI related ad callbacks ======

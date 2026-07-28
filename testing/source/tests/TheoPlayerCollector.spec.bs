@@ -4454,6 +4454,281 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("buildSsaiAdBreakMetadata")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when adBreak is invalid")
+    function _()
+      'bs:disable-next-line
+      result = buildSsaiAdBreakMetadata(invalid)
+
+      m.assertInvalid(result)
+    end function
+
+    @it("maps timeOffset to adPosition")
+    function _()
+      'bs:disable-next-line
+      preroll = buildSsaiAdBreakMetadata({ timeOffset: 0 })
+      'bs:disable-next-line
+      midroll = buildSsaiAdBreakMetadata({ timeOffset: 22.719 })
+      'bs:disable-next-line
+      postroll = buildSsaiAdBreakMetadata({ timeOffset: -1 })
+
+      m.assertEqual(preroll.adPosition, "preroll")
+      m.assertEqual(midroll.adPosition, "midroll")
+      m.assertEqual(postroll.adPosition, "postroll")
+    end function
+
+    @it("does not include expectedPaidAds - no known mediakind customData field for it")
+    function _()
+      adBreak = { timeOffset: 22.719, customData: { totalads: 3 } }
+
+      'bs:disable-next-line
+      result = buildSsaiAdBreakMetadata(adBreak)
+
+      m.assertFalse(result.DoesExist("expectedPaidAds"))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("buildSsaiAdMetadata")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns empty object when ad is invalid")
+    function _()
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(invalid)
+
+      m.assertEqual(result.Count(), 0)
+    end function
+
+    @it("extracts adId, adSystem, duration and sets isSlate=false")
+    function _()
+      ad = {
+        id: "ad-123"
+        adSystem: "GDFP"
+        duration: 30
+        customData: { adtitle: "Test Ad" }
+      }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.adId, "ad-123")
+      m.assertEqual(result.adSystem, "GDFP")
+      m.assertEqual(result.duration, 30)
+      m.assertFalse(result.isSlate)
+    end function
+
+    @it("does not map ad.customData - different shape than customData1..100")
+    function _()
+      ad = { id: "ad-123", customData: { adtitle: "Test Ad" } }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertFalse(result.DoesExist("customData"))
+    end function
+
+    @it("handles ad with only some fields present")
+    function _()
+      ad = { id: "ad-456" }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.adId, "ad-456")
+      m.assertFalse(result.DoesExist("adSystem"))
+      m.assertFalse(result.DoesExist("duration"))
+      m.assertFalse(result.DoesExist("customData"))
+      m.assertFalse(result.isSlate)
+    end function
+
+    @it("prefers the top-level ad.creativeId field when present")
+    function _()
+      ad = { id: "ad-123", creativeId: "creative-456", customData: { creativeId: "creative-789" } }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.creativeId, "creative-456")
+    end function
+
+    @it("falls back to customData.creativeId when the top-level field is absent")
+    function _()
+      ad = { id: "ad-123", customData: { creativeId: "creative-789" } }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.creativeId, "creative-789")
+    end function
+
+    @it("extracts mediakind-style fields from ad.customData when present, regardless of ad.integration")
+    function _()
+      ad = {
+        id: "ad-123"
+        integration: "google-dai"
+        customData: {
+          creativeAdId: "creative-ad-1"
+          advertiserName: "Acme Corp"
+          title: "Acme Summer Sale"
+          universalAdIdValue: "8465"
+          universalAdIdRegistry: "ad-id.org"
+        }
+      }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.creativeAdId, "creative-ad-1")
+      m.assertEqual(result.advertiserName, "Acme Corp")
+      m.assertEqual(result.title, "Acme Summer Sale")
+      m.assertEqual(result.universalAdIdValue, "8465")
+      m.assertEqual(result.universalAdIdRegistry, "ad-id.org")
+    end function
+
+    @it("does not set customData-sourced fields when absent from ad.customData")
+    function _()
+      ad = { id: "ad-123", customData: {} }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertFalse(result.DoesExist("creativeAdId"))
+      m.assertFalse(result.DoesExist("advertiserName"))
+      m.assertFalse(result.DoesExist("title"))
+      m.assertFalse(result.DoesExist("universalAdIdValue"))
+      m.assertFalse(result.DoesExist("universalAdIdRegistry"))
+    end function
+
+    @it("passes through a native boolean isSlate from customData")
+    @params(true)
+    @params(false)
+    function _(isSlate)
+      ad = { id: "ad-123", customData: { isSlate: isSlate } }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.isSlate, isSlate)
+    end function
+
+    @it("coerces a string isSlate from customData to a real boolean")
+    @params("true", true)
+    @params("false", false)
+    @params("TRUE", true)
+    function _(rawValue, expected)
+      ad = { id: "ad-123", customData: { isSlate: rawValue } }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertEqual(result.isSlate, expected)
+    end function
+
+    @it("defaults isSlate to false when customData.isSlate is absent")
+    function _()
+      ad = { id: "ad-123", customData: {} }
+
+      'bs:disable-next-line
+      result = buildSsaiAdMetadata(ad)
+
+      m.assertFalse(result.isSlate)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("coerceToBoolean")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid when value is invalid")
+    function _()
+      'bs:disable-next-line
+      m.assertInvalid(coerceToBoolean(invalid))
+    end function
+
+    @it("returns native booleans unchanged")
+    @params(true)
+    @params(false)
+    function _(value)
+      'bs:disable-next-line
+      m.assertEqual(coerceToBoolean(value), value)
+    end function
+
+    @it("coerces case-insensitive string values")
+    @params("true", true)
+    @params("True", true)
+    @params("false", false)
+    @params("nonsense", false)
+    function _(value, expected)
+      'bs:disable-next-line
+      m.assertEqual(coerceToBoolean(value), expected)
+    end function
+
+    @it("defaults to false instead of crashing when value is a non-scalar type")
+    function _()
+      'bs:disable-next-line
+      m.assertFalse(coerceToBoolean({ value: true }))
+      'bs:disable-next-line
+      m.assertFalse(coerceToBoolean([true]))
+    end function
+
+    @it("onAdBegin passes ad metadata to adStart during SSAI break")
+    function _()
+      testContext = { capturedAdMetadata: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          if funcName = "adStart" then m.testContext.capturedAdMetadata = arg1
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = true
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      'bs:disable-next-line
+      onAdBegin({ ad: { id: "ad-789", adSystem: "GDFP", duration: 15 } })
+
+      m.assertNotInvalid(testContext.capturedAdMetadata)
+      m.assertEqual(testContext.capturedAdMetadata.adId, "ad-789")
+      m.assertEqual(testContext.capturedAdMetadata.adSystem, "GDFP")
+      m.assertEqual(testContext.capturedAdMetadata.duration, 15)
+      m.assertFalse(testContext.capturedAdMetadata.isSlate)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("onAdBreakBegin passes adPosition to adBreakStart, without inferring expectedPaidAds from customData")
+    function _()
+      testContext = { capturedAdBreakMetadata: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          if funcName = "adBreakStart" then m.testContext.capturedAdBreakMetadata = arg1
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { integration: "google-dai", timeOffset: 22.719, customData: { totalads: 3 } } })
+
+      m.assertNotInvalid(testContext.capturedAdBreakMetadata)
+      m.assertEqual(testContext.capturedAdBreakMetadata.adPosition, "midroll")
+      m.assertFalse(testContext.capturedAdBreakMetadata.DoesExist("expectedPaidAds"))
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
   end class
 
 end namespace
