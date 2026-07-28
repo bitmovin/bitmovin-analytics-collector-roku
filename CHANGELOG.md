@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - distinguishing between SSAI and CSAI ad events for THEOplayer
 - extended SSAI ad metadata for THEOplayer (creativeId, creativeAdId, advertiserName, title, universalAdIdValue, universalAdIdRegistry, isSlate), extracted from `ad.customData` where not exposed as a top-level field
 
+### Changed
+- `ssaiEngagementTrackingEnabled` default value to `true`
+
 ### Fixed
 - missing `adPodPosition` for SSAI
 
