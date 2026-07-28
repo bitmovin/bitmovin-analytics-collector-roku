@@ -170,24 +170,18 @@ sub adStart(adMetadata = invalid)
     end if
   end if
 
-  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
-  if adEngagementEnabled <> invalid and adEngagementEnabled = true
-    adStartedEngagementSample = getSsaiAdSample()
-    adStartedEngagementSample.append({ started: 1 })
-    sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
-  end if
+  adStartedEngagementSample = getSsaiAdSample()
+  adStartedEngagementSample.append({ started: 1 })
+  sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 end sub
 
 sub adBreakEnd()
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
   if m.ssaiState = m.SSAI_STATES.ACTIVE
-    adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
-    if adEngagementEnabled <> invalid and adEngagementEnabled = true
-      exitSample = getSsaiAdSample()
-      exitSample.exitedAdBreak = true
-      sendAnalyticsSampleOnce(exitSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
-    end if
+    exitSample = getSsaiAdSample()
+    exitSample.exitedAdBreak = true
+    sendAnalyticsSampleOnce(exitSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 
     m.top.fireHeartbeat = true
     updateSample(m.analyticsConfig)
@@ -283,10 +277,7 @@ function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   adSample.append(quartileFlag)
   adSample.append(failedBeaconFlag)
 
-  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
-  if adEngagementEnabled <> invalid and adEngagementEnabled = true
-    sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
-  end if
+  sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 
   markQuartileAsReported(adQuartile)
 
@@ -315,10 +306,7 @@ function onError(errorSample) as object
   adSample.errorMessage = errorSample.errorMessage
   adSample.errorSeverity = errorSample.errorSeverity
 
-  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
-  if adEngagementEnabled <> invalid and adEngagementEnabled = true
-    sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
-  end if
+  sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 
   m.hasErrorBeenReportedForCurrentAd = true
 

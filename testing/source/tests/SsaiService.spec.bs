@@ -609,6 +609,70 @@ namespace tests
       m.assertInvalid(result)
     end function
 
+    @describe("ssaiEngagementTrackingEnabled (deprecated)")
+
+    @it("sends the AD_ENGAGEMENT sample on adStart when not explicitly configured")
+    function _()
+      'bs:disable-next-line
+      updateAnalyticsConfig({ title: "test" })
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart()
+
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+      m.assertNotInvalid(analyticsDataTask.eventData)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.started, 1)
+    end function
+
+    @it("is ignored - still sends engagement samples on adStart, adQuartileFinished, onError and adBreakEnd even when explicitly disabled")
+    function _()
+      'bs:disable-next-line
+      updateAnalyticsConfig({ title: "test", ssaiEngagementTrackingEnabled: false })
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      analyticsDataTask.eventData = invalid
+      'bs:disable-next-line
+      adStart()
+      m.assertNotInvalid(analyticsDataTask.eventData)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.started, 1)
+
+      analyticsDataTask.eventData = invalid
+      'bs:disable-next-line
+      adQuartileFinished("first")
+      m.assertNotInvalid(analyticsDataTask.eventData)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.quartile1, 1)
+
+      analyticsDataTask.eventData = invalid
+      'bs:disable-next-line
+      onError({ errorCode: 100, errorMessage: "test error" })
+      m.assertNotInvalid(analyticsDataTask.eventData)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.errorCode, 100)
+
+      analyticsDataTask.eventData = invalid
+      'bs:disable-next-line
+      adBreakEnd()
+      m.assertNotInvalid(analyticsDataTask.eventData)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestType, getAnalyticsRequestTypes().AD_ENGAGEMENT)
+      'bs:disable-next-line
+      m.assertEqual(analyticsDataTask.eventData.requestData.exitedAdBreak, true)
+    end function
+
     ' UTILITY FUNCTIONS
     function enterFakeSsaiAd()
       'bs:disable-next-line
