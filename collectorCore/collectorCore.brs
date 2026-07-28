@@ -350,7 +350,8 @@ function getMetadataFromAnalyticsConfig(config)
   if config = invalid then return {}
 
   metadata = {
-    isLive: false
+    isLive: false,
+    ssaiEngagementTrackingEnabled: true
   }
 
   if config.DoesExist("cdnProvider")
