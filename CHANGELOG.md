@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Fixed
+- ad abandonment tracking issues on unforeseen playback interruptions
+
 ## v2.22.0
 
 ### Added
