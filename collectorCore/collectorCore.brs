@@ -1,5 +1,5 @@
 sub init()
-  m.version = "2.21.0"
+  m.version = "2.22.0"
   m.tag = "Bitmovin Analytics Collector [collectorCore] "
   m.appInfo = CreateObject("roAppInfo")
   m.domain = m.appInfo.GetID() + ".roku"
@@ -139,6 +139,7 @@ function getBaseAdSample()
     analyticsVersion: getVersion(),
     adImpressionId: m.sample.adImpressionId,
     adIndex: m.adIndex,
+    adPodPosition: -1,
     videoId: m.sample.videoId,
     videoTitle: m.sample.videoTitle,
     userId: m.sample.userId,
@@ -388,9 +389,6 @@ function getMetadataFromAnalyticsConfig(config)
   end if
   if config.DoesExist("isLive")
     metadata.isLive = config.isLive
-  end if
-  if config.DoesExist("ssaiEngagementTrackingEnabled")
-    metadata.ssaiEngagementTrackingEnabled = config.ssaiEngagementTrackingEnabled
   end if
   return metadata
 end function

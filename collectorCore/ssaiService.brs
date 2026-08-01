@@ -3,7 +3,8 @@ sub setupSsaiService()
   m.AD_TYPE = getAdTypes()
   m.AD_QUARTILES = getAdQuartileTypes()
   m.AD_TIMER_INIT_VALUE = -1
-  m.adIndex = 0
+  m.adIndex = -1
+  m.ssaiAdPodPosition = -1
   resetSsaiHelpers()
 end sub
 
@@ -32,6 +33,7 @@ sub resetSsaiHelpers()
   m.ssaiExpectedSlates = invalid
   m.completedPaidAds = invalid
   m.completedSlates = invalid
+  m.ssaiAdPodPosition = -1
   resetSsaiAdState()
 
   resetAdValues = {
@@ -40,6 +42,12 @@ sub resetSsaiHelpers()
     adSystem: invalid
     adPosition: invalid
     adImpressionId: invalid
+    creativeId: invalid
+    creativeAdId: invalid
+    advertiserName: invalid
+    title: invalid
+    universalAdIdValue: invalid
+    universalAdIdRegistry: invalid
   }
   resetReportedQuartiles()
   updateSample(resetAdValues)
@@ -49,6 +57,16 @@ function getSsaiAdSample()
   adSample = getBaseAdSample()
 
   adSample.adType = m.AD_TYPE.SSAI
+  adSample.adPodPosition = m.ssaiAdPodPosition
+
+  if m.currentAdMetadata <> invalid
+    adSample.creativeId = m.currentAdMetadata.creativeId
+    adSample.creativeAdId = m.currentAdMetadata.creativeAdId
+    adSample.advertiserName = m.currentAdMetadata.advertiserName
+    adSample.title = m.currentAdMetadata.title
+    adSample.universalAdIdValue = m.currentAdMetadata.universalAdIdValue
+    adSample.universalAdIdRegistry = m.currentAdMetadata.universalAdIdRegistry
+  end if
 
   if m.lastAdStartTimer = invalid
     adSample.timeSinceAdStartedInMs = m.AD_TIMER_INIT_VALUE
@@ -115,6 +133,9 @@ sub adStart(adMetadata = invalid)
   resetReportedQuartiles()
   m.hasErrorBeenReportedForCurrentAd = false
 
+  m.adIndex++
+  m.ssaiAdPodPosition++
+
   resetSsaiAdState()
 
   m.top.fireHeartbeat = true
@@ -135,7 +156,13 @@ sub adStart(adMetadata = invalid)
       adPosition: adPosition,
       adId: adMetadata.adId,
       adSystem: adMetadata.adSystem,
-      customData: m.adCustomData
+      customData: m.adCustomData,
+      creativeId: adMetadata.creativeId,
+      creativeAdId: adMetadata.creativeAdId,
+      advertiserName: adMetadata.advertiserName,
+      title: adMetadata.title,
+      universalAdIdValue: adMetadata.universalAdIdValue,
+      universalAdIdRegistry: adMetadata.universalAdIdRegistry
     }
     m.currentAdIsSlate = adMetadata.isSlate = true
     if adMetadata.duration <> invalid
@@ -143,24 +170,18 @@ sub adStart(adMetadata = invalid)
     end if
   end if
 
-  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
-  if adEngagementEnabled <> invalid and adEngagementEnabled = true
-    adStartedEngagementSample = getSsaiAdSample()
-    adStartedEngagementSample.append({ started: 1 })
-    sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
-  end if
+  adStartedEngagementSample = getSsaiAdSample()
+  adStartedEngagementSample.append({ started: 1 })
+  sendAnalyticsSampleOnce(adStartedEngagementSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 end sub
 
 sub adBreakEnd()
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
   if m.ssaiState = m.SSAI_STATES.ACTIVE
-    adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
-    if adEngagementEnabled <> invalid and adEngagementEnabled = true
-      exitSample = getSsaiAdSample()
-      exitSample.exitedAdBreak = true
-      sendAnalyticsSampleOnce(exitSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
-    end if
+    exitSample = getSsaiAdSample()
+    exitSample.exitedAdBreak = true
+    sendAnalyticsSampleOnce(exitSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 
     m.top.fireHeartbeat = true
     updateSample(m.analyticsConfig)
@@ -180,12 +201,17 @@ sub manipulateSampleForSsai()
     sampleUpdate.adId = m.currentAdMetadata.adId
     sampleUpdate.adSystem = m.currentAdMetadata.adSystem
     sampleUpdate.adPosition = m.currentAdMetadata.adPosition
+    sampleUpdate.creativeId = m.currentAdMetadata.creativeId
+    sampleUpdate.creativeAdId = m.currentAdMetadata.creativeAdId
+    sampleUpdate.advertiserName = m.currentAdMetadata.advertiserName
+    sampleUpdate.title = m.currentAdMetadata.title
+    sampleUpdate.universalAdIdValue = m.currentAdMetadata.universalAdIdValue
+    sampleUpdate.universalAdIdRegistry = m.currentAdMetadata.universalAdIdRegistry
   end if
 
   if m.isFirstSampleOfAd
     sampleUpdate.adIndex = m.adIndex
     m.isFirstSampleOfAd = false
-    m.adIndex++
   else
     updateSample({adIndex: invalid})
   end if
@@ -251,10 +277,7 @@ function adQuartileFinished(adQuartile, adQuartileMetadata = invalid)
   adSample.append(quartileFlag)
   adSample.append(failedBeaconFlag)
 
-  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
-  if adEngagementEnabled <> invalid and adEngagementEnabled = true
-    sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
-  end if
+  sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 
   markQuartileAsReported(adQuartile)
 
@@ -300,10 +323,7 @@ function onError(errorSample) as object
   adSample.errorMessage = errorSample.errorMessage
   adSample.errorSeverity = errorSample.errorSeverity
 
-  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
-  if adEngagementEnabled <> invalid and adEngagementEnabled = true
-    sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
-  end if
+  sendAnalyticsSampleOnce(adSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 
   m.hasErrorBeenReportedForCurrentAd = true
 

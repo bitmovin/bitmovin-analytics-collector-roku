@@ -33,7 +33,7 @@ Configuration object accepted by `initializeAnalytics`, `setAnalyticsConfig`, an
 | `experimentName` | String | Arbitrary experiment name. |
 | `isLive` | Boolean | Set to `true` for live streams. Defaults to `false`. |
 | `customData1`–`customData100` | String | Free-form custom dimensions. |
-| `ssaiEngagementTrackingEnabled` | Boolean | Enables sending SSAI ad engagement samples (started, quartiles). Defaults to `false`. |
+| `ssaiEngagementTrackingEnabled` | Boolean | **Deprecated.** SSAI ad engagement tracking (started, quartiles) is always enabled and this flag is ignored. Kept only so existing integrations passing it don't break. |
 
 ---
 
@@ -147,6 +147,14 @@ m.collector.callFunc("setCustomDataOnce", { customData3: "chapter-intro" })
 
 The SSAI API follows the state machine: **IDLE → AD_BREAK_STARTED → ACTIVE → IDLE**.
 
+> **THEO Player collector:** these functions are invoked automatically — the collector inspects
+> `adBreak.integration` on each ad break and calls them for you when it's one of the
+> auto-detected integrations: **`google-dai`**, **`mediakind`**. Ad breaks from any other (or
+> missing/unrecognized) integration fail closed to legacy CSAI tracking instead, so unverified
+> integrations aren't silently reported as SSAI. Calling these functions manually is only
+> needed for other collectors, or to report an ad break from an integration THEO doesn't
+> auto-detect yet.
+
 ```
 adBreakStart()  →  adStart()  →  adQuartileFinished() (×n)  →  adBreakEnd()
 ```
@@ -180,6 +188,12 @@ Signals the start of an individual ad within the current ad break. Must be calle
 | `adMetadata.customData` | AssociativeArray | No | Custom data fields (`customData1`–`customData100`) scoped to this ad. |
 | `adMetadata.isSlate` | Boolean | No | Whether this ad is a slate/filler ad rather than a paid ad. Used for `completedSlates` vs `completedPaidAds` tracking. |
 | `adMetadata.duration` | Float | No | Declared duration of the ad in seconds. Reported as `adDuration` (milliseconds) in the analytics sample. |
+| `adMetadata.creativeId` | String | No | Identifier of the creative used for this ad. |
+| `adMetadata.creativeAdId` | String | No | Ad ID associated with the creative. |
+| `adMetadata.advertiserName` | String | No | Name of the advertiser. |
+| `adMetadata.title` | String | No | Title of the ad. |
+| `adMetadata.universalAdIdValue` | String | No | Universal Ad ID value (per the IAB Universal Ad ID spec). |
+| `adMetadata.universalAdIdRegistry` | String | No | Registry that issued the Universal Ad ID. |
 
 ```brightscript
 m.collector.callFunc("adStart", {
