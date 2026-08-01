@@ -554,6 +554,40 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onSourceUnloaded")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("closes out any active SSAI ad break so it isn't left open indefinitely")
+    function _()
+      testContext = { adBreakEndCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "adBreakEnd"
+            m.testContext.adBreakEndCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onSourceUnloaded()
+
+      m.assertTrue(testContext.adBreakEndCalled)
+      'bs:disable-next-line
+      m.assertEqual(m.node.videoStartUpTime, -1)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("onVideoDownloadQualityChanged / processQualityChangeEvent")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
