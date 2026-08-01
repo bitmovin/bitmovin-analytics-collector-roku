@@ -158,8 +158,6 @@ namespace tests
       adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
       'bs:disable-next-line
       adStart({ isSlate: false })
-      'bs:disable-next-line
-      m.node.analyticsConfig = { ssaiEngagementTrackingEnabled: true }
 
       mockTask = { finalEventData: invalid }
       'bs:disable-next-line

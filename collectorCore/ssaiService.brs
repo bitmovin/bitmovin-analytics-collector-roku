@@ -289,12 +289,10 @@ function isCurrentSampleSsaiRelated()
 end function
 
 ' Returns a finalEventData-compatible event AA with exitedAdBreak:true when the session is
-' destroyed mid-ad-break and engagement tracking is enabled, or invalid otherwise.
+' destroyed mid-ad-break, or invalid otherwise.
 ' Only fires for ACTIVE state (an ad has actually started); AD_BREAK_STARTED alone has no ad sample.
 function getSsaiBreakExitEventForDestroy()
   if m.ssaiState <> m.SSAI_STATES.ACTIVE then return invalid
-  adEngagementEnabled = m.analyticsConfig.ssaiEngagementTrackingEnabled
-  if adEngagementEnabled = invalid or adEngagementEnabled <> true then return invalid
 
   exitSample = getSsaiAdSample()
   exitSample.exitedAdBreak = true

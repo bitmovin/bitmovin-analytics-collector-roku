@@ -574,12 +574,6 @@ namespace tests
     function _()
       'bs:disable-next-line
       result = getSsaiBreakExitEventForDestroy()
-    @describe("onError")
-
-    @it("returns invalid if no ad is in progress")
-    function _()
-      'bs:disable-next-line
-      result = onError({ errorCode: 100, errorMessage: "test error" })
 
       m.assertInvalid(result)
     end function
@@ -595,26 +589,51 @@ namespace tests
       m.assertInvalid(result)
     end function
 
-    @it("returns invalid when engagement tracking is not enabled")
+    @it("returns AD_ENGAGEMENT event with exitedAdBreak:true when an ad is active")
     function _()
-      m.enterFakeSsaiAd()
       'bs:disable-next-line
-      m.node.analyticsConfig = { ssaiEngagementTrackingEnabled: false }
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
 
       'bs:disable-next-line
       result = getSsaiBreakExitEventForDestroy()
+
+      m.assertNotInvalid(result)
+      m.assertEqual(result.requestType, 1) ' AD_ENGAGEMENT
+      m.assertEqual(result.isSsaiRelated, true)
+      m.assertEqual(result.requestData.exitedAdBreak, true)
+      m.assertEqual(result.requestData.expectedPaidAds, 1)
+    end function
+
+    @it("exit event counters reflect completedPaidAds at time of destroy")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 2 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertEqual(result.requestData.completedPaidAds, 1)
+      m.assertEqual(result.requestData.exitedAdBreak, true)
+    end function
+
+    @describe("onError")
+
+    @it("returns invalid if no ad is in progress")
+    function _()
+      'bs:disable-next-line
+      result = onError({ errorCode: 100, errorMessage: "test error" })
 
       m.assertInvalid(result)
     end function
 
-    @it("returns invalid when ssaiEngagementTrackingEnabled is not set")
-    function _()
-      m.enterFakeSsaiAd()
-      'bs:disable-next-line
-      m.node.analyticsConfig = {}
-
-      'bs:disable-next-line
-      result = getSsaiBreakExitEventForDestroy()
     @it("defaults errorSeverity to CRITICAL when not provided")
     function _()
       m.enterFakeSsaiAd()
@@ -646,43 +665,6 @@ namespace tests
       m.assertInvalid(result)
     end function
 
-    @it("returns AD_ENGAGEMENT event with exitedAdBreak:true when active and tracking enabled")
-    function _()
-      'bs:disable-next-line
-      adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
-      'bs:disable-next-line
-      adStart({ isSlate: false })
-      'bs:disable-next-line
-      m.node.analyticsConfig = { ssaiEngagementTrackingEnabled: true }
-
-      'bs:disable-next-line
-      result = getSsaiBreakExitEventForDestroy()
-
-      m.assertNotInvalid(result)
-      m.assertEqual(result.requestType, 1) ' AD_ENGAGEMENT
-      m.assertEqual(result.isSsaiRelated, true)
-      m.assertEqual(result.requestData.exitedAdBreak, true)
-      m.assertEqual(result.requestData.expectedPaidAds, 1)
-    end function
-
-    @it("exit event counters reflect completedPaidAds at time of destroy")
-    function _()
-      'bs:disable-next-line
-      adBreakStart({ adPosition: "preroll", expectedPaidAds: 2 })
-      'bs:disable-next-line
-      adStart({ isSlate: false })
-      'bs:disable-next-line
-      adQuartileFinished("completed")
-      'bs:disable-next-line
-      adStart({ isSlate: false })
-      'bs:disable-next-line
-      m.node.analyticsConfig = { ssaiEngagementTrackingEnabled: true }
-
-      'bs:disable-next-line
-      result = getSsaiBreakExitEventForDestroy()
-
-      m.assertEqual(result.requestData.completedPaidAds, 1)
-      m.assertEqual(result.requestData.exitedAdBreak, true)
     @describe("ssaiEngagementTrackingEnabled (deprecated)")
 
     @it("sends the AD_ENGAGEMENT sample on adStart when not explicitly configured")
