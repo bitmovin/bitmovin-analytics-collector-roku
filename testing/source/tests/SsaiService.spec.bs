@@ -365,6 +365,38 @@ namespace tests
       m.assertEqual(sample.isSlate, false)
     end function
 
+    @describe("adBreakEnd")
+
+    @it("marks the exit sample closed:1 when the ad break ends before the completed quartile was reported")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      adBreakEnd()
+
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+      m.assertEqual(analyticsDataTask.eventData.requestData.closed, 1)
+    end function
+
+    @it("does not set closed on the exit sample when the completed quartile was already reported")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      'bs:disable-next-line
+      adBreakEnd()
+
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+      m.assertInvalid(analyticsDataTask.eventData.requestData.closed)
+    end function
+
     @describe("manipulateSampleForSsai")
 
     @it("does not leak extended ad metadata from a previous ad in the same pod")
@@ -604,6 +636,22 @@ namespace tests
       m.assertEqual(result.isSsaiRelated, true)
       m.assertEqual(result.requestData.exitedAdBreak, true)
       m.assertEqual(result.requestData.expectedPaidAds, 1)
+      m.assertEqual(result.requestData.closed, 1)
+    end function
+
+    @it("does not set closed when the ad had already reported its completed quartile")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertInvalid(result.requestData.closed)
     end function
 
     @it("exit event counters reflect completedPaidAds at time of destroy")
@@ -622,6 +670,7 @@ namespace tests
 
       m.assertEqual(result.requestData.completedPaidAds, 1)
       m.assertEqual(result.requestData.exitedAdBreak, true)
+      m.assertEqual(result.requestData.closed, 1)
     end function
 
     @describe("onError")

@@ -181,6 +181,9 @@ sub adBreakEnd()
   if m.ssaiState = m.SSAI_STATES.ACTIVE
     exitSample = getSsaiAdSample()
     exitSample.exitedAdBreak = true
+    if not hasQuartileAlreadyBeenReported(m.AD_QUARTILES.COMPLETED)
+      exitSample.closed = 1
+    end if
     sendAnalyticsSampleOnce(exitSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 
     m.top.fireHeartbeat = true
@@ -296,6 +299,9 @@ function getSsaiBreakExitEventForDestroy()
 
   exitSample = getSsaiAdSample()
   exitSample.exitedAdBreak = true
+  if not hasQuartileAlreadyBeenReported(m.AD_QUARTILES.COMPLETED)
+    exitSample.closed = 1
+  end if
   return {
     requestType: m.AnalyticsRequestTypes.AD_ENGAGEMENT
     requestData: exitSample

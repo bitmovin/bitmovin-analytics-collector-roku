@@ -209,7 +209,9 @@ m.collector.callFunc("adStart", {
 
 ### `adBreakEnd()`
 
-Signals the end of the current ad break and resets SSAI state back to IDLE.
+Signals the end of the current ad break and resets SSAI state back to IDLE. The exit sample
+always includes `closed`: `1` if the active ad had not yet reported its `"completed"` quartile
+(ad break abandoned), or `0` if it had.
 
 ```brightscript
 m.collector.callFunc("adBreakEnd", invalid)
