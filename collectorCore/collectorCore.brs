@@ -50,6 +50,8 @@ sub internalDestroy(param = invalid)
   else
     m.AnalyticsDataTask.finalEventData = { events: [finalEvent] }
   end if
+
+  resetSsaiHelpers()
 end sub
 
 ' #region Licensing
