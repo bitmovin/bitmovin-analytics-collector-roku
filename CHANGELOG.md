@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - ad abandonment tracking issues on unforeseen playback interruptions
+- `error` samples sometimes not appearing in the dashboard on failover source loading
 
 ## v2.22.0
 
