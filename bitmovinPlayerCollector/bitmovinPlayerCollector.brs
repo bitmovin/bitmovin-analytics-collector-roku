@@ -132,9 +132,7 @@ sub setUpHelperVariables()
   m.observersTornDown = false
 
   m.sourceLoadGeneration = 0
-  m.pendingErrorGeneration = invalid
-  m.pendingErrorImpressionId = invalid
-  m.pendingErrorSequenceNumber = invalid
+  m.pendingErrorSession = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -410,12 +408,20 @@ sub onError()
     errorSeverity: transformedError.severity
   }
 
-  raced = m.pendingErrorGeneration <> invalid and m.pendingErrorGeneration <> m.sourceLoadGeneration
+  sendErrorSample(transformedErrorSample, duration)
+
+  m.collectorCore.callFunc("onError", transformedErrorSample)
+end sub
+
+sub sendErrorSample(transformedErrorSample, duration)
+  raced = m.pendingErrorSession <> invalid and m.pendingErrorSession.generation <> m.sourceLoadGeneration
 
   if raced
-    currentImpressionId = m.collectorCore.callFunc("getCurrentImpressionId")
-    currentSequenceNumber = m.collectorCore.callFunc("getCurrentSequenceNumber")
-    m.collectorCore.callFunc("updateSample", {impressionId: m.pendingErrorImpressionId, sequenceNumber: m.pendingErrorSequenceNumber})
+    currentSession = {
+      impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
+      sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
+    }
+    m.collectorCore.callFunc("updateSample", { impressionId: m.pendingErrorSession.impressionId, sequenceNumber: m.pendingErrorSession.sequenceNumber })
   end if
 
   if m.didAttemptPlay = true and m.didVideoPlay = false
@@ -426,17 +432,14 @@ sub onError()
   end if
 
   if raced
-    m.collectorCore.callFunc("updateSample", {impressionId: currentImpressionId, sequenceNumber: currentSequenceNumber})
+    m.collectorCore.callFunc("updateSample", currentSession)
   else
+    ' Stop collecting data
     m.observersTornDown = true
     unobserveFields()
   end if
 
-  m.pendingErrorImpressionId = invalid
-  m.pendingErrorSequenceNumber = invalid
-  m.pendingErrorGeneration = invalid
-
-  m.collectorCore.callFunc("onError", transformedErrorSample)
+  m.pendingErrorSession = invalid
 end sub
 
 ' Handler for player's onDestroy callback.
@@ -538,9 +541,11 @@ sub onSourceUnloaded()
   handleIntermediateState(m.currentState)
   m.videoStartUpTime = -1
 
-  m.pendingErrorImpressionId = m.collectorCore.callFunc("getCurrentImpressionId")
-  m.pendingErrorSequenceNumber = m.collectorCore.callFunc("getCurrentSequenceNumber")
-  m.pendingErrorGeneration = m.sourceLoadGeneration
+  m.pendingErrorSession = {
+    impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
+    sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
+    generation: m.sourceLoadGeneration
+  }
 
   ' Source may be unloaded without a subsequent sourceLoaded/destroy event, so close out
   ' any active SSAI ad break here rather than leaving it open indefinitely.
