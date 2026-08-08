@@ -231,6 +231,10 @@ function getCurrentImpressionId()
   return m.sample.impressionId
 end function
 
+function getCurrentSequenceNumber()
+  return m.sample.sequenceNumber
+end function
+
 function getPersistedUserId(sectionRegistryName)
   if sectionRegistryName = invalid
     return invalid

@@ -128,6 +128,13 @@ sub setUpHelperVariables()
   m.priorDurationBeforeReady = invalid
 
   m.currentVideoBitrate = invalid
+
+  m.observersTornDown = false
+
+  m.sourceLoadGeneration = 0
+  m.pendingErrorGeneration = invalid
+  m.pendingErrorImpressionId = invalid
+  m.pendingErrorSequenceNumber = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -377,16 +384,18 @@ sub checkForNewMetadata()
 end sub
 
 sub onError()
+  errorData = m.player.error
+
   setVideoTimeEnd()
 
   m.top.error = {
     error: {
-      code: m.player.error.code,
-      message: m.player.error.message,
+      code: errorData.code,
+      message: errorData.message,
       severity: m.errorSeverities.critical
     }
     errorContext: {
-      originalError: m.player.error
+      originalError: errorData
     }
   }
 
@@ -401,6 +410,14 @@ sub onError()
     errorSeverity: transformedError.severity
   }
 
+  raced = m.pendingErrorGeneration <> invalid and m.pendingErrorGeneration <> m.sourceLoadGeneration
+
+  if raced
+    currentImpressionId = m.collectorCore.callFunc("getCurrentImpressionId")
+    currentSequenceNumber = m.collectorCore.callFunc("getCurrentSequenceNumber")
+    m.collectorCore.callFunc("updateSample", {impressionId: m.pendingErrorImpressionId, sequenceNumber: m.pendingErrorSequenceNumber})
+  end if
+
   if m.didAttemptPlay = true and m.didVideoPlay = false
     videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, transformedErrorSample)
   else
@@ -408,8 +425,16 @@ sub onError()
     sendAnalyticsRequestAndClearValues(transformedErrorSample, 0, m.player.playerState)
   end if
 
-  ' Stop collecting data
-  unobserveFields()
+  if raced
+    m.collectorCore.callFunc("updateSample", {impressionId: currentImpressionId, sequenceNumber: currentSequenceNumber})
+  else
+    m.observersTornDown = true
+    unobserveFields()
+  end if
+
+  m.pendingErrorImpressionId = invalid
+  m.pendingErrorSequenceNumber = invalid
+  m.pendingErrorGeneration = invalid
 
   m.collectorCore.callFunc("onError", transformedErrorSample)
 end sub
@@ -489,7 +514,13 @@ function getPlayerKeyFromManifest(appInfo)
 end function
 
 sub onSourceLoaded()
-  setUpObservers()
+  m.sourceLoadGeneration = m.sourceLoadGeneration + 1
+
+  if m.observersTornDown
+    setUpObservers()
+    m.observersTornDown = false
+  end if
+
   playerConfig = m.player.callFunc("getConfig", invalid)
 
   checkForSourceSpecificMetadata(playerConfig.source)
@@ -506,6 +537,10 @@ end sub
 sub onSourceUnloaded()
   handleIntermediateState(m.currentState)
   m.videoStartUpTime = -1
+
+  m.pendingErrorImpressionId = m.collectorCore.callFunc("getCurrentImpressionId")
+  m.pendingErrorSequenceNumber = m.collectorCore.callFunc("getCurrentSequenceNumber")
+  m.pendingErrorGeneration = m.sourceLoadGeneration
 
   ' Source may be unloaded without a subsequent sourceLoaded/destroy event, so close out
   ' any active SSAI ad break here rather than leaving it open indefinitely.
