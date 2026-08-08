@@ -170,6 +170,8 @@ namespace tests
       m.assertEqual(mockTask.finalEventData.events[0].requestType, 1) ' AD_ENGAGEMENT
       m.assertEqual(mockTask.finalEventData.events[0].requestData.exitedAdBreak, true)
       m.assertEqual(mockTask.finalEventData.events[1].requestType, 0) ' REGULAR
+      'bs:disable-next-line
+      m.assertEqual(m.node.ssaiState, m.node.SSAI_STATES.IDLE)
 
       'bs:disable-next-line
       m.node.AnalyticsDataTask = m.top.findNode("analyticsDataTask")
