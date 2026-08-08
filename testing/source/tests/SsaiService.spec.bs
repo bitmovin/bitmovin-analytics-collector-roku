@@ -365,6 +365,38 @@ namespace tests
       m.assertEqual(sample.isSlate, false)
     end function
 
+    @describe("getSsaiAdBreakExitSample")
+
+    @it("sets exitedAdBreak to true and closed to 1 when the completed quartile was not reported")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      exitSample = getSsaiAdBreakExitSample()
+
+      m.assertTrue(exitSample.exitedAdBreak)
+      m.assertEqual(exitSample.closed, 1)
+    end function
+
+    @it("sets exitedAdBreak to true and omits closed when the completed quartile was already reported")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      'bs:disable-next-line
+      exitSample = getSsaiAdBreakExitSample()
+
+      m.assertTrue(exitSample.exitedAdBreak)
+      m.assertInvalid(exitSample.closed)
+    end function
+
     @describe("adBreakEnd")
 
     @it("marks the exit sample closed:1 when the ad break ends before the completed quartile was reported")
