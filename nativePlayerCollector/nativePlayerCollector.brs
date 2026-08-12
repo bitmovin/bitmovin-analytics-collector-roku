@@ -142,6 +142,8 @@ sub handleCurrentState()
     onBuffering()
   else if m.currentState = m.playerStates.FINISHED
     onFinished()
+  else if m.currentState = m.playerStates.STOPPED
+    onStopped()
   end if
 end sub
 
@@ -225,6 +227,12 @@ end sub
 sub onFinished()
   resetBufferingTimer()
   resetSeekHelperVariables()
+end sub
+
+sub onStopped()
+  resetSeekHelperVariables()
+  resetBufferingTimer()
+  m.collectorCore.callFunc("adBreakEnd")
 end sub
 
 sub onHeartbeat()

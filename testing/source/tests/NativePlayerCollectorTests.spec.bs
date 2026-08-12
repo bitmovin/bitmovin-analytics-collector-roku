@@ -137,6 +137,80 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onStopped")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("closes out any active SSAI ad break so it isn't left open indefinitely")
+    function _()
+      testContext = { adBreakEndCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "adBreakEnd"
+            m.testContext.adBreakEndCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.alreadySeeking = true
+      'bs:disable-next-line
+      m.node.seekStartPosition = 1000
+      'bs:disable-next-line
+      m.node.seekTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.bufferTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onStopped()
+
+      m.assertTrue(testContext.adBreakEndCalled)
+      'bs:disable-next-line
+      m.assertFalse(m.node.alreadySeeking)
+      'bs:disable-next-line
+      m.assertInvalid(m.node.seekStartPosition)
+      'bs:disable-next-line
+      m.assertInvalid(m.node.seekTimer)
+      'bs:disable-next-line
+      m.assertInvalid(m.node.bufferTimer)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("handleCurrentState")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("calls onStopped (closing any active SSAI ad break) when currentState is 'stopped'")
+    function _()
+      testContext = { adBreakEndCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "adBreakEnd"
+            m.testContext.adBreakEndCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "stopped"
+
+      'bs:disable-next-line
+      handleCurrentState()
+
+      m.assertTrue(testContext.adBreakEndCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("setCustomDataOnce")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
