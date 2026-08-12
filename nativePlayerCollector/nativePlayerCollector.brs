@@ -371,6 +371,14 @@ end sub
 sub onSourceChanged()
   setUpObservers()
 
+  ' Roku's equivalent of the Bitmovin player's sourceUnloaded event: the source was
+  ' removed, not replaced. Close out any active SSAI ad break instead of treating this
+  ' as a source change.
+  if m.player.content = invalid
+    m.collectorCore.callFunc("adBreakEnd")
+    return
+  end if
+
   if m.player.state = m.playerStates.PLAYING
     startVideoStartUpTimer()
   end if

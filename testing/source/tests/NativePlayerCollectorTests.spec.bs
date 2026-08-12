@@ -18,6 +18,9 @@ namespace tests
         unobserveFieldScoped: function(fieldName as string)
           print "unobserveFieldScoped stub: tried to unobserve field '";fieldName;"' on Native mockPlayer"
         end function
+        observeFieldScoped: function(fieldName as string, funcName as string)
+          print "observeFieldScoped stub: tried to observe field '";fieldName;"' on Native mockPlayer"
+        end function
       }
 
       m.node.player = m.mockPlayer
@@ -206,6 +209,127 @@ namespace tests
       handleCurrentState()
 
       m.assertTrue(testContext.adBreakEndCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onSourceChanged")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("closes out any active SSAI ad break and returns early when content is invalid, without crashing")
+    function _()
+      testContext = { adBreakEndCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "adBreakEnd"
+            m.testContext.adBreakEndCalled = true
+          end if
+          return true
+        end function,
+        observeFieldScoped: function(fieldName as string, funcName as string)
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.content = invalid
+      m.mockPlayer.state = "playing"
+      m.node.player = m.mockPlayer
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+
+      'bs:disable-next-line
+      onSourceChanged()
+
+      m.assertTrue(testContext.adBreakEndCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("treats an initial source change (currentState = 'none') as a normal load, not a stop")
+    function _()
+      testContext = { adBreakEndCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "adBreakEnd"
+            m.testContext.adBreakEndCalled = true
+          end if
+          return true
+        end function,
+        observeFieldScoped: function(fieldName as string, funcName as string)
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.content = { getChildCount: function() as integer
+          return 0
+        end function }
+      m.mockPlayer.state = "none"
+      m.node.player = m.mockPlayer
+
+      'bs:disable-next-line
+      m.node.currentState = "none"
+
+      'bs:disable-next-line
+      onSourceChanged()
+
+      m.assertFalse(testContext.adBreakEndCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("treats a manual source change (currentState <> 'none', content present) as before, not a stop")
+    function _()
+      testContext = { adBreakEndCalled: false, setupSampleCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "adBreakEnd"
+            m.testContext.adBreakEndCalled = true
+          else if funcName = "setupSample"
+            m.testContext.setupSampleCalled = true
+          end if
+          return true
+        end function,
+        observeFieldScoped: function(fieldName as string, funcName as string)
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.content = { getChildCount: function() as integer
+          return 0
+        end function }
+      m.mockPlayer.state = "playing"
+      m.mockPlayer.availableAudioTracks = []
+      m.mockPlayer.availableSubtitleTracks = []
+      m.node.player = m.mockPlayer
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.previousState = "playing"
+
+      'bs:disable-next-line
+      onSourceChanged()
+
+      m.assertFalse(testContext.adBreakEndCalled)
+      m.assertTrue(testContext.setupSampleCalled)
+      'bs:disable-next-line
+      m.assertTrue(m.node.manualSourceChangeInProgress)
 
       m.node.collectorCore = originalCollectorCore
     end function
