@@ -163,6 +163,36 @@ namespace tests
       m.assertEqual(errorEventData.error.severity, "CRITICAL")
     end function
 
+    @it("closes out any active SSAI ad break on error, since Roku errors are always terminal")
+    function _()
+      testContext = { adBreakEndCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "adBreakEnd"
+            m.testContext.adBreakEndCalled = true
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = {
+        code: 1000
+        message: "some error"
+      }
+
+      'bs:disable-next-line
+      onError()
+
+      m.assertTrue(testContext.adBreakEndCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("should gracefully handle 'player.getCurrentTime' returning 'invalid'")
     function _()
       m.mockPlayer.callFunc = function(functionName)

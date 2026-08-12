@@ -2835,6 +2835,50 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("closes out any active SSAI ad break on error, since Roku errors are always terminal")
+    function _()
+      testContext = { adBreakEndCalled: false }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "adBreakEnd"
+            m.testContext.adBreakEndCalled = true
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string) end function
+      })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      eventData = { errorObject: { code: 6001, cause: "Stream has stalled" } }
+
+      'bs:disable-next-line
+      onError(eventData)
+
+      m.assertTrue(testContext.adBreakEndCalled)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("sendVideoStartError")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

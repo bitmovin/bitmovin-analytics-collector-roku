@@ -462,6 +462,8 @@ sub onError()
   unobserveFields()
 
   m.collectorCore.callFunc("onError", transformedErrorSample)
+
+  m.collectorCore.callFunc("adBreakEnd")
 end sub
 
 sub startVideoStartTimeoutTimer()
