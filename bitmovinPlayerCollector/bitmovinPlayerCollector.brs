@@ -440,8 +440,7 @@ sub sendErrorSample(transformedErrorSample, duration)
   end if
 
   m.pendingErrorSession = invalid
-  
-  m.collectorCore.callFunc("onError", transformedErrorSample)
+
   m.collectorCore.callFunc("adBreakEnd")
 end sub
 
