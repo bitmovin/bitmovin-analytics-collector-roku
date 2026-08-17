@@ -84,6 +84,26 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("clearSampleValues")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("resets videoStartFailed, videoStartFailedReason and errorSeverity so they don't leak onto later samples")
+    function _()
+      'bs:disable-next-line
+      updateSample({ videoStartFailed: true, videoStartFailedReason: "playerError", errorSeverity: "CRITICAL" })
+
+      'bs:disable-next-line
+      clearSampleValues()
+
+      'bs:disable-next-line
+      m.assertFalse(m.sample.videoStartFailed)
+      'bs:disable-next-line
+      m.assertInvalid(m.sample.videoStartFailedReason)
+      'bs:disable-next-line
+      m.assertInvalid(m.sample.errorSeverity)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("extractCustomDataFields")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
