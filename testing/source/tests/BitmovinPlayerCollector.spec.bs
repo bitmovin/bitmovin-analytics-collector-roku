@@ -645,6 +645,8 @@ namespace tests
       m.assertEqual(session.impressionId, "impression-123")
       m.assertEqual(session.sequenceNumber, 4)
       m.assertEqual(session.generation, 7)
+      m.assertNotInvalid(session.armedAt)
+      m.assertTrue(session.armedAt.TotalMilliseconds() >= 0)
 
       m.node.collectorCore = originalCollectorCore
     end function
@@ -772,7 +774,7 @@ namespace tests
       'bs:disable-next-line
       m.node.sourceLoadGeneration = 2
       'bs:disable-next-line
-      m.node.pendingErrorSession = { impressionId: "failed-session-impression-id", sequenceNumber: 5, generation: 1 }
+      m.node.pendingErrorSession = { impressionId: "failed-session-impression-id", sequenceNumber: 5, generation: 1, armedAt: CreateObject("roTimespan") }
 
       'bs:disable-next-line
       onError()
@@ -832,7 +834,7 @@ namespace tests
       ' Same generation as when the source was unloaded - nothing raced,
       ' this is the normal (non-failover) terminal-failure case.
       'bs:disable-next-line
-      m.node.pendingErrorSession = { impressionId: "same-session-id", sequenceNumber: 2, generation: 1 }
+      m.node.pendingErrorSession = { impressionId: "same-session-id", sequenceNumber: 2, generation: 1, armedAt: CreateObject("roTimespan") }
 
       'bs:disable-next-line
       onError()
@@ -840,6 +842,72 @@ namespace tests
       ' Exactly 1 updateSample call: the actual error sample content (from
       ' sendAnalyticsRequestAndClearValues itself) - no session-swap calls,
       ' since nothing raced.
+      m.assertEqual(testContext.updateSampleCalls.Count(), 1)
+      m.assertEqual(testContext.updateSampleCalls[0].errorCode, 1000)
+      m.assertInvalid(testContext.updateSampleCalls[0].impressionId)
+      'bs:disable-next-line
+      m.assertTrue(m.node.observersTornDown)
+      'bs:disable-next-line
+      m.assertInvalid(m.node.pendingErrorSession)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not treat a stale snapshot as raced when it is older than the race window, even if the generation differs (AN-5074)")
+    function _()
+      testContext = { updateSampleCalls: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "updateSample"
+            m.testContext.updateSampleCalls.Push(arg)
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "network error" }
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return invalid
+        if functionName = "getCurrentTime" then return 0
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+      'bs:disable-next-line
+      m.node.sourceLoadGeneration = 2
+      ' Generation differs (1 vs 2), same shape as a genuine race - but this
+      ' snapshot is old, e.g. left behind by a source that unloaded cleanly
+      ' (no error) long before the current, unrelated error. Must not be
+      ' misattributed to that stale session.
+      'bs:disable-next-line
+      m.node.pendingErrorSession = {
+        impressionId: "stale-session-id"
+        sequenceNumber: 9
+        generation: 1
+        armedAt: { TotalMilliseconds: function() as integer
+          return 5000
+        end function }
+      }
+
+      'bs:disable-next-line
+      onError()
+
+      ' Exactly 1 updateSample call: the actual error sample content - no
+      ' session-swap calls, since the stale snapshot must not be trusted.
       m.assertEqual(testContext.updateSampleCalls.Count(), 1)
       m.assertEqual(testContext.updateSampleCalls[0].errorCode, 1000)
       m.assertInvalid(testContext.updateSampleCalls[0].impressionId)

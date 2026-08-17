@@ -414,7 +414,16 @@ sub onError()
 end sub
 
 sub sendErrorSample(transformedErrorSample, duration)
-  raced = m.pendingErrorSession <> invalid and m.pendingErrorSession.generation <> m.sourceLoadGeneration
+  ' A snapshot older than this can no longer be trusted to belong to a
+  ' still-in-flight race - the player dispatches a raced error within a few
+  ' ms of the unload (AN-5074), so this is a generous margin over that, not
+  ' a tight bound. Without it, a source that unloaded cleanly (no error) and
+  ' whose snapshot was therefore never consumed would incorrectly look
+  ' "raced" for a completely unrelated error on the current session, however
+  ' much later that happens.
+  pendingErrorSessionRaceWindowMs = 2000
+
+  raced = m.pendingErrorSession <> invalid and m.pendingErrorSession.generation <> m.sourceLoadGeneration and m.pendingErrorSession.armedAt.TotalMilliseconds() < pendingErrorSessionRaceWindowMs
 
   if raced
     currentSession = {
@@ -547,6 +556,10 @@ sub onSourceUnloaded()
     impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
     sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
     generation: m.sourceLoadGeneration
+    ' A raced error is dispatched within a few ms of this unload (AN-5074) -
+    ' used to tell a genuine race apart from a stale snapshot left behind by
+    ' a source that loaded cleanly and only errored much later on its own.
+    armedAt: CreateObject("roTimespan")
   }
 
   ' Source may be unloaded without a subsequent sourceLoaded/destroy event, so close out
