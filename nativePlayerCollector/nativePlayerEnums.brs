@@ -5,6 +5,7 @@ function getPlayerStates()
     BUFFERING: "buffering",
     PAUSED: "paused",
     FINISHED: "finished",
+    STOPPED: "stopped",
     ERROR: "error",
     NONE: "none",
     SEEKING: "seeking",

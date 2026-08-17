@@ -179,8 +179,7 @@ sub adBreakEnd()
   if m.ssaiState = m.SSAI_STATES.IDLE then return
 
   if m.ssaiState = m.SSAI_STATES.ACTIVE
-    exitSample = getSsaiAdSample()
-    exitSample.exitedAdBreak = true
+    exitSample = getSsaiAdBreakExitSample()
     sendAnalyticsSampleOnce(exitSample, m.AnalyticsRequestTypes.AD_ENGAGEMENT)
 
     m.top.fireHeartbeat = true
@@ -189,6 +188,18 @@ sub adBreakEnd()
 
   resetSsaiHelpers()
 end sub
+
+' Builds the exit sample shared by adBreakEnd() and getSsaiBreakExitEventForDestroy():
+' exitedAdBreak is always true, and closed is set only when the ad break is abandoned
+' (i.e. its "completed" quartile was never reported).
+function getSsaiAdBreakExitSample()
+  exitSample = getSsaiAdSample()
+  exitSample.exitedAdBreak = true
+  if not hasQuartileAlreadyBeenReported(m.AD_QUARTILES.COMPLETED)
+    exitSample.closed = 1
+  end if
+  return exitSample
+end function
 
 sub manipulateSampleForSsai()
   if m.ssaiState <> m.SSAI_STATES.ACTIVE then return
@@ -286,6 +297,20 @@ end function
 
 function isCurrentSampleSsaiRelated()
   return m.ssaiState = m.SSAI_STATES.ACTIVE or m.ssaiState = m.SSAI_STATES.AD_BREAK_STARTED
+end function
+
+' Returns a finalEventData-compatible event AA with exitedAdBreak:true when the session is
+' destroyed mid-ad-break, or invalid otherwise.
+' Only fires for ACTIVE state (an ad has actually started); AD_BREAK_STARTED alone has no ad sample.
+function getSsaiBreakExitEventForDestroy()
+  if m.ssaiState <> m.SSAI_STATES.ACTIVE then return invalid
+
+  exitSample = getSsaiAdBreakExitSample()
+  return {
+    requestType: m.AnalyticsRequestTypes.AD_ENGAGEMENT
+    requestData: exitSample
+    isSsaiRelated: true
+  }
 end function
 
 function hasQuartileAlreadyBeenReported(adQuartile)

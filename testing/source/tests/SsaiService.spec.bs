@@ -365,6 +365,70 @@ namespace tests
       m.assertEqual(sample.isSlate, false)
     end function
 
+    @describe("getSsaiAdBreakExitSample")
+
+    @it("sets exitedAdBreak to true and closed to 1 when the completed quartile was not reported")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      exitSample = getSsaiAdBreakExitSample()
+
+      m.assertTrue(exitSample.exitedAdBreak)
+      m.assertEqual(exitSample.closed, 1)
+    end function
+
+    @it("sets exitedAdBreak to true and omits closed when the completed quartile was already reported")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      'bs:disable-next-line
+      exitSample = getSsaiAdBreakExitSample()
+
+      m.assertTrue(exitSample.exitedAdBreak)
+      m.assertInvalid(exitSample.closed)
+    end function
+
+    @describe("adBreakEnd")
+
+    @it("marks the exit sample closed:1 when the ad break ends before the completed quartile was reported")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      adBreakEnd()
+
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+      m.assertEqual(analyticsDataTask.eventData.requestData.closed, 1)
+    end function
+
+    @it("does not set closed on the exit sample when the completed quartile was already reported")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      'bs:disable-next-line
+      adBreakEnd()
+
+      analyticsDataTask = m.top.findNode("analyticsDataTask")
+      m.assertInvalid(analyticsDataTask.eventData.requestData.closed)
+    end function
+
     @describe("manipulateSampleForSsai")
 
     @it("does not leak extended ad metadata from a previous ad in the same pod")
@@ -566,6 +630,79 @@ namespace tests
       newSample = getSsaiAdSample()
 
       m.assertEqual(newSample.exitedAdBreak, false)
+    end function
+
+    @describe("getSsaiBreakExitEventForDestroy")
+
+    @it("returns invalid when ssai state is idle")
+    function _()
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns invalid when in AD_BREAK_STARTED state (no ad started yet)")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertInvalid(result)
+    end function
+
+    @it("returns AD_ENGAGEMENT event with exitedAdBreak:true when an ad is active")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertNotInvalid(result)
+      m.assertEqual(result.requestType, 1) ' AD_ENGAGEMENT
+      m.assertEqual(result.isSsaiRelated, true)
+      m.assertEqual(result.requestData.exitedAdBreak, true)
+      m.assertEqual(result.requestData.expectedPaidAds, 1)
+      m.assertEqual(result.requestData.closed, 1)
+    end function
+
+    @it("does not set closed when the ad had already reported its completed quartile")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertInvalid(result.requestData.closed)
+    end function
+
+    @it("exit event counters reflect completedPaidAds at time of destroy")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 2 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+      'bs:disable-next-line
+      adQuartileFinished("completed")
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      'bs:disable-next-line
+      result = getSsaiBreakExitEventForDestroy()
+
+      m.assertEqual(result.requestData.completedPaidAds, 1)
+      m.assertEqual(result.requestData.exitedAdBreak, true)
+      m.assertEqual(result.requestData.closed, 1)
     end function
 
     @describe("onError")

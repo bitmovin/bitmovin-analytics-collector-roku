@@ -43,7 +43,15 @@ sub internalDestroy(param = invalid)
     requestData: sampleSnapshot
     isSsaiRelated: isCurrentSampleSsaiRelated()
   }
-  m.AnalyticsDataTask.finalEventData = { events: [finalEvent] }
+
+  adExitEvent = getSsaiBreakExitEventForDestroy()
+  if adExitEvent <> invalid
+    m.AnalyticsDataTask.finalEventData = { events: [adExitEvent, finalEvent] }
+  else
+    m.AnalyticsDataTask.finalEventData = { events: [finalEvent] }
+  end if
+
+  resetSsaiHelpers()
 end sub
 
 ' #region Licensing

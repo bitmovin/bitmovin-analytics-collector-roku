@@ -130,6 +130,53 @@ namespace tests
       m.assertFalse(result.DoesExist("customData2"))
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("internalDestroy")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sends only the regular final event when no SSAI ad break is active")
+    function _()
+      mockTask = { finalEventData: invalid }
+      'bs:disable-next-line
+      m.node.AnalyticsDataTask = mockTask
+
+      'bs:disable-next-line
+      internalDestroy()
+
+      m.assertEqual(mockTask.finalEventData.events.Count(), 1)
+      m.assertEqual(mockTask.finalEventData.events[0].requestType, 0) ' REGULAR
+
+      'bs:disable-next-line
+      m.node.AnalyticsDataTask = m.top.findNode("analyticsDataTask")
+    end function
+
+    @it("prepends AD_ENGAGEMENT exit event when destroyed during an active SSAI ad break")
+    function _()
+      'bs:disable-next-line
+      setupSsaiService()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll", expectedPaidAds: 1 })
+      'bs:disable-next-line
+      adStart({ isSlate: false })
+
+      mockTask = { finalEventData: invalid }
+      'bs:disable-next-line
+      m.node.AnalyticsDataTask = mockTask
+
+      'bs:disable-next-line
+      internalDestroy()
+
+      m.assertEqual(mockTask.finalEventData.events.Count(), 2)
+      m.assertEqual(mockTask.finalEventData.events[0].requestType, 1) ' AD_ENGAGEMENT
+      m.assertEqual(mockTask.finalEventData.events[0].requestData.exitedAdBreak, true)
+      m.assertEqual(mockTask.finalEventData.events[1].requestType, 0) ' REGULAR
+      'bs:disable-next-line
+      m.assertEqual(m.node.ssaiState, m.node.SSAI_STATES.IDLE)
+
+      'bs:disable-next-line
+      m.node.AnalyticsDataTask = m.top.findNode("analyticsDataTask")
+    end function
+
   end class
 
 end namespace

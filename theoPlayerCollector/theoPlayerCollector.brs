@@ -606,6 +606,8 @@ sub onError(eventData = invalid)
   end if
 
   m.collectorCore.callFunc("onError", errorSample)
+
+  m.collectorCore.callFunc("adBreakEnd")
 end sub
 
 sub onDestroy(eventData = invalid)

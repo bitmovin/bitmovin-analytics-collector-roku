@@ -412,6 +412,8 @@ sub onError()
   unobserveFields()
 
   m.collectorCore.callFunc("onError", transformedErrorSample)
+
+  m.collectorCore.callFunc("adBreakEnd")
 end sub
 
 ' Handler for player's onDestroy callback.
@@ -506,6 +508,10 @@ end sub
 sub onSourceUnloaded()
   handleIntermediateState(m.currentState)
   m.videoStartUpTime = -1
+
+  ' Source may be unloaded without a subsequent sourceLoaded/destroy event, so close out
+  ' any active SSAI ad break here rather than leaving it open indefinitely.
+  m.collectorCore.callFunc("adBreakEnd")
 end sub
 
 sub startVideoStartUpTimer()

@@ -142,6 +142,8 @@ sub handleCurrentState()
     onBuffering()
   else if m.currentState = m.playerStates.FINISHED
     onFinished()
+  else if m.currentState = m.playerStates.STOPPED
+    onStopped()
   end if
 end sub
 
@@ -225,6 +227,12 @@ end sub
 sub onFinished()
   resetBufferingTimer()
   resetSeekHelperVariables()
+end sub
+
+sub onStopped()
+  resetSeekHelperVariables()
+  resetBufferingTimer()
+  m.collectorCore.callFunc("adBreakEnd")
 end sub
 
 sub onHeartbeat()
@@ -363,6 +371,14 @@ end sub
 sub onSourceChanged()
   setUpObservers()
 
+  ' Roku's equivalent of the Bitmovin player's sourceUnloaded event: the source was
+  ' removed, not replaced. Close out any active SSAI ad break instead of treating this
+  ' as a source change.
+  if m.player.content = invalid
+    m.collectorCore.callFunc("adBreakEnd")
+    return
+  end if
+
   if m.player.state = m.playerStates.PLAYING
     startVideoStartUpTimer()
   end if
@@ -446,6 +462,8 @@ sub onError()
   unobserveFields()
 
   m.collectorCore.callFunc("onError", transformedErrorSample)
+
+  m.collectorCore.callFunc("adBreakEnd")
 end sub
 
 sub startVideoStartTimeoutTimer()
@@ -578,7 +596,7 @@ function adBreakStart(adBreakMetadata = invalid)
 end function
 
 function adStart(adMetadata = invalid)
-  m.collectorCore.callFunc("adStarted", adMetadata)
+  m.collectorCore.callFunc("adStart", adMetadata)
 end function
 
 function adBreakEnd(param = invalid)
