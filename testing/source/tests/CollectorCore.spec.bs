@@ -96,11 +96,11 @@ namespace tests
       clearSampleValues()
 
       'bs:disable-next-line
-      m.assertFalse(m.sample.videoStartFailed)
+      m.assertFalse(m.node.sample.videoStartFailed)
       'bs:disable-next-line
-      m.assertInvalid(m.sample.videoStartFailedReason)
+      m.assertInvalid(m.node.sample.videoStartFailedReason)
       'bs:disable-next-line
-      m.assertInvalid(m.sample.errorSeverity)
+      m.assertInvalid(m.node.sample.errorSeverity)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
