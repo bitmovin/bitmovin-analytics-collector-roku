@@ -49,7 +49,6 @@ namespace tests
         STALLING: "stalling"
         FINISHED: "finished"
         SETUP: "setup"
-        ERROR: "error"
       }
     end function
 
@@ -705,7 +704,7 @@ namespace tests
     @describe("onError - session attribution on a raced failover (AN-5074)")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("attributes the error sample to the failed session and restores the current session afterward when the player has left the error state")
+    @it("attributes the error sample to the failed session and restores the current session afterward when a newer source has already loaded")
     function _()
       testContext = { updateSampleCalls: [] }
       originalCollectorCore = m.node.collectorCore
@@ -725,8 +724,9 @@ namespace tests
       }
 
       m.mockPlayer.error = { code: 1000, message: "network error" }
-      ' The app already failed over: load() moved the player out of the error
-      ' state and into the failover source's own playback.
+      ' The app already failed over, so the collector switched session before
+      ' this error notification was delivered - the impression no longer
+      ' matches the one snapshotted on the unload.
       m.mockPlayer.playerState = "ready"
       m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
         if functionName = "getAudio" then return invalid
@@ -775,6 +775,10 @@ namespace tests
         callFunc: function(funcName as string, arg = invalid)
           if funcName = "updateSample"
             m.testContext.updateSampleCalls.Push(arg)
+          else if funcName = "getCurrentImpressionId"
+            return "same-session-id"
+          else if funcName = "getCurrentSequenceNumber"
+            return 2
           end if
           return true
         end function,
@@ -823,7 +827,7 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("does not treat an older snapshot as raced while the player is still in the error state (AN-5074)")
+    @it("still attributes the error to the failed session while the player reports the error state (AN-5074)")
     function _()
       testContext = { updateSampleCalls: [] }
       originalCollectorCore = m.node.collectorCore
@@ -832,6 +836,10 @@ namespace tests
         callFunc: function(funcName as string, arg = invalid)
           if funcName = "updateSample"
             m.testContext.updateSampleCalls.Push(arg)
+          else if funcName = "getCurrentImpressionId"
+            return "new-session-impression-id"
+          else if funcName = "getCurrentSequenceNumber"
+            return 0
           end if
           return true
         end function,
@@ -857,26 +865,29 @@ namespace tests
       m.node.didVideoPlay = false
       'bs:disable-next-line
       m.node.observersTornDown = false
-      ' A snapshot is present, as after any unload - but the player never left
-      ' the error state, so no failover happened and this error belongs to the
-      ' session currently being tracked, not to the snapshotted one.
+      ' Device-observed ordering: the player emits "sourceLoaded" - which is
+      ' what switches the session - before it moves playerState off "error",
+      ' and the pending error notification lands in between. So a raced error
+      ' is handled while the player still reports "error", and the session
+      ' identity is the only signal that has moved by then.
       m.mockPlayer.playerState = "error"
       'bs:disable-next-line
       m.node.pendingErrorSession = {
-        impressionId: "unrelated-session-id"
+        impressionId: "failed-session-impression-id"
         sequenceNumber: 9
       }
 
       'bs:disable-next-line
       onError()
 
-      ' Exactly 1 updateSample call: the actual error sample content - no
-      ' session-swap calls, since the snapshot must not be trusted here.
-      m.assertEqual(testContext.updateSampleCalls.Count(), 1)
-      m.assertEqual(testContext.updateSampleCalls[0].errorCode, 1000)
-      m.assertInvalid(testContext.updateSampleCalls[0].impressionId)
+      ' 3 updateSample calls: swap to the failed session, the error sample
+      ' content itself, then the swap back to the current session.
+      m.assertEqual(testContext.updateSampleCalls.Count(), 3)
+      m.assertEqual(testContext.updateSampleCalls[0].impressionId, "failed-session-impression-id")
+      m.assertEqual(testContext.updateSampleCalls[0].sequenceNumber, 9)
+      m.assertEqual(testContext.updateSampleCalls[2].impressionId, "new-session-impression-id")
       'bs:disable-next-line
-      m.assertTrue(m.node.observersTornDown)
+      m.assertFalse(m.node.observersTornDown)
       'bs:disable-next-line
       m.assertInvalid(m.node.pendingErrorSession)
 

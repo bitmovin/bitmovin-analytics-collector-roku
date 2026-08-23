@@ -413,18 +413,21 @@ sub onError()
 end sub
 
 sub sendErrorSample(transformedErrorSample, duration)
-  ' The player leaves the "error" state only by loading a new source (nothing
-  ' else writes playerState, and an unload keeps its previous value), so a
-  ' playerState other than "error" means the app already failed over while this
-  ' error notification was still pending - the error belongs to the session
-  ' snapshotted on the unload, not to the one currently being tracked (AN-5074).
-  raced = m.pendingErrorSession <> invalid and m.player.playerState <> m.playerStates.ERROR
+  currentSession = {
+    impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
+    sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
+  }
+
+  ' A failover load started a new session while this error notification was
+  ' still pending, so the error belongs to the session snapshotted on the
+  ' unload rather than to the one being tracked now (AN-5074). The impression
+  ' is the only signal that is guaranteed to have moved by this point: the
+  ' player emits "sourceLoaded" - which is what switches the session - before
+  ' it moves playerState off "error", and the pending error notification is
+  ' delivered in between, so playerState still reads "error" here.
+  raced = m.pendingErrorSession <> invalid and m.pendingErrorSession.impressionId <> currentSession.impressionId
 
   if raced
-    currentSession = {
-      impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
-      sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
-    }
     m.collectorCore.callFunc("updateSample", { impressionId: m.pendingErrorSession.impressionId, sequenceNumber: m.pendingErrorSession.sequenceNumber })
   end if
 
