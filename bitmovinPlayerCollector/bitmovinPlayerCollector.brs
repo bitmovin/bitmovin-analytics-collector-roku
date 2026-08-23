@@ -131,7 +131,6 @@ sub setUpHelperVariables()
 
   m.observersTornDown = false
 
-  m.sourceLoadGeneration = 0
   m.pendingErrorSession = invalid
 end sub
 
@@ -414,22 +413,21 @@ sub onError()
 end sub
 
 sub sendErrorSample(transformedErrorSample, duration)
-  ' A snapshot older than this can no longer be trusted to belong to a
-  ' still-in-flight race - the player dispatches a raced error within a few
-  ' ms of the unload (AN-5074), so this is a generous margin over that, not
-  ' a tight bound. Without it, a source that unloaded cleanly (no error) and
-  ' whose snapshot was therefore never consumed would incorrectly look
-  ' "raced" for a completely unrelated error on the current session, however
-  ' much later that happens.
-  pendingErrorSessionRaceWindowMs = 2000
+  currentSession = {
+    impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
+    sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
+  }
 
-  raced = m.pendingErrorSession <> invalid and m.pendingErrorSession.generation <> m.sourceLoadGeneration and m.pendingErrorSession.armedAt.TotalMilliseconds() < pendingErrorSessionRaceWindowMs
+  ' A failover load started a new session while this error notification was
+  ' still pending, so the error belongs to the session snapshotted on the
+  ' unload rather than to the one being tracked now (AN-5074). The impression
+  ' is the only signal that is guaranteed to have moved by this point: the
+  ' player emits "sourceLoaded" - which is what switches the session - before
+  ' it moves playerState off "error", and the pending error notification is
+  ' delivered in between, so playerState still reads "error" here.
+  raced = m.pendingErrorSession <> invalid and m.pendingErrorSession.impressionId <> currentSession.impressionId
 
   if raced
-    currentSession = {
-      impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
-      sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
-    }
     m.collectorCore.callFunc("updateSample", { impressionId: m.pendingErrorSession.impressionId, sequenceNumber: m.pendingErrorSession.sequenceNumber })
   end if
 
@@ -528,8 +526,6 @@ function getPlayerKeyFromManifest(appInfo)
 end function
 
 sub onSourceLoaded()
-  m.sourceLoadGeneration = m.sourceLoadGeneration + 1
-
   if m.observersTornDown
     setUpObservers()
     m.observersTornDown = false
@@ -552,14 +548,14 @@ sub onSourceUnloaded()
   handleIntermediateState(m.currentState)
   m.videoStartUpTime = -1
 
+  ' The player writes its "error" field a few ms after this unload (AN-5074), by
+  ' which time the app may already have loaded a failover source and moved the
+  ' session on. These scalars are available immediately - unlike the error data
+  ' itself - so they are kept here to attribute such an error to the session it
+  ' actually belongs to. See sendErrorSample().
   m.pendingErrorSession = {
     impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
     sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
-    generation: m.sourceLoadGeneration
-    ' A raced error is dispatched within a few ms of this unload (AN-5074) -
-    ' used to tell a genuine race apart from a stale snapshot left behind by
-    ' a source that loaded cleanly and only errored much later on its own.
-    armedAt: CreateObject("roTimespan")
   }
 
   ' Source may be unloaded without a subsequent sourceLoaded/destroy event, so close out
