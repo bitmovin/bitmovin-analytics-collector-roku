@@ -617,7 +617,7 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("snapshots the current session (impressionId, sequenceNumber) for a possible later error (AN-5074)")
+    @it("snapshots everything a later error sample needs to describe this session (AN-5074)")
     function _()
       originalCollectorCore = m.node.collectorCore
 
@@ -629,10 +629,16 @@ namespace tests
         end function
       }
 
+      m.mockPlayer.playerState = "error"
+
       'bs:disable-next-line
       m.node.currentState = "setup"
       'bs:disable-next-line
       m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = true
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
 
       'bs:disable-next-line
       onSourceUnloaded()
@@ -642,6 +648,10 @@ namespace tests
       m.assertNotInvalid(session)
       m.assertEqual(session.impressionId, "impression-123")
       m.assertEqual(session.sequenceNumber, 4)
+      m.assertEqual(session.state, "error")
+      m.assertTrue(session.didAttemptPlay)
+      m.assertFalse(session.didVideoPlay)
+      m.assertTrue(session.duration >= 0)
 
       m.node.collectorCore = originalCollectorCore
     end function
@@ -745,7 +755,7 @@ namespace tests
       'bs:disable-next-line
       m.node.observersTornDown = false
       'bs:disable-next-line
-      m.node.pendingErrorSession = { impressionId: "failed-session-impression-id", sequenceNumber: 5 }
+      m.node.pendingErrorSession = { impressionId: "failed-session-impression-id", sequenceNumber: 5, duration: 100, state: "error", didAttemptPlay: true, didVideoPlay: false }
 
       'bs:disable-next-line
       onError()
@@ -875,6 +885,10 @@ namespace tests
       m.node.pendingErrorSession = {
         impressionId: "failed-session-impression-id"
         sequenceNumber: 9
+        duration: 100
+        state: "error"
+        didAttemptPlay: false
+        didVideoPlay: false
       }
 
       'bs:disable-next-line
@@ -891,6 +905,136 @@ namespace tests
       'bs:disable-next-line
       m.assertInvalid(m.node.pendingErrorSession)
 
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("describes the failed session, not the failover source that is running by now (AN-5074)")
+    function _()
+      testContext = { updateSampleCalls: [] }
+      originalCollectorCore = m.node.collectorCore
+      originalWatchdog = m.node.videoStartTimeoutTimer
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "updateSample"
+            m.testContext.updateSampleCalls.Push(arg)
+          else if funcName = "getCurrentImpressionId"
+            return "failover-session-impression-id"
+          else if funcName = "getCurrentSequenceNumber"
+            return 0
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "network error" }
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getCurrentTime" then return 0
+        return invalid
+      end function
+
+      ' The failover source is already playing by the time the previous
+      ' session's error notification is delivered: it flipped didVideoPlay,
+      ' marked the state timer again and moved playerState on.
+      m.mockPlayer.playerState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = true
+      'bs:disable-next-line
+      m.node.didVideoPlay = true
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+
+      ' The startup watchdog is only started for the first source that attempts
+      ' playback, so it belongs to the failover source now - this error must
+      ' not stop it.
+      watchdog = { control: "start", unobserveFieldScoped: function(fieldName as string)
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartTimeoutTimer = watchdog
+
+      'bs:disable-next-line
+      m.node.pendingErrorSession = {
+        impressionId: "failed-session-impression-id"
+        sequenceNumber: 7
+        duration: 4321
+        state: "error"
+        didAttemptPlay: true
+        didVideoPlay: false
+      }
+
+      'bs:disable-next-line
+      onError()
+
+      ' The middle call is the error sample itself: it has to carry the failed
+      ' session's startup failure, its duration and its state - none of which
+      ' are true of the live player any more.
+      m.assertEqual(testContext.updateSampleCalls.Count(), 3)
+      errorSample = testContext.updateSampleCalls[1]
+      m.assertTrue(errorSample.videoStartFailed)
+      m.assertNotInvalid(errorSample.videoStartFailedReason)
+      m.assertEqual(errorSample.duration, 4321)
+      m.assertEqual(errorSample.state, "error")
+      m.assertEqual(watchdog.control, "start")
+
+      m.node.videoStartTimeoutTimer = originalWatchdog
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("stops the startup watchdog when the error belongs to the session that started it")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+      originalWatchdog = m.node.videoStartTimeoutTimer
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "getCurrentImpressionId" then return "same-session-id"
+          return true
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "network error" }
+      m.mockPlayer.playerState = "error"
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getCurrentTime" then return 0
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = true
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+
+      watchdog = { control: "start", unobserveFieldScoped: function(fieldName as string)
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartTimeoutTimer = watchdog
+
+      ' Same impression as the snapshot - this session's own error.
+      'bs:disable-next-line
+      m.node.pendingErrorSession = {
+        impressionId: "same-session-id"
+        sequenceNumber: 2
+        duration: 100
+        state: "error"
+        didAttemptPlay: true
+        didVideoPlay: false
+      }
+
+      'bs:disable-next-line
+      onError()
+
+      m.assertEqual(watchdog.control, "stop")
+
+      m.node.videoStartTimeoutTimer = originalWatchdog
       m.node.collectorCore = originalCollectorCore
     end function
 

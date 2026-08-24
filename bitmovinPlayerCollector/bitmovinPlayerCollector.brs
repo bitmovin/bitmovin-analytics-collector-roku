@@ -428,14 +428,34 @@ sub sendErrorSample(transformedErrorSample, duration)
   isErrorFromPreviousSession = m.pendingErrorSession <> invalid and m.pendingErrorSession.impressionId <> currentSession.impressionId
 
   if isErrorFromPreviousSession
+    ' Every live helper describes the failover source by now: the state timer
+    ' has been marked again by its state changes, didVideoPlay flips as soon as
+    ' it starts playing, and playerState follows it too. The sample has to
+    ' describe the session that failed, so it is built from the snapshot alone.
+    sampleDuration = m.pendingErrorSession.duration
+    sampleState = m.pendingErrorSession.state
+    sampleDidAttemptPlay = m.pendingErrorSession.didAttemptPlay
+    sampleDidVideoPlay = m.pendingErrorSession.didVideoPlay
+
     m.collectorCore.callFunc("updateSample", { impressionId: m.pendingErrorSession.impressionId, sequenceNumber: m.pendingErrorSession.sequenceNumber })
+  else
+    sampleDuration = duration
+    sampleState = m.player.playerState
+    sampleDidAttemptPlay = m.didAttemptPlay
+    sampleDidVideoPlay = m.didVideoPlay
   end if
 
-  if m.didAttemptPlay = true and m.didVideoPlay = false
-    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, transformedErrorSample)
+  ' The startup watchdog is only ever started for the first source that
+  ' attempts playback, so the source running now is the one still relying on
+  ' it. An error belonging to an earlier session must not clear it, or a
+  ' failover source that never starts loses its timeout sample.
+  clearStartupWatchdog = not isErrorFromPreviousSession
+
+  if sampleDidAttemptPlay = true and sampleDidVideoPlay = false
+    videoStartFailed(m.videoStartFailedEvents.PlayerError, sampleDuration, sampleState, transformedErrorSample, clearStartupWatchdog)
   else
     ' Previous sample is already sent, no duration needed
-    sendAnalyticsRequestAndClearValues(transformedErrorSample, 0, m.player.playerState)
+    sendAnalyticsRequestAndClearValues(transformedErrorSample, 0, sampleState)
   end if
 
   if isErrorFromPreviousSession
@@ -545,17 +565,26 @@ sub onSourceLoaded()
 end sub
 
 sub onSourceUnloaded()
+  ' Read before handleIntermediateState() marks the state timer again.
+  durationInFinalState = getDuration(m.playerStateTimer)
+
   handleIntermediateState(m.currentState)
   m.videoStartUpTime = -1
 
   ' The player writes its "error" field a few ms after this unload (AN-5074), by
   ' which time the app may already have loaded a failover source and moved the
-  ' session on. These scalars are available immediately - unlike the error data
-  ' itself - so they are kept here to attribute such an error to the session it
-  ' actually belongs to. See sendErrorSample().
+  ' session on - taking the startup flags, the state timer and the player's own
+  ' state with it. Everything an error sample needs to describe this session is
+  ' therefore kept here, while it is still true. See sendErrorSample().
+  ' The sequence number is read after handleIntermediateState(), since that may
+  ' have sent a closing sample and moved it on.
   m.pendingErrorSession = {
     impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
     sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
+    duration: durationInFinalState
+    state: m.player.playerState
+    didAttemptPlay: m.didAttemptPlay
+    didVideoPlay: m.didVideoPlay
   }
 
   ' Source may be unloaded without a subsequent sourceLoaded/destroy event, so close out
@@ -619,10 +648,12 @@ end sub
 '@param {number} duration - Duration of the state in milliseconds
 '@param {String} state - State of the player in which the failure happened
 '@param {Object} additionalEventData - Additional event data that is added to the sample
-sub videoStartFailed(reason, duration, state, additionalEventData = invalid)
+'@param {Boolean} clearStartupWatchdog - Whether the startup timeout timer belongs to this
+'                                        sample's session and should be stopped with it
+sub videoStartFailed(reason, duration, state, additionalEventData = invalid, clearStartupWatchdog = true)
   if reason = invalid return
 
-  clearVideoStartTimeoutTimer()
+  if clearStartupWatchdog then clearVideoStartTimeoutTimer()
 
   eventData = {}
   if additionalEventData <> invalid then eventData.Append(additionalEventData)
