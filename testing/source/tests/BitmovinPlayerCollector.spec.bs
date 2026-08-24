@@ -193,6 +193,85 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("reports the ad error before closing the ad break, since closing it resets the SSAI state")
+    function _()
+      testContext = { ssaiCalls: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "onError" or funcName = "adBreakEnd"
+            m.testContext.ssaiCalls.Push(funcName)
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "some error" }
+
+      'bs:disable-next-line
+      onError()
+
+      ' adBreakEnd() resets the SSAI state to IDLE and ssaiService.onError()
+      ' returns immediately once it is - so the ad error sample is lost if
+      ' these two run the other way round.
+      m.assertEqual(testContext.ssaiCalls.Count(), 2)
+      m.assertEqual(testContext.ssaiCalls[0], "onError")
+      m.assertEqual(testContext.ssaiCalls[1], "adBreakEnd")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("leaves SSAI alone when the error belongs to a previous session (AN-5074)")
+    function _()
+      testContext = { ssaiCalls: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "onError" or funcName = "adBreakEnd"
+            m.testContext.ssaiCalls.Push(funcName)
+          else if funcName = "getCurrentImpressionId"
+            return "failover-session-impression-id"
+          else if funcName = "getCurrentSequenceNumber"
+            return 0
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "some error" }
+      m.mockPlayer.playerState = "error"
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+      ' The failed session's ad break was already closed by onSourceUnloaded();
+      ' any break active now belongs to the failover session, so neither the ad
+      ' error sample nor the break end may be applied to it.
+      'bs:disable-next-line
+      m.node.pendingErrorSession = {
+        impressionId: "failed-session-impression-id"
+        sequenceNumber: 3
+        duration: 100
+        state: "error"
+        didAttemptPlay: false
+        didVideoPlay: false
+      }
+
+      'bs:disable-next-line
+      onError()
+
+      m.assertEqual(testContext.ssaiCalls.Count(), 0)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("should gracefully handle 'player.getCurrentTime' returning 'invalid'")
     function _()
       m.mockPlayer.callFunc = function(functionName)

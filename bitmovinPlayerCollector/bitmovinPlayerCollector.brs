@@ -408,8 +408,6 @@ sub onError()
   }
 
   sendErrorSample(transformedErrorSample, duration)
-
-  m.collectorCore.callFunc("onError", transformedErrorSample)
 end sub
 
 sub sendErrorSample(transformedErrorSample, duration)
@@ -464,11 +462,11 @@ sub sendErrorSample(transformedErrorSample, duration)
     ' Stop collecting data
     m.observersTornDown = true
     unobserveFields()
+    m.collectorCore.callFunc("onError", transformedErrorSample)
+    m.collectorCore.callFunc("adBreakEnd")
   end if
 
   m.pendingErrorSession = invalid
-
-  m.collectorCore.callFunc("adBreakEnd")
 end sub
 
 ' Handler for player's onDestroy callback.
