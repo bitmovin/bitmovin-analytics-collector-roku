@@ -701,7 +701,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("onError - session attribution on a raced failover (AN-5074)")
+    @describe("onError - session attribution when an error outlives its session (AN-5074)")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("attributes the error sample to the failed session and restores the current session afterward when a newer source has already loaded")
@@ -766,7 +766,7 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("tears down observers and never touches session identifiers when nothing has raced")
+    @it("tears down observers and never touches session identifiers when the error belongs to the current session")
     function _()
       testContext = { updateSampleCalls: [] }
       originalCollectorCore = m.node.collectorCore
@@ -815,7 +815,7 @@ namespace tests
 
       ' Exactly 1 updateSample call: the actual error sample content (from
       ' sendAnalyticsRequestAndClearValues itself) - no session-swap calls,
-      ' since nothing raced.
+      ' since the error belongs to the current session.
       m.assertEqual(testContext.updateSampleCalls.Count(), 1)
       m.assertEqual(testContext.updateSampleCalls[0].errorCode, 1000)
       m.assertInvalid(testContext.updateSampleCalls[0].impressionId)
@@ -867,9 +867,9 @@ namespace tests
       m.node.observersTornDown = false
       ' Device-observed ordering: the player emits "sourceLoaded" - which is
       ' what switches the session - before it moves playerState off "error",
-      ' and the pending error notification lands in between. So a raced error
-      ' is handled while the player still reports "error", and the session
-      ' identity is the only signal that has moved by then.
+      ' and the pending error notification lands in between. So an error from
+      ' the previous session is handled while the player still reports
+      ' "error", and the session identity is the only signal that has moved.
       m.mockPlayer.playerState = "error"
       'bs:disable-next-line
       m.node.pendingErrorSession = {

@@ -425,9 +425,9 @@ sub sendErrorSample(transformedErrorSample, duration)
   ' player emits "sourceLoaded" - which is what switches the session - before
   ' it moves playerState off "error", and the pending error notification is
   ' delivered in between, so playerState still reads "error" here.
-  raced = m.pendingErrorSession <> invalid and m.pendingErrorSession.impressionId <> currentSession.impressionId
+  isErrorFromPreviousSession = m.pendingErrorSession <> invalid and m.pendingErrorSession.impressionId <> currentSession.impressionId
 
-  if raced
+  if isErrorFromPreviousSession
     m.collectorCore.callFunc("updateSample", { impressionId: m.pendingErrorSession.impressionId, sequenceNumber: m.pendingErrorSession.sequenceNumber })
   end if
 
@@ -438,7 +438,7 @@ sub sendErrorSample(transformedErrorSample, duration)
     sendAnalyticsRequestAndClearValues(transformedErrorSample, 0, m.player.playerState)
   end if
 
-  if raced
+  if isErrorFromPreviousSession
     m.collectorCore.callFunc("updateSample", currentSession)
   else
     ' Stop collecting data
