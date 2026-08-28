@@ -128,6 +128,10 @@ sub setUpHelperVariables()
   m.priorDurationBeforeReady = invalid
 
   m.currentVideoBitrate = invalid
+
+  m.observersTornDown = false
+
+  m.pendingErrorSession = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -377,16 +381,18 @@ sub checkForNewMetadata()
 end sub
 
 sub onError()
+  errorData = m.player.error
+
   setVideoTimeEnd()
 
   m.top.error = {
     error: {
-      code: m.player.error.code,
-      message: m.player.error.message,
+      code: errorData.code,
+      message: errorData.message,
       severity: m.errorSeverities.critical
     }
     errorContext: {
-      originalError: m.player.error
+      originalError: errorData
     }
   }
 
@@ -401,19 +407,57 @@ sub onError()
     errorSeverity: transformedError.severity
   }
 
-  if m.didAttemptPlay = true and m.didVideoPlay = false
-    videoStartFailed(m.videoStartFailedEvents.PlayerError, duration, m.player.playerState, transformedErrorSample)
+  sendErrorSample(transformedErrorSample, duration)
+end sub
+
+sub sendErrorSample(transformedErrorSample, duration)
+  currentSession = {
+    impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
+    sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
+  }
+
+  ' A failover load started a new session while this error notification was
+  ' pending; the error belongs to the session snapshotted on the unload (AN-5074).
+  isErrorFromPreviousSession = m.pendingErrorSession <> invalid and m.pendingErrorSession.impressionId <> currentSession.impressionId
+
+  if isErrorFromPreviousSession
+    ' Live state describes the failover source by now, so the failed
+    ' session's sample is built from the snapshot alone.
+    sampleDuration = m.pendingErrorSession.duration
+    sampleState = m.pendingErrorSession.state
+    sampleDidAttemptPlay = m.pendingErrorSession.didAttemptPlay
+    sampleDidVideoPlay = m.pendingErrorSession.didVideoPlay
+
+    m.collectorCore.callFunc("updateSample", { impressionId: m.pendingErrorSession.impressionId, sequenceNumber: m.pendingErrorSession.sequenceNumber })
   else
-    ' Previous sample is already sent, no duration needed
-    sendAnalyticsRequestAndClearValues(transformedErrorSample, 0, m.player.playerState)
+    sampleDuration = duration
+    sampleState = m.player.playerState
+    sampleDidAttemptPlay = m.didAttemptPlay
+    sampleDidVideoPlay = m.didVideoPlay
   end if
 
-  ' Stop collecting data
-  unobserveFields()
+  ' An earlier session's error must not clear the startup watchdog, or a
+  ' failover source that never starts loses its timeout sample.
+  clearStartupWatchdog = not isErrorFromPreviousSession
 
-  m.collectorCore.callFunc("onError", transformedErrorSample)
+  if sampleDidAttemptPlay = true and sampleDidVideoPlay = false
+    videoStartFailed(m.videoStartFailedEvents.PlayerError, sampleDuration, sampleState, transformedErrorSample, clearStartupWatchdog)
+  else
+    ' Previous sample is already sent, no duration needed
+    sendAnalyticsRequestAndClearValues(transformedErrorSample, 0, sampleState)
+  end if
 
-  m.collectorCore.callFunc("adBreakEnd")
+  if isErrorFromPreviousSession
+    m.collectorCore.callFunc("updateSample", currentSession)
+  else
+    ' Stop collecting data
+    m.observersTornDown = true
+    unobserveFields()
+    m.collectorCore.callFunc("onError", transformedErrorSample)
+    m.collectorCore.callFunc("adBreakEnd")
+  end if
+
+  m.pendingErrorSession = invalid
 end sub
 
 ' Handler for player's onDestroy callback.
@@ -491,7 +535,11 @@ function getPlayerKeyFromManifest(appInfo)
 end function
 
 sub onSourceLoaded()
-  setUpObservers()
+  if m.observersTornDown
+    setUpObservers()
+    m.observersTornDown = false
+  end if
+
   playerConfig = m.player.callFunc("getConfig", invalid)
 
   checkForSourceSpecificMetadata(playerConfig.source)
@@ -506,8 +554,27 @@ sub onSourceLoaded()
 end sub
 
 sub onSourceUnloaded()
+  ' Read before handleIntermediateState() marks the state timer again.
+  durationInFinalState = getDuration(m.playerStateTimer)
+
   handleIntermediateState(m.currentState)
   m.videoStartUpTime = -1
+
+  ' The player writes its "error" field a few ms after this unload (AN-5074), by
+  ' which time the app may already have loaded a failover source and moved the
+  ' session on - taking the startup flags, the state timer and the player's own
+  ' state with it. Everything an error sample needs to describe this session is
+  ' therefore kept here, while it is still true. See sendErrorSample().
+  ' The sequence number is read after handleIntermediateState(), since that may
+  ' have sent a closing sample and moved it on.
+  m.pendingErrorSession = {
+    impressionId: m.collectorCore.callFunc("getCurrentImpressionId")
+    sequenceNumber: m.collectorCore.callFunc("getCurrentSequenceNumber")
+    duration: durationInFinalState
+    state: m.player.playerState
+    didAttemptPlay: m.didAttemptPlay
+    didVideoPlay: m.didVideoPlay
+  }
 
   ' Source may be unloaded without a subsequent sourceLoaded/destroy event, so close out
   ' any active SSAI ad break here rather than leaving it open indefinitely.
@@ -570,10 +637,12 @@ end sub
 '@param {number} duration - Duration of the state in milliseconds
 '@param {String} state - State of the player in which the failure happened
 '@param {Object} additionalEventData - Additional event data that is added to the sample
-sub videoStartFailed(reason, duration, state, additionalEventData = invalid)
+'@param {Boolean} clearStartupWatchdog - Whether the startup timeout timer belongs to this
+'                                        sample's session and should be stopped with it
+sub videoStartFailed(reason, duration, state, additionalEventData = invalid, clearStartupWatchdog = true)
   if reason = invalid return
 
-  clearVideoStartTimeoutTimer()
+  if clearStartupWatchdog then clearVideoStartTimeoutTimer()
 
   eventData = {}
   if additionalEventData <> invalid then eventData.Append(additionalEventData)

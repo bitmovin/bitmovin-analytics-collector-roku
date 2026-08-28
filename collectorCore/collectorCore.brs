@@ -198,6 +198,10 @@ sub clearSampleValues()
 
   m.sample.errorCode = invalid
   m.sample.errorMessage = invalid
+
+  m.sample.videoStartFailed = false
+  m.sample.videoStartFailedReason = invalid
+  m.sample.errorSeverity = invalid
 end sub
 
 ' Return the Bitmovin Analytics collector version.
@@ -229,6 +233,10 @@ end function
 ' Return the impression ID of the current session.
 function getCurrentImpressionId()
   return m.sample.impressionId
+end function
+
+function getCurrentSequenceNumber()
+  return m.sample.sequenceNumber
 end function
 
 function getPersistedUserId(sectionRegistryName)

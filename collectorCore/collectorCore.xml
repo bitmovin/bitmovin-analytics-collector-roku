@@ -14,6 +14,7 @@
     <function name="internalDestroy"/>
     <function name="setupSample"/>
     <function name="getCurrentImpressionId"/>
+    <function name="getCurrentSequenceNumber"/>
     <function name="getVersion"/>
     <function name="sendAnalyticsRequestAndClearValues"/>
     <function name="createTempMetadataSampleAndSendAnalyticsRequest"/>

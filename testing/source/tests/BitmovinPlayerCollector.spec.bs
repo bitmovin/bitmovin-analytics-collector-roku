@@ -193,6 +193,85 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("reports the ad error before closing the ad break, since closing it resets the SSAI state")
+    function _()
+      testContext = { ssaiCalls: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "onError" or funcName = "adBreakEnd"
+            m.testContext.ssaiCalls.Push(funcName)
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "some error" }
+
+      'bs:disable-next-line
+      onError()
+
+      ' adBreakEnd() resets the SSAI state to IDLE and ssaiService.onError()
+      ' returns immediately once it is - so the ad error sample is lost if
+      ' these two run the other way round.
+      m.assertEqual(testContext.ssaiCalls.Count(), 2)
+      m.assertEqual(testContext.ssaiCalls[0], "onError")
+      m.assertEqual(testContext.ssaiCalls[1], "adBreakEnd")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("leaves SSAI alone when the error belongs to a previous session (AN-5074)")
+    function _()
+      testContext = { ssaiCalls: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "onError" or funcName = "adBreakEnd"
+            m.testContext.ssaiCalls.Push(funcName)
+          else if funcName = "getCurrentImpressionId"
+            return "failover-session-impression-id"
+          else if funcName = "getCurrentSequenceNumber"
+            return 0
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "some error" }
+      m.mockPlayer.playerState = "error"
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+      ' The failed session's ad break was already closed by onSourceUnloaded();
+      ' any break active now belongs to the failover session, so neither the ad
+      ' error sample nor the break end may be applied to it.
+      'bs:disable-next-line
+      m.node.pendingErrorSession = {
+        impressionId: "failed-session-impression-id"
+        sequenceNumber: 3
+        duration: 100
+        state: "error"
+        didAttemptPlay: false
+        didVideoPlay: false
+      }
+
+      'bs:disable-next-line
+      onError()
+
+      m.assertEqual(testContext.ssaiCalls.Count(), 0)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("should gracefully handle 'player.getCurrentTime' returning 'invalid'")
     function _()
       m.mockPlayer.callFunc = function(functionName)
@@ -614,6 +693,427 @@ namespace tests
       'bs:disable-next-line
       m.assertEqual(m.node.videoStartUpTime, -1)
 
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("snapshots everything a later error sample needs to describe this session (AN-5074)")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "getCurrentImpressionId" then return "impression-123"
+          if funcName = "getCurrentSequenceNumber" then return 4
+          return true
+        end function
+      }
+
+      m.mockPlayer.playerState = "error"
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = true
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      'bs:disable-next-line
+      onSourceUnloaded()
+
+      'bs:disable-next-line
+      session = m.node.pendingErrorSession
+      m.assertNotInvalid(session)
+      m.assertEqual(session.impressionId, "impression-123")
+      m.assertEqual(session.sequenceNumber, 4)
+      m.assertEqual(session.state, "error")
+      m.assertTrue(session.didAttemptPlay)
+      m.assertFalse(session.didVideoPlay)
+      m.assertTrue(session.duration >= 0)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onSourceLoaded")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("re-arms observers and clears the torn-down flag when observers were previously torn down")
+    function _()
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getConfig" then return { source: {} }
+        return invalid
+      end function
+      m.mockPlayer.BitmovinPlayerState = { SETUP: "setup" }
+
+      observeContext = { calls: [] }
+      m.mockPlayer.observeContext = observeContext
+      m.mockPlayer.observeFieldScoped = function(fieldName as string, funcName as string)
+        m.observeContext.calls.Push(fieldName)
+      end function
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.observersTornDown = true
+
+      'bs:disable-next-line
+      onSourceLoaded()
+
+      'bs:disable-next-line
+      m.assertFalse(m.node.observersTornDown)
+      m.assertTrue(observeContext.calls.Count() > 0)
+    end function
+
+    @it("does not re-arm observers when they were never torn down (would discard a still-pending error notification)")
+    function _()
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getConfig" then return { source: {} }
+        return invalid
+      end function
+      m.mockPlayer.BitmovinPlayerState = { SETUP: "setup" }
+      ' Deliberately no observeFieldScoped stub on the mock player - if
+      ' setUpObservers() were called despite the flag being false, this
+      ' would throw and fail the test.
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+
+      'bs:disable-next-line
+      onSourceLoaded()
+
+      'bs:disable-next-line
+      m.assertFalse(m.node.observersTornDown)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onError - session attribution when an error outlives its session (AN-5074)")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("attributes the error sample to the failed session and restores the current session afterward when a newer source has already loaded")
+    function _()
+      testContext = { updateSampleCalls: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "updateSample"
+            m.testContext.updateSampleCalls.Push(arg)
+          else if funcName = "getCurrentImpressionId"
+            return "new-session-impression-id"
+          else if funcName = "getCurrentSequenceNumber"
+            return 3
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "network error" }
+      ' The app already failed over, so the collector switched session before
+      ' this error notification was delivered - the impression no longer
+      ' matches the one snapshotted on the unload.
+      m.mockPlayer.playerState = "ready"
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return invalid
+        if functionName = "getCurrentTime" then return 0
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = true
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+      'bs:disable-next-line
+      m.node.pendingErrorSession = { impressionId: "failed-session-impression-id", sequenceNumber: 5, duration: 100, state: "error", didAttemptPlay: true, didVideoPlay: false }
+
+      'bs:disable-next-line
+      onError()
+
+      ' 3 updateSample calls total: swap to the failed session, the actual
+      ' error sample content (from sendAnalyticsRequestAndClearValues itself),
+      ' then swap back to the current session.
+      m.assertEqual(testContext.updateSampleCalls.Count(), 3)
+      m.assertEqual(testContext.updateSampleCalls[0].impressionId, "failed-session-impression-id")
+      m.assertEqual(testContext.updateSampleCalls[0].sequenceNumber, 5)
+      m.assertEqual(testContext.updateSampleCalls[2].impressionId, "new-session-impression-id")
+      m.assertEqual(testContext.updateSampleCalls[2].sequenceNumber, 3)
+      'bs:disable-next-line
+      m.assertFalse(m.node.observersTornDown)
+      'bs:disable-next-line
+      m.assertInvalid(m.node.pendingErrorSession)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("tears down observers and never touches session identifiers when the error belongs to the current session")
+    function _()
+      testContext = { updateSampleCalls: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "updateSample"
+            m.testContext.updateSampleCalls.Push(arg)
+          else if funcName = "getCurrentImpressionId"
+            return "same-session-id"
+          else if funcName = "getCurrentSequenceNumber"
+            return 2
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "network error" }
+      ' Still in the error state - no failover source was loaded, so this is the
+      ' normal terminal-failure case and the error belongs to the current session.
+      m.mockPlayer.playerState = "error"
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return invalid
+        if functionName = "getCurrentTime" then return 0
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+      'bs:disable-next-line
+      m.node.pendingErrorSession = { impressionId: "same-session-id", sequenceNumber: 2 }
+
+      'bs:disable-next-line
+      onError()
+
+      ' Exactly 1 updateSample call: the actual error sample content (from
+      ' sendAnalyticsRequestAndClearValues itself) - no session-swap calls,
+      ' since the error belongs to the current session.
+      m.assertEqual(testContext.updateSampleCalls.Count(), 1)
+      m.assertEqual(testContext.updateSampleCalls[0].errorCode, 1000)
+      m.assertInvalid(testContext.updateSampleCalls[0].impressionId)
+      'bs:disable-next-line
+      m.assertTrue(m.node.observersTornDown)
+      'bs:disable-next-line
+      m.assertInvalid(m.node.pendingErrorSession)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("still attributes the error to the failed session while the player reports the error state (AN-5074)")
+    function _()
+      testContext = { updateSampleCalls: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "updateSample"
+            m.testContext.updateSampleCalls.Push(arg)
+          else if funcName = "getCurrentImpressionId"
+            return "new-session-impression-id"
+          else if funcName = "getCurrentSequenceNumber"
+            return 0
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "network error" }
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getAudio" then return invalid
+        if functionName = "getSubtitle" then return invalid
+        if functionName = "getDuration" then return invalid
+        if functionName = "getCurrentTime" then return 0
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+      ' Device-observed ordering: the player emits "sourceLoaded" - which is
+      ' what switches the session - before it moves playerState off "error",
+      ' and the pending error notification lands in between. So an error from
+      ' the previous session is handled while the player still reports
+      ' "error", and the session identity is the only signal that has moved.
+      m.mockPlayer.playerState = "error"
+      'bs:disable-next-line
+      m.node.pendingErrorSession = {
+        impressionId: "failed-session-impression-id"
+        sequenceNumber: 9
+        duration: 100
+        state: "error"
+        didAttemptPlay: false
+        didVideoPlay: false
+      }
+
+      'bs:disable-next-line
+      onError()
+
+      ' 3 updateSample calls: swap to the failed session, the error sample
+      ' content itself, then the swap back to the current session.
+      m.assertEqual(testContext.updateSampleCalls.Count(), 3)
+      m.assertEqual(testContext.updateSampleCalls[0].impressionId, "failed-session-impression-id")
+      m.assertEqual(testContext.updateSampleCalls[0].sequenceNumber, 9)
+      m.assertEqual(testContext.updateSampleCalls[2].impressionId, "new-session-impression-id")
+      'bs:disable-next-line
+      m.assertFalse(m.node.observersTornDown)
+      'bs:disable-next-line
+      m.assertInvalid(m.node.pendingErrorSession)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("describes the failed session, not the failover source that is running by now (AN-5074)")
+    function _()
+      testContext = { updateSampleCalls: [] }
+      originalCollectorCore = m.node.collectorCore
+      originalWatchdog = m.node.videoStartTimeoutTimer
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "updateSample"
+            m.testContext.updateSampleCalls.Push(arg)
+          else if funcName = "getCurrentImpressionId"
+            return "failover-session-impression-id"
+          else if funcName = "getCurrentSequenceNumber"
+            return 0
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "network error" }
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getCurrentTime" then return 0
+        return invalid
+      end function
+
+      ' The failover source is already playing by the time the previous
+      ' session's error notification is delivered: it flipped didVideoPlay,
+      ' marked the state timer again and moved playerState on.
+      m.mockPlayer.playerState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = true
+      'bs:disable-next-line
+      m.node.didVideoPlay = true
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+
+      ' The startup watchdog is only started for the first source that attempts
+      ' playback, so it belongs to the failover source now - this error must
+      ' not stop it.
+      watchdog = { control: "start", unobserveFieldScoped: function(fieldName as string)
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartTimeoutTimer = watchdog
+
+      'bs:disable-next-line
+      m.node.pendingErrorSession = {
+        impressionId: "failed-session-impression-id"
+        sequenceNumber: 7
+        duration: 4321
+        state: "error"
+        didAttemptPlay: true
+        didVideoPlay: false
+      }
+
+      'bs:disable-next-line
+      onError()
+
+      ' The middle call is the error sample itself: it has to carry the failed
+      ' session's startup failure, its duration and its state - none of which
+      ' are true of the live player any more.
+      m.assertEqual(testContext.updateSampleCalls.Count(), 3)
+      errorSample = testContext.updateSampleCalls[1]
+      m.assertTrue(errorSample.videoStartFailed)
+      m.assertNotInvalid(errorSample.videoStartFailedReason)
+      m.assertEqual(errorSample.duration, 4321)
+      m.assertEqual(errorSample.state, "error")
+      m.assertEqual(watchdog.control, "start")
+
+      m.node.videoStartTimeoutTimer = originalWatchdog
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("stops the startup watchdog when the error belongs to the session that started it")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+      originalWatchdog = m.node.videoStartTimeoutTimer
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          if funcName = "getCurrentImpressionId" then return "same-session-id"
+          return true
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function
+      }
+
+      m.mockPlayer.error = { code: 1000, message: "network error" }
+      m.mockPlayer.playerState = "error"
+      m.mockPlayer.callFunc = function(functionName as string, arg = invalid)
+        if functionName = "getCurrentTime" then return 0
+        return invalid
+      end function
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didAttemptPlay = true
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+      'bs:disable-next-line
+      m.node.observersTornDown = false
+
+      watchdog = { control: "start", unobserveFieldScoped: function(fieldName as string)
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartTimeoutTimer = watchdog
+
+      ' Same impression as the snapshot - this session's own error.
+      'bs:disable-next-line
+      m.node.pendingErrorSession = {
+        impressionId: "same-session-id"
+        sequenceNumber: 2
+        duration: 100
+        state: "error"
+        didAttemptPlay: true
+        didVideoPlay: false
+      }
+
+      'bs:disable-next-line
+      onError()
+
+      m.assertEqual(watchdog.control, "stop")
+
+      m.node.videoStartTimeoutTimer = originalWatchdog
       m.node.collectorCore = originalCollectorCore
     end function
 
