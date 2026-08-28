@@ -417,19 +417,12 @@ sub sendErrorSample(transformedErrorSample, duration)
   }
 
   ' A failover load started a new session while this error notification was
-  ' still pending, so the error belongs to the session snapshotted on the
-  ' unload rather than to the one being tracked now (AN-5074). The impression
-  ' is the only signal that is guaranteed to have moved by this point: the
-  ' player emits "sourceLoaded" - which is what switches the session - before
-  ' it moves playerState off "error", and the pending error notification is
-  ' delivered in between, so playerState still reads "error" here.
+  ' pending; the error belongs to the session snapshotted on the unload (AN-5074).
   isErrorFromPreviousSession = m.pendingErrorSession <> invalid and m.pendingErrorSession.impressionId <> currentSession.impressionId
 
   if isErrorFromPreviousSession
-    ' Every live helper describes the failover source by now: the state timer
-    ' has been marked again by its state changes, didVideoPlay flips as soon as
-    ' it starts playing, and playerState follows it too. The sample has to
-    ' describe the session that failed, so it is built from the snapshot alone.
+    ' Live state describes the failover source by now, so the failed
+    ' session's sample is built from the snapshot alone.
     sampleDuration = m.pendingErrorSession.duration
     sampleState = m.pendingErrorSession.state
     sampleDidAttemptPlay = m.pendingErrorSession.didAttemptPlay
@@ -443,9 +436,7 @@ sub sendErrorSample(transformedErrorSample, duration)
     sampleDidVideoPlay = m.didVideoPlay
   end if
 
-  ' The startup watchdog is only ever started for the first source that
-  ' attempts playback, so the source running now is the one still relying on
-  ' it. An error belonging to an earlier session must not clear it, or a
+  ' An earlier session's error must not clear the startup watchdog, or a
   ' failover source that never starts loses its timeout sample.
   clearStartupWatchdog = not isErrorFromPreviousSession
 
