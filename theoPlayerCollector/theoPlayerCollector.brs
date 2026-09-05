@@ -410,12 +410,51 @@ end sub
 
 sub startVideoStartUpTimer()
   m.videoStartupTimer = CreateObject("roTimeSpan")
+  m.adBreakTimeDuringStartup = 0
+  m.startupTimerAtAdBreakBegin = -1
+end sub
+
+function isVideoStartupMeasurementRunning() as boolean
+  return m.videoStartupTimer <> invalid and m.videoStartUpTime < 0
+end function
+
+function getVideoStartupTimerElapsed() as integer
+  if m.videoStartupTimer = invalid then return -1
+
+  return m.videoStartupTimer.TotalMilliseconds()
+end function
+
+' A CSAI ad break blocks content startup: with a pre-roll scheduled at a known time offset the
+' break begins before the content ever plays, and the content `playing` event that concludes the
+' startup measurement only arrives once the break is over. The whole break - ad load plus the
+' creative the viewer watched - would otherwise be reported as videoStartupTime (13.4s measured on
+' device for a 10s pre-roll). Track the break time that falls inside an open startup window so
+' stopVideoStartUpTimer can subtract it, which is what the Android collector reports as well: its
+' state machine leaves the STARTUP state for AD and only accumulates the time spent in STARTUP.
+sub markCsaiAdBreakStartDuringStartup()
+  if not isVideoStartupMeasurementRunning() then return
+
+  m.startupTimerAtAdBreakBegin = getVideoStartupTimerElapsed()
+end sub
+
+sub markCsaiAdBreakEndDuringStartup()
+  if m.startupTimerAtAdBreakBegin < 0 then return
+
+  m.adBreakTimeDuringStartup = m.adBreakTimeDuringStartup + (getVideoStartupTimerElapsed() - m.startupTimerAtAdBreakBegin)
+  m.startupTimerAtAdBreakBegin = -1
 end sub
 
 sub stopVideoStartUpTimer()
   if m.videoStartupTimer = invalid or m.videoStartUpTime >= 0 then return
 
-  m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
+  ' Conclude a break that is still open, so its elapsed part is excluded too
+  markCsaiAdBreakEndDuringStartup()
+
+  m.videoStartUpTime = getVideoStartupTimerElapsed() - m.adBreakTimeDuringStartup
+
+  ' A startup that measures as nothing still has to report a value - same reasoning as the
+  ' Android collector, which adds 1ms when the state was exited within the same millisecond.
+  if m.videoStartUpTime < 1 then m.videoStartUpTime = 1
 
   startupEventData = {
     videoStartupTime: m.videoStartUpTime,
@@ -764,6 +803,8 @@ sub resetCollectorState()
   m.isSeeking = false
   m.seekStartPosition = invalid
   m.currentTimeAtPauseStart = invalid
+  m.adBreakTimeDuringStartup = 0
+  m.startupTimerAtAdBreakBegin = -1
   m.lastKnownCurrentTime = 0
   m.isCurrentAdBreakSsai = false
 end sub
@@ -824,6 +865,7 @@ sub onAdBreakBegin(eventData = invalid)
   else
     updateSample({ videoBitrate: invalid })
     m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
+    markCsaiAdBreakStartDuringStartup()
   end if
 end sub
 
@@ -861,6 +903,7 @@ sub onAdBreakEnd(eventData = invalid)
     adBreakEnd()
   else
     m.collectorCore.callFunc("csaiOnAdBreakEnd")
+    markCsaiAdBreakEndDuringStartup()
   end if
   m.isCurrentAdBreakSsai = false
 end sub
