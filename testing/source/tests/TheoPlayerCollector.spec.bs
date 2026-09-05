@@ -2260,6 +2260,7 @@ namespace tests
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "isCsaiAdBreakInProgress" then return false
           return true
         end function,
         playerState: ""
@@ -2351,6 +2352,76 @@ namespace tests
       m.assertFalse(m.node.isSeeking)
       'bs:disable-next-line
       m.assertEqual(m.node.currentState, "setup")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not transition when the seek is the player exiting an ad break")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          ' the ad break has already ended by the time the exit seek arrives
+          if funcName = "isCsaiAdBreakInProgress" then return false
+          return true
+        end function,
+        playerState: ""
+      }
+
+      m.mockPlayer.currentTime = 15
+
+      'bs:disable-next-line
+      m.node.isSeeking = false
+      'bs:disable-next-line
+      m.node.lastKnownCurrentTime = 15
+      'bs:disable-next-line
+      m.node.currentState = "ad"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onSeeking()
+
+      'bs:disable-next-line
+      m.assertFalse(m.node.isSeeking)
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "ad")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not transition while a CSAI ad break is in progress")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "isCsaiAdBreakInProgress" then return true
+          return true
+        end function,
+        playerState: ""
+      }
+
+      m.mockPlayer.currentTime = 15
+
+      'bs:disable-next-line
+      m.node.isSeeking = false
+      'bs:disable-next-line
+      m.node.lastKnownCurrentTime = 15
+      ' between `adbreakbegin` and `adbegin` the content is paused for the break but our state is still PAUSED
+      'bs:disable-next-line
+      m.node.currentState = "paused"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onSeeking()
+
+      'bs:disable-next-line
+      m.assertFalse(m.node.isSeeking)
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentState, "paused")
 
       m.node.collectorCore = originalCollectorCore
     end function
@@ -4041,6 +4112,106 @@ namespace tests
       m.assertNotInvalid(closingAdSample.played)
       'bs:disable-next-line
       m.assertEqual(m.node.currentState, "playing")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("onAdBegin captures the content position at the start of the ad pod")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid, arg2 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      m.mockPlayer.currentTime = 15
+      mockVideoNode({ height: 1080, width: 1920 })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = false
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.currentTimeAtAdBreakStart = invalid
+
+      'bs:disable-next-line
+      onAdBegin({ ad: { id: "ad-1", duration: 10 } })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentTimeAtAdBreakStart, 15000)
+
+      ' the second ad of the pod must not re-capture, even if the player reports a different currentTime
+      m.mockPlayer.currentTime = 99
+
+      'bs:disable-next-line
+      onAdBegin({ ad: { id: "ad-2", duration: 10 } })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentTimeAtAdBreakStart, 15000)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("pins the closing ad sample videoTimeEnd to the ad break position when content resumes earlier")
+    function _()
+      testContext = { capturedSamples: [], videoTimeStarts: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          if funcName = "updateSample" then m.testContext.capturedSamples.Push(arg1)
+          if funcName = "setVideoTimeStart" then m.testContext.videoTimeStarts.Push(arg1)
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      ' the player resumed content 3s before the cue point the midroll was scheduled at
+      m.mockPlayer.currentTime = 12
+      mockVideoNode({ height: 1080, width: 1920 })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+      'bs:disable-next-line
+      m.node.videoStartUpTime = 1
+      'bs:disable-next-line
+      m.node.didVideoPlay = true
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "ad"
+      'bs:disable-next-line
+      m.node.currentTimeAtAdBreakStart = 15000
+
+      'bs:disable-next-line
+      onPlaying()
+
+      closingAdSample = invalid
+      for each sampleData in testContext.capturedSamples
+        if sampleData.DoesExist("state") and sampleData.state = "ad"
+          closingAdSample = sampleData
+        end if
+      end for
+
+      m.assertNotInvalid(closingAdSample)
+      m.assertEqual(closingAdSample.videoTimeEnd, 15000)
+
+      ' the resumed content state still starts at the real resume position
+      m.assertEqual(testContext.videoTimeStarts.Peek(), 12000)
+      'bs:disable-next-line
+      m.assertInvalid(m.node.currentTimeAtAdBreakStart)
 
       m.node.collectorCore = originalCollectorCore
     end function

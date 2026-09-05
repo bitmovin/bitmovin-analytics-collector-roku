@@ -690,9 +690,18 @@ sub handlePreviousState()
     resetSeekHelperVariables()
   else if m.previousState = m.collectorStates.AD
     ' AD → any (ad finished or next ad started)
-    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.previousState)
+    sample = { played: stateDuration }
+
+    ' A CSAI ad consumes no content time, but the player can resume content before the cue point on ad exit.
+    ' Without pinning, the default videoTimeEnd is that earlier resume position and the ad sample spans a
+    ' backwards video time range. The content state that follows still starts at the real resume position,
+    ' as setVideoTimeStart() runs after this.
+    if m.currentTimeAtAdBreakStart <> invalid then sample.videoTimeEnd = m.currentTimeAtAdBreakStart
+
+    sendAnalyticsRequestAndClearValues(sample, stateDuration, m.previousState)
     if m.currentState <> m.collectorStates.AD
       updateSample({ videoBitrate: m.currentVideoBitrate })
+      m.currentTimeAtAdBreakStart = invalid
     end if
   end if
 end sub
@@ -736,6 +745,13 @@ end sub
 sub onSeeking(eventData = invalid)
   if m.isSeeking = true or m.currentState = m.collectorStates.SETUP then return
 
+  ' THEO re-seeks the content stream when it exits an ad break: a `seeking` event arrives after `adbreakend`
+  ' but before the content `playing` event, while our content state machine is still in AD. That is not a user
+  ' seek - and since the player can resume slightly before the cue point (observed ~3s earlier after a midroll)
+  ' it would be reported as a phantom backwards seek. The `AD_BREAK_STARTED` window between `adbreakbegin` and
+  ' `adbegin` is covered too, as the content is already paused for the break there but our state is still PAUSED.
+  if m.currentState = m.collectorStates.AD or m.collectorCore.callFunc("isCsaiAdBreakInProgress") then return
+
   m.isSeeking = true
 
   ' At the time when we receive the seeking event, the player has already updated the `currentTime` to the
@@ -764,6 +780,7 @@ sub resetCollectorState()
   m.isSeeking = false
   m.seekStartPosition = invalid
   m.currentTimeAtPauseStart = invalid
+  m.currentTimeAtAdBreakStart = invalid
   m.lastKnownCurrentTime = 0
   m.isCurrentAdBreakSsai = false
 end sub
@@ -837,6 +854,8 @@ sub onAdBegin(eventData = invalid)
     adStart(buildSsaiAdMetadata(ad))
   else
     m.collectorCore.callFunc("csaiOnAdBegin", ad)
+    ' Keep the position captured for the first ad of a pod - the content does not move between ads
+    if m.currentState <> m.collectorStates.AD then m.currentTimeAtAdBreakStart = getCurrentPlayerTimeInMs()
     onPlayerStateChanged(m.collectorStates.AD)
   end if
 end sub
