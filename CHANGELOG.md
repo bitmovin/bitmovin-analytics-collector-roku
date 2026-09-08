@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Changed
+- Suppressing `seeking` events after CSAI-ads on THEOplayer because the triggered seek-operation is not user-driven but part of content restoration
+
 ## v2.23.0
 
 ### Fixed
