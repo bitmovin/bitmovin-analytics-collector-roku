@@ -424,13 +424,6 @@ function getVideoStartupTimerElapsed() as integer
   return m.videoStartupTimer.TotalMilliseconds()
 end function
 
-' A CSAI ad break blocks content startup: with a pre-roll scheduled at a known time offset the
-' break begins before the content ever plays, and the content `playing` event that concludes the
-' startup measurement only arrives once the break is over. The whole break - ad load plus the
-' creative the viewer watched - would otherwise be reported as videoStartupTime (13.4s measured on
-' device for a 10s pre-roll). Track the break time that falls inside an open startup window so
-' stopVideoStartUpTimer can subtract it, which is what the Android collector reports as well: its
-' state machine leaves the STARTUP state for AD and only accumulates the time spent in STARTUP.
 sub markCsaiAdBreakStartDuringStartup()
   if not isVideoStartupMeasurementRunning() then return
 
@@ -452,8 +445,6 @@ sub stopVideoStartUpTimer()
 
   m.videoStartUpTime = getVideoStartupTimerElapsed() - m.adBreakTimeDuringStartup
 
-  ' A startup that measures as nothing still has to report a value - same reasoning as the
-  ' Android collector, which adds 1ms when the state was exited within the same millisecond.
   if m.videoStartUpTime < 1 then m.videoStartUpTime = 1
 
   startupEventData = {
