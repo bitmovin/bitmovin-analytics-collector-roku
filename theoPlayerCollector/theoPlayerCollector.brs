@@ -692,10 +692,6 @@ sub handlePreviousState()
     ' AD → any (ad finished or next ad started)
     sample = { played: stateDuration }
 
-    ' A CSAI ad consumes no content time, but the player can resume content before the cue point on ad exit.
-    ' Without pinning, the default videoTimeEnd is that earlier resume position and the ad sample spans a
-    ' backwards video time range. The content state that follows still starts at the real resume position,
-    ' as setVideoTimeStart() runs after this.
     if m.currentTimeAtAdBreakStart <> invalid then sample.videoTimeEnd = m.currentTimeAtAdBreakStart
 
     sendAnalyticsRequestAndClearValues(sample, stateDuration, m.previousState)
@@ -745,11 +741,6 @@ end sub
 sub onSeeking(eventData = invalid)
   if m.isSeeking = true or m.currentState = m.collectorStates.SETUP then return
 
-  ' THEO re-seeks the content stream when it exits an ad break: a `seeking` event arrives after `adbreakend`
-  ' but before the content `playing` event, while our content state machine is still in AD. That is not a user
-  ' seek - and since the player can resume slightly before the cue point (observed ~3s earlier after a midroll)
-  ' it would be reported as a phantom backwards seek. The `AD_BREAK_STARTED` window between `adbreakbegin` and
-  ' `adbegin` is covered too, as the content is already paused for the break there but our state is still PAUSED.
   if m.currentState = m.collectorStates.AD or m.collectorCore.callFunc("isCsaiAdBreakInProgress") then return
 
   m.isSeeking = true
