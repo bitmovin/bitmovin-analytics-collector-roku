@@ -169,7 +169,7 @@ sub programChange(newSourceMetadata = invalid)
 
   ' Start new impression with new metadata
   m.collectorCore.callFunc("setupSample")
-  m.currentTimeAtAdBreakStart = invalid
+  resetAdBreakHelperVariables()
 
   ' Apply new program metadata (config-level fields: title, videoId, cdnProvider, isLive, customData, experimentName)
   m.collectorCore.callFunc("updateAnalyticsConfig", newSourceMetadata)
@@ -609,6 +609,8 @@ sub onError(eventData = invalid)
   m.collectorCore.callFunc("onError", errorSample)
 
   m.collectorCore.callFunc("adBreakEnd")
+  m.collectorCore.callFunc("csaiOnAdBreakEnd")
+  resetAdBreakHelperVariables()
 end sub
 
 sub onDestroy(eventData = invalid)
@@ -697,7 +699,7 @@ sub handlePreviousState()
     sendAnalyticsRequestAndClearValues(sample, stateDuration, m.previousState)
     if m.currentState <> m.collectorStates.AD
       updateSample({ videoBitrate: m.currentVideoBitrate })
-      m.currentTimeAtAdBreakStart = invalid
+      resetAdBreakHelperVariables()
     end if
   end if
 end sub
@@ -732,6 +734,12 @@ function getCurrentPlayerTimeInMs()
   return Cint(time%)
 end function
 
+sub resetAdBreakHelperVariables()
+  m.currentTimeAtAdBreakStart = invalid
+  m.isRestoringContentAfterAdBreak = false
+  m.isCurrentAdBreakPostroll = false
+end sub
+
 sub applyAdBreakPositionToSample(sample)
   if m.currentTimeAtAdBreakStart = invalid then return
 
@@ -750,7 +758,13 @@ end sub
 sub onSeeking(eventData = invalid)
   if m.isSeeking = true or m.currentState = m.collectorStates.SETUP then return
 
-  if m.currentState = m.collectorStates.AD or m.collectorCore.callFunc("isCsaiAdBreakInProgress") then return
+  if m.collectorCore.callFunc("isCsaiAdBreakInProgress") then return
+
+  if m.isRestoringContentAfterAdBreak
+    ' Only the single seek the player uses to restore the content is suppressed, every later seek is the user's
+    m.isRestoringContentAfterAdBreak = false
+    return
+  end if
 
   m.isSeeking = true
 
@@ -780,9 +794,9 @@ sub resetCollectorState()
   m.isSeeking = false
   m.seekStartPosition = invalid
   m.currentTimeAtPauseStart = invalid
-  m.currentTimeAtAdBreakStart = invalid
   m.lastKnownCurrentTime = 0
   m.isCurrentAdBreakSsai = false
+  resetAdBreakHelperVariables()
 end sub
 
 sub onVideoNodeStateChanged()
@@ -841,6 +855,7 @@ sub onAdBreakBegin(eventData = invalid)
   else
     updateSample({ videoBitrate: invalid })
     m.currentTimeAtAdBreakStart = getCurrentPlayerTimeInMs()
+    m.isCurrentAdBreakPostroll = (mapTimeOffsetToAdPosition(adBreak?.timeOffset) = "postroll")
     m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
   end if
 end sub
@@ -879,6 +894,8 @@ sub onAdBreakEnd(eventData = invalid)
     adBreakEnd()
   else
     m.collectorCore.callFunc("csaiOnAdBreakEnd")
+    ' A postroll has no content to restore, so nothing is expected to seek after it
+    m.isRestoringContentAfterAdBreak = not m.isCurrentAdBreakPostroll
   end if
   m.isCurrentAdBreakSsai = false
 end sub
