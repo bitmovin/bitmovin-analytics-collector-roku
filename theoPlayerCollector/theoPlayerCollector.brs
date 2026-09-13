@@ -169,6 +169,7 @@ sub programChange(newSourceMetadata = invalid)
 
   ' Start new impression with new metadata
   m.collectorCore.callFunc("setupSample")
+  m.currentTimeAtAdBreakStart = invalid
 
   ' Apply new program metadata (config-level fields: title, videoId, cdnProvider, isLive, customData, experimentName)
   m.collectorCore.callFunc("updateAnalyticsConfig", newSourceMetadata)
@@ -691,8 +692,7 @@ sub handlePreviousState()
   else if m.previousState = m.collectorStates.AD
     ' AD → any (ad finished or next ad started)
     sample = { played: stateDuration }
-
-    if m.currentTimeAtAdBreakStart <> invalid then sample.videoTimeEnd = m.currentTimeAtAdBreakStart
+    applyAdBreakPositionToSample(sample)
 
     sendAnalyticsRequestAndClearValues(sample, stateDuration, m.previousState)
     if m.currentState <> m.collectorStates.AD
@@ -716,7 +716,9 @@ sub sendClosingSampleForCurrentState()
       sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
     end if
   else if m.currentState = m.collectorStates.AD
-    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
+    sample = { played: stateDuration }
+    applyAdBreakPositionToSample(sample)
+    sendAnalyticsRequestAndClearValues(sample, stateDuration, m.currentState)
   end if
 
   m.playerStateTimer.Mark()
@@ -729,6 +731,13 @@ function getCurrentPlayerTimeInMs()
   time% = currentTime * 1000
   return Cint(time%)
 end function
+
+sub applyAdBreakPositionToSample(sample)
+  if m.currentTimeAtAdBreakStart = invalid then return
+
+  sample.videoTimeStart = m.currentTimeAtAdBreakStart
+  sample.videoTimeEnd = m.currentTimeAtAdBreakStart
+end sub
 
 sub setVideoTimeStart()
   m.collectorCore.callFunc("setVideoTimeStart", getCurrentPlayerTimeInMs())
@@ -831,6 +840,7 @@ sub onAdBreakBegin(eventData = invalid)
     adBreakStart(buildSsaiAdBreakMetadata(adBreak))
   else
     updateSample({ videoBitrate: invalid })
+    m.currentTimeAtAdBreakStart = getCurrentPlayerTimeInMs()
     m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
   end if
 end sub
@@ -845,8 +855,6 @@ sub onAdBegin(eventData = invalid)
     adStart(buildSsaiAdMetadata(ad))
   else
     m.collectorCore.callFunc("csaiOnAdBegin", ad)
-    ' Keep the position captured for the first ad of a pod - the content does not move between ads
-    if m.currentState <> m.collectorStates.AD then m.currentTimeAtAdBreakStart = getCurrentPlayerTimeInMs()
     onPlayerStateChanged(m.collectorStates.AD)
   end if
 end sub

@@ -4116,7 +4116,7 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("onAdBegin captures the content position at the start of the ad pod")
+    @it("onAdBreakBegin captures the content position at the cue point, the ads of the pod do not move it")
     function _()
       originalCollectorCore = m.node.collectorCore
 
@@ -4134,8 +4134,6 @@ namespace tests
       m.mockPlayer.duration = 60
 
       'bs:disable-next-line
-      m.node.isCurrentAdBreakSsai = false
-      'bs:disable-next-line
       m.node.playerStateTimer = CreateObject("roTimespan")
       'bs:disable-next-line
       m.node.currentState = "playing"
@@ -4143,24 +4141,85 @@ namespace tests
       m.node.currentTimeAtAdBreakStart = invalid
 
       'bs:disable-next-line
-      onAdBegin({ ad: { id: "ad-1", duration: 10 } })
+      onAdBreakBegin({ adBreak: { integration: "csai", timeOffset: 15 } })
 
       'bs:disable-next-line
       m.assertEqual(m.node.currentTimeAtAdBreakStart, 15000)
 
-      ' the second ad of the pod must not re-capture, even if the player reports a different currentTime
+      ' neither ad of the pod re-captures, even though the player reports a different currentTime
       m.mockPlayer.currentTime = 99
 
       'bs:disable-next-line
-      onAdBegin({ ad: { id: "ad-2", duration: 10 } })
+      onAdBegin({ ad: { id: "ad-1", duration: 10 } })
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentTimeAtAdBreakStart, 15000)
 
+      'bs:disable-next-line
+      onAdBegin({ ad: { id: "ad-2", duration: 10 } })
       'bs:disable-next-line
       m.assertEqual(m.node.currentTimeAtAdBreakStart, 15000)
 
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("pins the closing ad sample videoTimeEnd to the ad break position when content resumes earlier")
+    @it("pins both ends of the ad sample of an ad that is not the first of the pod")
+    function _()
+      testContext = { capturedSamples: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          if funcName = "updateSample" then m.testContext.capturedSamples.Push(arg1)
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      ' the player reports the position of the running ad, not the content, between the ads of a pod
+      m.mockPlayer.currentTime = 99
+      mockVideoNode({ height: 1080, width: 1920 })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = invalid
+      'bs:disable-next-line
+      m.node.videoStartUpTime = 1
+      'bs:disable-next-line
+      m.node.didVideoPlay = true
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakSsai = false
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "ad"
+      'bs:disable-next-line
+      m.node.currentTimeAtAdBreakStart = 15000
+
+      ' the second ad of the pod starts, concluding the sample of the first one
+      'bs:disable-next-line
+      onAdBegin({ ad: { id: "ad-2", duration: 10 } })
+
+      adSample = invalid
+      for each sampleData in testContext.capturedSamples
+        if sampleData.DoesExist("state") and sampleData.state = "ad"
+          adSample = sampleData
+        end if
+      end for
+
+      m.assertNotInvalid(adSample)
+      m.assertEqual(adSample.videoTimeStart, 15000)
+      m.assertEqual(adSample.videoTimeEnd, 15000)
+      ' the break is still running, so the position stays captured for the remaining ads
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentTimeAtAdBreakStart, 15000)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("pins both ends of the closing ad sample to the ad break position when content resumes earlier")
     function _()
       testContext = { capturedSamples: [], videoTimeStarts: [] }
       originalCollectorCore = m.node.collectorCore
@@ -4206,6 +4265,7 @@ namespace tests
       end for
 
       m.assertNotInvalid(closingAdSample)
+      m.assertEqual(closingAdSample.videoTimeStart, 15000)
       m.assertEqual(closingAdSample.videoTimeEnd, 15000)
 
       ' the resumed content state still starts at the real resume position
