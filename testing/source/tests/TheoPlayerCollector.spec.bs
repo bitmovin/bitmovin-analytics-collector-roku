@@ -2356,17 +2356,20 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("does not transition when the seek is the player exiting an ad break")
+    @it("does not send a sample when the seek is the player exiting an ad break")
     function _()
+      testContext = { capturedSamples: [] }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
+        callFunc: function(funcName as string, arg1 = invalid)
           ' the ad break has already ended by the time the exit seek arrives
           if funcName = "isCsaiAdBreakInProgress" then return false
+          if funcName = "updateSample" then m.testContext.capturedSamples.Push(arg1)
           return true
         end function,
-        playerState: ""
+        playerState: "",
+        testContext: testContext
       }
 
       m.mockPlayer.currentTime = 15
@@ -2385,8 +2388,7 @@ namespace tests
       'bs:disable-next-line
       onSeeking()
 
-      'bs:disable-next-line
-      m.assertFalse(m.node.isSeeking)
+      m.assertEqual(testContext.capturedSamples.Count(), 0)
       'bs:disable-next-line
       m.assertEqual(m.node.currentState, "ad")
       ' the suppression is consumed by the seek it was armed for
@@ -2396,16 +2398,19 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("transitions on a user seek that follows the suppressed content restoring seek")
+    @it("sends a sample for a user seek that follows the suppressed content restoring seek")
     function _()
+      testContext = { capturedSamples: [] }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
+        callFunc: function(funcName as string, arg1 = invalid)
           if funcName = "isCsaiAdBreakInProgress" then return false
+          if funcName = "updateSample" then m.testContext.capturedSamples.Push(arg1)
           return true
         end function,
-        playerState: ""
+        playerState: "",
+        testContext: testContext
       }
 
       m.mockPlayer.currentTime = 60
@@ -2430,15 +2435,13 @@ namespace tests
       ' the player restores the content, this seek is not the user's
       'bs:disable-next-line
       onSeeking()
-      'bs:disable-next-line
-      m.assertEqual(m.node.currentState, "playing")
+      m.assertEqual(testContext.capturedSamples.Count(), 0)
 
       ' the user seeks afterwards, this one has to be tracked
       'bs:disable-next-line
       onSeeking()
 
-      'bs:disable-next-line
-      m.assertTrue(m.node.isSeeking)
+      m.assertTrue(testContext.capturedSamples.Count() > 0)
       'bs:disable-next-line
       m.assertEqual(m.node.seekStartPosition, 30)
       'bs:disable-next-line
@@ -2447,16 +2450,19 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("does not transition while a CSAI ad break is in progress")
+    @it("does not send a sample while a CSAI ad break is in progress")
     function _()
+      testContext = { capturedSamples: [] }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
+        callFunc: function(funcName as string, arg1 = invalid)
           if funcName = "isCsaiAdBreakInProgress" then return true
+          if funcName = "updateSample" then m.testContext.capturedSamples.Push(arg1)
           return true
         end function,
-        playerState: ""
+        playerState: "",
+        testContext: testContext
       }
 
       m.mockPlayer.currentTime = 15
@@ -2474,8 +2480,7 @@ namespace tests
       'bs:disable-next-line
       onSeeking()
 
-      'bs:disable-next-line
-      m.assertFalse(m.node.isSeeking)
+      m.assertEqual(testContext.capturedSamples.Count(), 0)
       'bs:disable-next-line
       m.assertEqual(m.node.currentState, "paused")
 
