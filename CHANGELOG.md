@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
-### Changed
-- Suppressing `seeking` events after CSAI-ads on THEOplayer because the triggered seek-operation is not user-driven but part of content restoration
+### Fixed
+- spurious `seeking` sample after every CSAI ad break on THEOplayer
+- `videoTimeEnd` of the closing `ad` sample pointing at the resumed content position instead of the ad break position
 
 ## v2.23.0
 
