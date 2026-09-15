@@ -38,6 +38,10 @@ namespace tests
       ' Tests that need videoNode should set up their own mock with the required methods
       'bs:disable-next-line
       m.node.videoNode = invalid
+
+      ' Mirrors initializePlayer, so every test starts from initialized collector state
+      'bs:disable-next-line
+      resetCollectorState()
     end function
 
     protected override function afterEach()
