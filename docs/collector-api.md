@@ -15,7 +15,7 @@ All three collector variants (`bitmovinPlayerCollector`, `nativePlayerCollector`
 | [`adStart(adMetadata)`](#adstartadmetadata) | SSAI | Signal the start of an individual ad |
 | [`adBreakEnd()`](#adbreakend) | SSAI | Signal the end of an ad break |
 | [`adQuartileFinished(adQuartile, adQuartileMetadata)`](#adquartilefinishedadquartile-adquartilemetadata) | SSAI | Report an ad quartile milestone |
-| [`programChange(newSourceMetadata)`](#programchangenewsourcemetadata) | Live | Report a program change in a live stream *(THEO Player only)* |
+| [`programChange(newSourceMetadata)`](#programchangenewsourcemetadata) | Live | Report a program change in a live stream *(THEO and Bitmovin Player)* |
 
 ---
 
@@ -242,9 +242,13 @@ m.collector.callFunc("adQuartileFinished", "completed", { failedBeaconUrl: "http
 
 ### `programChange(newSourceMetadata)`
 
-> **THEO Player collector only.**
+> Not yet implemented for the native player collector, where it is a no-op.
 
-Reports a program change within a live stream. Finalizes the current impression, starts a new one, and applies updated metadata for the new program. If called before any source has been loaded (SETUP state), applies the metadata as a configuration update without starting a new impression.
+Reports a program change within a live stream. Finalizes the current impression, starts a new one, and applies updated metadata for the new program. Playback is not interrupted.
+
+If called before playback has ever started — during startup, before a source has been loaded, or before `initializePlayer` — the metadata is applied as a configuration update and no new impression is started. The startup already under way then reports the new program's metadata, as a normal startup.
+
+Otherwise the current impression is closed with a final sample carrying `isProgramChange = true`, and a new impression opens with a synthetic sample: `state` = `programchange`, `videoStartupTime` = 1, `sequenceNumber` = 0, `isProgramChange` = true. Neither send resets the heartbeat timer, so clients crossing the same live boundary do not end up with synchronised heartbeats.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
