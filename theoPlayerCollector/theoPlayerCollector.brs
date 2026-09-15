@@ -440,7 +440,7 @@ sub markCsaiAdBreakEndDuringStartup()
 end sub
 
 sub stopVideoStartUpTimer()
-  if m.videoStartupTimer = invalid or m.videoStartUpTime >= 0 then return
+  if not isVideoStartupMeasurementRunning() then return
 
   ' Conclude a break that is still open, so its elapsed part is excluded too
   markCsaiAdBreakEndDuringStartup()
