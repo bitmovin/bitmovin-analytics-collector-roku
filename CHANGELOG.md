@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- `programChange` support for the Bitmovin Player collector
+
+### Changed
+- `programChange` now reports the state name `programchange` instead of `programChange`, matching the other platforms
+
 ## v2.23.0
 
 ### Fixed
