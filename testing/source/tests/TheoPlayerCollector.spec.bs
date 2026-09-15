@@ -39,6 +39,9 @@ namespace tests
       'bs:disable-next-line
       m.node.videoNode = invalid
 
+      'bs:disable-next-line
+      m.node.collectorCore = m.top.findNode("collectorCore")
+
       ' Mirrors initializePlayer, so every test starts from initialized collector state
       'bs:disable-next-line
       resetCollectorState()
