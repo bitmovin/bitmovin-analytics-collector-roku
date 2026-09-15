@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased]
 
 ### Fixed
-- `videoStartupTime` on THEOplayer containing the playback time of a pre-roll ad break in cases where ad resolution is very fast
+- `videoStartupTime` on THEOplayer including the playback time of a client-side pre-roll
 
 ## v2.23.0
 
