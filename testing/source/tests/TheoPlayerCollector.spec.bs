@@ -3054,8 +3054,6 @@ namespace tests
       m.node.adBreakTimeDuringStartup = 11168
       'bs:disable-next-line
       m.node.startupTimerAtAdBreakBegin = -1
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
 
       'bs:disable-next-line
       stopVideoStartUpTimer()
@@ -3106,8 +3104,6 @@ namespace tests
       ' break began 1404ms into the startup window and never got an adBreakEnd
       'bs:disable-next-line
       m.node.startupTimerAtAdBreakBegin = 1404
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
 
       'bs:disable-next-line
       stopVideoStartUpTimer()
@@ -3154,8 +3150,6 @@ namespace tests
       m.node.adBreakTimeDuringStartup = 5000
       'bs:disable-next-line
       m.node.startupTimerAtAdBreakBegin = -1
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
 
       'bs:disable-next-line
       stopVideoStartUpTimer()
@@ -3195,10 +3189,6 @@ namespace tests
       m.node.adBreakTimeDuringStartup = 0
       'bs:disable-next-line
       m.node.startupTimerAtAdBreakBegin = -1
-      'bs:disable-next-line
-      m.node.isCurrentAdBreakSsai = false
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
 
       'bs:disable-next-line
       onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
@@ -3242,8 +3232,6 @@ namespace tests
       m.node.adBreakTimeDuringStartup = 0
       'bs:disable-next-line
       m.node.startupTimerAtAdBreakBegin = -1
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
 
       'bs:disable-next-line
       onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
@@ -3292,10 +3280,6 @@ namespace tests
       m.node.adBreakTimeDuringStartup = 11168
       'bs:disable-next-line
       m.node.startupTimerAtAdBreakBegin = -1
-      'bs:disable-next-line
-      m.node.isCurrentAdBreakSsai = false
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
 
       'bs:disable-next-line
       onAdBreakBegin({ adBreak: { timeOffset: 15, integration: "csai" } })
@@ -3333,8 +3317,6 @@ namespace tests
       m.node.adBreakTimeDuringStartup = 0
       'bs:disable-next-line
       m.node.startupTimerAtAdBreakBegin = -1
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
 
       ' SSAI ads are part of the content stream, so they never block content startup
       'bs:disable-next-line
