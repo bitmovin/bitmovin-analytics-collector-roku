@@ -3305,6 +3305,96 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("pauses the video start timeout for the duration of a startup ad break")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { readings: [1404, 12572], index: 0, TotalMilliseconds: function() as integer
+        value = m.readings[m.index]
+        if m.index < m.readings.Count() - 1 then m.index++
+        return value
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 0
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      startVideoStartTimeout()
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "start")
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
+
+      ' the viewer is watching an ad, so the budget must not run against them
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "stop")
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      ' restarted with the full budget, matching the Android collector
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "start")
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerDuration(), 60)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("leaves the video start timeout alone for a break after startup")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { TotalMilliseconds: function() as integer
+        return 29029
+      end function }
+      ' startup already concluded, so a mid-roll must not touch the timeout
+      'bs:disable-next-line
+      m.node.videoStartUpTime = 2247
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 11168
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      clearVideoStartTimeout()
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 15, integration: "csai" } })
+
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "stop")
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      ' nothing was paused, so nothing gets restarted
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "stop")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("does not track ad break time once the startup measurement is done")
     function _()
       originalCollectorCore = m.node.collectorCore
@@ -5163,6 +5253,10 @@ end namespace
 
 function getVideoStartTimeoutTimerControl() as string
   return m.videoStartTimeoutTimer.control
+end function
+
+function getVideoStartTimeoutTimerDuration() as integer
+  return Int(m.videoStartTimeoutTimer.duration)
 end function
 
 function mockVideoNode(node) as object

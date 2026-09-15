@@ -430,14 +430,18 @@ sub markCsaiAdBreakStartDuringStartup()
   if m.startupTimerAtAdBreakBegin >= 0 then return
 
   m.startupTimerAtAdBreakBegin = getVideoStartupTimerElapsed()
+
+  clearVideoStartTimeout()
 end sub
 
-sub markCsaiAdBreakEndDuringStartup()
-  if m.startupTimerAtAdBreakBegin < 0 then return
+function markCsaiAdBreakEndDuringStartup() as boolean
+  if m.startupTimerAtAdBreakBegin < 0 then return false
 
   m.adBreakTimeDuringStartup = m.adBreakTimeDuringStartup + (getVideoStartupTimerElapsed() - m.startupTimerAtAdBreakBegin)
   m.startupTimerAtAdBreakBegin = -1
-end sub
+
+  return true
+end function
 
 sub stopVideoStartUpTimer()
   if not isVideoStartupMeasurementRunning() then return
@@ -899,7 +903,7 @@ sub onAdBreakEnd(eventData = invalid)
     adBreakEnd()
   else
     m.collectorCore.callFunc("csaiOnAdBreakEnd")
-    markCsaiAdBreakEndDuringStartup()
+    if markCsaiAdBreakEndDuringStartup() then startVideoStartTimeout()
   end if
   m.isCurrentAdBreakSsai = false
 end sub
