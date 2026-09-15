@@ -845,6 +845,36 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("clears a startup ad break left open by the previous source")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function
+      }
+
+      ' adbreakbegin arrived but no adbegin, so the state never left SETUP and
+      ' resetCollectorState is skipped below
+      m.mockPlayer.autoplay = false
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 999
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = 1404
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.adBreakTimeDuringStartup, 0)
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, -1)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("initializePlayer")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
