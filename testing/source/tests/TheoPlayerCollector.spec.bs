@@ -3196,6 +3196,33 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    ' m.currentState and m.playerStateTimer are both set in initializePlayer, so a programChange
+    ' before that used to reach a nonexistent timer.
+    @it("degrades to a metadata update when no state has been recorded yet")
+    function _()
+      testContext = { capturedFuncName: invalid, calledFunctions: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          m.testContext.capturedFuncName = funcName
+          m.testContext.calledFunctions[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = invalid
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertEqual(testContext.capturedFuncName, "updateAnalyticsConfig")
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("concludes current impression and starts new one when playing")
     function _()
       testContext = { capturedSamples: [], capturedConfigMetadata: invalid }
@@ -3243,7 +3270,7 @@ namespace tests
       programChangeSample = testContext.capturedSamples[testContext.capturedSamples.Count() - 1]
       m.assertTrue(programChangeSample.isProgramChange)
       m.assertEqual(programChangeSample.videoStartupTime, 1)
-      m.assertEqual(programChangeSample.state, "programChange")
+      m.assertEqual(programChangeSample.state, "programchange")
 
       m.node.collectorCore = originalCollectorCore
     end function
