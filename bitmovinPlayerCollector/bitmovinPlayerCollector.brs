@@ -469,6 +469,27 @@ function shouldFinishRunningSample()
   return m.currentState = m.playerStates.PLAYING or m.currentState = m.playerStates.PAUSED
 end function
 
+'Report a program change on a live stream. Concludes the current impression and starts a new one
+'carrying the given metadata, without interrupting playback.
+'@param {Object} newSourceMetadata - AnalyticsConfig fields for the new program, optionally plus
+'                                    `mpdUrl` / `m3u8Url` / `progUrl` / `path`.
+sub programChange(newSourceMetadata = invalid)
+  ' m.playerStates does not exist until initializePlayer has run; invalid state names route
+  ' handleProgramChange to its metadata-only path instead of throwing.
+  stateNames = invalid
+  if m.playerStates <> invalid
+    stateNames = {
+      playing: m.playerStates.PLAYING
+      paused: m.playerStates.PAUSED
+      ' SETUP alone is too narrow - the player passes through READY and STALLING before the first
+      ' frame. m.didVideoPlay records having reached PLAYING, set in onVideoStart().
+      startupFinished: m.didVideoPlay = true
+    }
+  end if
+
+  handleProgramChange(newSourceMetadata, stateNames)
+end sub
+
 function setCustomData(customData)
   if customData = invalid then return invalid
   sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
@@ -678,7 +699,12 @@ sub checkForSourceSpecificMetadata(sourceConfig)
   updateSample(updatedVideoMetadata)
 end sub
 
-sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
+'@param {Object} eventData - Sample fields to merge before sending.
+'@param {number} duration - Duration this sample accounts for, in milliseconds.
+'@param {String} state - Player state the sample is attributed to.
+'@param {Boolean} skipHeartbeatReset - Leave the heartbeat timer running instead of restarting it
+'                                      with this send.
+sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState, skipHeartbeatReset = false)
   sampleData = eventData
   sampleData.Append({
     state: state,
@@ -688,7 +714,7 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
   decorateSampleWithPlaybackData(sampleData)
 
   updateSample(sampleData)
-  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
+  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues", skipHeartbeatReset)
 end sub
 
 
