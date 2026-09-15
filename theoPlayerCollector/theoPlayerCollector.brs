@@ -426,6 +426,8 @@ end function
 
 sub markCsaiAdBreakStartDuringStartup()
   if not isVideoStartupMeasurementRunning() then return
+  ' A break is already open, so a repeated begin must not move the mark forward
+  if m.startupTimerAtAdBreakBegin >= 0 then return
 
   m.startupTimerAtAdBreakBegin = getVideoStartupTimerElapsed()
 end sub

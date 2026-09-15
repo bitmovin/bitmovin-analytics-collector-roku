@@ -3217,6 +3217,59 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("ignores a repeated onAdBreakBegin within the same break")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      ' same device timeline as above. The last reading repeats, so an extra read
+      ' on the unguarded path shows up as a wrong total instead of running dry
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { readings: [1404, 12572], index: 0, TotalMilliseconds: function() as integer
+        value = m.readings[m.index]
+        if m.index < m.readings.Count() - 1 then m.index++
+        return value
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 0
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, 1404)
+
+      ' csaiOnAdBreakBegin ignores this one, so the mark has to ignore it too
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, 1404)
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      ' the whole break, not just the part after the duplicate
+      'bs:disable-next-line
+      m.assertEqual(m.node.adBreakTimeDuringStartup, 11168)
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, -1)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("does not track ad break time once the startup measurement is done")
     function _()
       originalCollectorCore = m.node.collectorCore
