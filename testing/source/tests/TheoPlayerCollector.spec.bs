@@ -1092,6 +1092,23 @@ namespace tests
       m.assertNotInvalid(m.node.videoStartupTimer)
     end function
 
+    @it("initializes the startup ad-break fields")
+    function _()
+      ' dirty state from a previous impression
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 999
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = 555
+
+      'bs:disable-next-line
+      startVideoStartUpTimer()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.adBreakTimeDuringStartup, 0)
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, -1)
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("stopVideoStartUpTimer")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
