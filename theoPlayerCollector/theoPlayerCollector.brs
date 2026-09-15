@@ -507,6 +507,9 @@ sub onSourceChange(eventData = invalid)
     resetCollectorState()
   end if
 
+  m.adBreakTimeDuringStartup = 0
+  m.startupTimerAtAdBreakBegin = -1
+
   if m.player.autoplay = true
     startVideoStartUpTimer()
   end if
