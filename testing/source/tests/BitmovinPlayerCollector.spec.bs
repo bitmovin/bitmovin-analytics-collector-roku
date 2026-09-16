@@ -50,6 +50,8 @@ namespace tests
         FINISHED: "finished"
         SETUP: "setup"
       }
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
     end function
 
     protected override function afterEach()
@@ -1296,32 +1298,6 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("applies metadata update but does not start new impression when called in SETUP state")
-    function _()
-      testContext = { capturedMetadata: invalid, calledFunctions: {} }
-      originalCollectorCore = m.node.collectorCore
-
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
-          m.testContext.calledFunctions[funcName] = true
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      'bs:disable-next-line
-      m.node.currentState = "setup"
-
-      'bs:disable-next-line
-      programChange({ title: "New Program" })
-
-      m.assertEqual(testContext.capturedMetadata.title, "New Program")
-      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
-      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
-      m.node.collectorCore = originalCollectorCore
-    end function
-
     ' Between initializeAnalytics and initializePlayer, m.playerStates is invalid. The state is
     ' deliberately not "setup", to show the guard is the missing vocabulary and not the state.
     @it("degrades to a metadata update when called before initializePlayer")
@@ -1562,11 +1538,9 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    ' The player passes through READY and STALLING before the first frame. A programChange there is
-    ' a normal startup with different metadata, not a boundary. Matches `!isStartupFinished` on Android.
     @it("degrades to a metadata update while playback is still starting up")
     function _()
-      for each startupState in ["ready", "stalling"]
+      for each startupState in ["setup", "ready", "stalling"]
         testContext = { capturedMetadata: invalid, calledFunctions: {} }
         originalCollectorCore = m.node.collectorCore
 
