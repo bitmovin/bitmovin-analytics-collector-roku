@@ -587,6 +587,8 @@ sub onSourceLoaded()
 
   checkForSourceSpecificMetadata(playerConfig.source)
 
+  m.didVideoPlay = false
+
   startVideoStartUpTimer()
 
   checkForNewMetadata()
@@ -618,8 +620,6 @@ sub onSourceUnloaded()
     didAttemptPlay: m.didAttemptPlay
     didVideoPlay: m.didVideoPlay
   }
-
-  m.didVideoPlay = false
 
   ' Source may be unloaded without a subsequent sourceLoaded/destroy event, so close out
   ' any active SSAI ad break here rather than leaving it open indefinitely.
