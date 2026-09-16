@@ -474,6 +474,10 @@ end function
 '@param {Object} newSourceMetadata - AnalyticsConfig fields for the new program, optionally plus
 '                                    `mpdUrl` / `m3u8Url` / `progUrl` / `path`.
 sub programChange(newSourceMetadata = invalid)
+  if newSourceMetadata = invalid then return
+
+  settlePriorStateBeforeReady()
+
   ' m.playerStates does not exist until initializePlayer has run; invalid state names route
   ' handleProgramChange to its metadata-only path instead of throwing.
   stateNames = invalid
@@ -488,6 +492,24 @@ sub programChange(newSourceMetadata = invalid)
   end if
 
   handleProgramChange(newSourceMetadata, stateNames)
+end sub
+
+sub settlePriorStateBeforeReady()
+  if m.priorStateBeforeReady <> invalid and m.priorDurationBeforeReady > 0
+    duration = m.priorDurationBeforeReady
+
+    eventData = {}
+    if m.priorStateBeforeReady = m.playerStates.PLAYING
+      eventData.played = duration
+    else if m.priorStateBeforeReady = m.playerStates.PAUSED
+      eventData.paused = duration
+    end if
+
+    sendAnalyticsRequestAndClearValues(eventData, duration, m.priorStateBeforeReady)
+  end if
+
+  m.priorStateBeforeReady = invalid
+  m.priorDurationBeforeReady = invalid
 end sub
 
 function setCustomData(customData)
