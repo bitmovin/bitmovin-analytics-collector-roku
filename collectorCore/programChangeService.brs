@@ -5,7 +5,7 @@ sub handleProgramChange(newSourceMetadata, stateNames)
   if newSourceMetadata = invalid then return
 
   if isBeforeFirstProgram(stateNames)
-    m.collectorCore.callFunc("updateAnalyticsConfig", newSourceMetadata)
+    applyProgramMetadata(newSourceMetadata)
     return
   end if
 
@@ -27,9 +27,7 @@ sub handleProgramChange(newSourceMetadata, stateNames)
   ' Also closes any open SSAI ad break on the outgoing impression, via ssaiOnSourceChange().
   m.collectorCore.callFunc("setupSample")
 
-  ' getMetadataFromAnalyticsConfig keeps config fields only, so the URLs go through updateSample.
-  m.collectorCore.callFunc("updateAnalyticsConfig", newSourceMetadata)
-  updateSample(getProgramChangeSourceMetadata(newSourceMetadata))
+  applyProgramMetadata(newSourceMetadata)
 
   ' videoStartupTime and duration are both 1 so plays, playAttempts and billing work without this
   ' counting as real startup time; the backend excludes it by the isProgramChange flag. Lower-case
@@ -40,6 +38,12 @@ sub handleProgramChange(newSourceMetadata, stateNames)
 
   m.playerStateTimer.Mark()
   setVideoTimeStart()
+end sub
+
+' getMetadataFromAnalyticsConfig keeps config fields only, so the URLs go through updateSample.
+sub applyProgramMetadata(newSourceMetadata)
+  m.collectorCore.callFunc("updateAnalyticsConfig", newSourceMetadata)
+  updateSample(getProgramChangeSourceMetadata(newSourceMetadata))
 end sub
 
 ' A programChange during startup is a normal startup carrying different metadata, so it must not

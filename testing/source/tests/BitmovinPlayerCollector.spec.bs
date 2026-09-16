@@ -1298,13 +1298,12 @@ namespace tests
 
     @it("applies metadata update but does not start new impression when called in SETUP state")
     function _()
-      testContext = { capturedFuncName: invalid, capturedMetadata: invalid, calledFunctions: {} }
+      testContext = { capturedMetadata: invalid, calledFunctions: {} }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          m.testContext.capturedFuncName = funcName
-          m.testContext.capturedMetadata = sampleData
+          if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
           m.testContext.calledFunctions[funcName] = true
           return true
         end function,
@@ -1317,7 +1316,6 @@ namespace tests
       'bs:disable-next-line
       programChange({ title: "New Program" })
 
-      m.assertEqual(testContext.capturedFuncName, "updateAnalyticsConfig")
       m.assertEqual(testContext.capturedMetadata.title, "New Program")
       m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
       m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
@@ -1328,13 +1326,12 @@ namespace tests
     ' deliberately not "setup", to show the guard is the missing vocabulary and not the state.
     @it("degrades to a metadata update when called before initializePlayer")
     function _()
-      testContext = { capturedFuncName: invalid, capturedMetadata: invalid, calledFunctions: {} }
+      testContext = { capturedMetadata: invalid, calledFunctions: {} }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          m.testContext.capturedFuncName = funcName
-          m.testContext.capturedMetadata = sampleData
+          if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
           m.testContext.calledFunctions[funcName] = true
           return true
         end function,
@@ -1351,7 +1348,6 @@ namespace tests
       'bs:disable-next-line
       programChange({ title: "New Program" })
 
-      m.assertEqual(testContext.capturedFuncName, "updateAnalyticsConfig")
       m.assertEqual(testContext.capturedMetadata.title, "New Program")
       m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
       m.node.collectorCore = originalCollectorCore
@@ -1359,12 +1355,12 @@ namespace tests
 
     @it("degrades to a metadata update when no state has been recorded yet")
     function _()
-      testContext = { capturedFuncName: invalid, calledFunctions: {} }
+      testContext = { capturedMetadata: invalid, calledFunctions: {} }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          m.testContext.capturedFuncName = funcName
+          if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
           m.testContext.calledFunctions[funcName] = true
           return true
         end function,
@@ -1377,7 +1373,7 @@ namespace tests
       'bs:disable-next-line
       programChange({ title: "New Program" })
 
-      m.assertEqual(testContext.capturedFuncName, "updateAnalyticsConfig")
+      m.assertTrue(testContext.calledFunctions.doesExist("updateAnalyticsConfig"))
       m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
       m.node.collectorCore = originalCollectorCore
     end function
@@ -1503,6 +1499,40 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    ' The startup path applies the config fields and the stream URL, same as a real boundary -
+    ' getMetadataFromAnalyticsConfig whitelists config fields, so the URLs need updateSample.
+    @it("applies the new program's stream URL while playback is still starting up")
+    function _()
+      testContext = { capturedSamples: [], capturedMetadata: invalid, calledFunctions: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
+          if funcName = "updateSample" then m.testContext.capturedSamples.Push(sampleData)
+          m.testContext.calledFunctions[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "ready"
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      'bs:disable-next-line
+      programChange({ title: "New Program", m3u8Url: "http://example.com/news.m3u8" })
+
+      m.assertEqual(testContext.capturedMetadata.title, "New Program")
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].m3u8Url, "http://example.com/news.m3u8")
+      m.assertEqual(testContext.capturedSamples[0].streamFormat, "hls")
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     ' Once startup has finished, every player state opens a new impression - READY included. The
     ' sentinel is "has playback ever started", not a particular state name.
     @it("starts a new impression when in READY state after startup finished")
@@ -1537,13 +1567,12 @@ namespace tests
     @it("degrades to a metadata update while playback is still starting up")
     function _()
       for each startupState in ["ready", "stalling"]
-        testContext = { capturedFuncName: invalid, capturedMetadata: invalid, calledFunctions: {} }
+        testContext = { capturedMetadata: invalid, calledFunctions: {} }
         originalCollectorCore = m.node.collectorCore
 
         m.node.collectorCore = {
           callFunc: function(funcName as string, sampleData = invalid)
-            m.testContext.capturedFuncName = funcName
-            m.testContext.capturedMetadata = sampleData
+            if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
             m.testContext.calledFunctions[funcName] = true
             return true
           end function,
@@ -1560,7 +1589,6 @@ namespace tests
         'bs:disable-next-line
         programChange({ title: "New Program" })
 
-        m.assertEqual(testContext.capturedFuncName, "updateAnalyticsConfig", "state " + startupState + " should only merge metadata")
         m.assertEqual(testContext.capturedMetadata.title, "New Program")
         m.assertFalse(testContext.calledFunctions.doesExist("setupSample"), "state " + startupState + " should not open a new impression")
         m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"), "state " + startupState + " should not send a sample")

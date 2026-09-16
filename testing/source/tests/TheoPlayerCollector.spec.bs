@@ -3149,13 +3149,12 @@ namespace tests
 
     @it("applies metadata update but does not start new impression when called in SETUP state")
     function _()
-      testContext = { capturedFuncName: invalid, capturedMetadata: invalid }
+      testContext = { capturedMetadata: invalid }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          m.testContext.capturedFuncName = funcName
-          m.testContext.capturedMetadata = sampleData
+          if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
           return true
         end function,
         testContext: testContext
@@ -3167,7 +3166,6 @@ namespace tests
       'bs:disable-next-line
       programChange({ title: "New Program" })
 
-      m.assertEqual(testContext.capturedFuncName, "updateAnalyticsConfig")
       m.assertEqual(testContext.capturedMetadata.title, "New Program")
       m.node.collectorCore = originalCollectorCore
     end function
@@ -3200,12 +3198,12 @@ namespace tests
     ' before that used to reach a nonexistent timer.
     @it("degrades to a metadata update when no state has been recorded yet")
     function _()
-      testContext = { capturedFuncName: invalid, calledFunctions: {} }
+      testContext = { capturedMetadata: invalid, calledFunctions: {} }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          m.testContext.capturedFuncName = funcName
+          if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
           m.testContext.calledFunctions[funcName] = true
           return true
         end function,
@@ -3218,7 +3216,7 @@ namespace tests
       'bs:disable-next-line
       programChange({ title: "New Program" })
 
-      m.assertEqual(testContext.capturedFuncName, "updateAnalyticsConfig")
+      m.assertTrue(testContext.calledFunctions.doesExist("updateAnalyticsConfig"))
       m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
       m.node.collectorCore = originalCollectorCore
     end function
