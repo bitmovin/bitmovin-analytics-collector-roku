@@ -21,7 +21,7 @@ sub adBreakEnd()
 end sub
 sub adQuartileFinished()
 end sub
-sub programChange()
+sub programChange(newSourceMetadata = invalid)
 end sub
 
 
