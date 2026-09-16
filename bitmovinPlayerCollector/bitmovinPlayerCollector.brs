@@ -505,7 +505,7 @@ sub settlePriorStateBeforeReady()
       eventData.paused = duration
     end if
 
-    sendAnalyticsRequestAndClearValues(eventData, duration, m.priorStateBeforeReady)
+    sendAnalyticsRequestAndClearValues(eventData, duration, m.priorStateBeforeReady, true)
   end if
 
   m.priorStateBeforeReady = invalid

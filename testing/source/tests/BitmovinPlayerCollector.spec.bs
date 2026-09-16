@@ -1557,6 +1557,12 @@ namespace tests
 
       m.assertTrue(testContext.capturedSamples[1].isProgramChange)
 
+      ' All three sends leave the heartbeat alone, settling sample included
+      m.assertEqual(testContext.capturedSkipHeartbeatReset.Count(), 3)
+      m.assertTrue(testContext.capturedSkipHeartbeatReset[0])
+      m.assertTrue(testContext.capturedSkipHeartbeatReset[1])
+      m.assertTrue(testContext.capturedSkipHeartbeatReset[2])
+
       'bs:disable-next-line
       m.assertInvalid(m.node.priorStateBeforeReady)
       'bs:disable-next-line
