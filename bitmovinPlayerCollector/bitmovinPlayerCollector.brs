@@ -476,8 +476,6 @@ end function
 sub programChange(newSourceMetadata = invalid)
   if newSourceMetadata = invalid then return
 
-  settlePriorStateBeforeReady()
-
   ' m.playerStates does not exist until initializePlayer has run; invalid state names route
   ' handleProgramChange to its metadata-only path instead of throwing.
   stateNames = invalid
@@ -490,6 +488,8 @@ sub programChange(newSourceMetadata = invalid)
       startupFinished: m.didVideoPlay = true
     }
   end if
+
+  if not isBeforeFirstProgram(stateNames) then settlePriorStateBeforeReady()
 
   handleProgramChange(newSourceMetadata, stateNames)
 end sub

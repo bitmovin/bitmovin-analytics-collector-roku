@@ -1563,6 +1563,22 @@ namespace tests
       m.assertInvalid(m.node.priorDurationBeforeReady)
     end function
 
+    @it("does not settle the parked duration on the metadata-only startup path")
+    function _()
+      testContext = stubCollectorCore(m.node)
+      giveStartingUpSession(m.node, "ready")
+      parkPreReadyDuration(m.node, "playing", 5000)
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
+      'bs:disable-next-line
+      m.assertEqual(m.node.priorStateBeforeReady, "playing")
+      'bs:disable-next-line
+      m.assertEqual(m.node.priorDurationBeforeReady, 5000)
+    end function
+
     @it("sends no settling sample when nothing is parked")
     function _()
       testContext = stubCollectorCore(m.node)
