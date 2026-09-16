@@ -3469,6 +3469,16 @@ namespace tests
       m.assertEqual(result.path, "/channel/news")
     end function
 
+    @it("getProgramChangeSourceMetadata infers no streamFormat without a URL field")
+    function _()
+      metadata = { title: "No URL" }
+
+      'bs:disable-next-line
+      result = getProgramChangeSourceMetadata(metadata)
+
+      m.assertInvalid(result.streamFormat)
+    end function
+
     @it("does not carry isProgramChange flag on samples after programChange")
     function _()
       mockVideoNode({ height: 1080, width: 1920 })
