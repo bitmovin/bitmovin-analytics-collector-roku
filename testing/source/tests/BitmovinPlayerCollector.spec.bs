@@ -734,6 +734,41 @@ namespace tests
       m.assertFalse(session.didVideoPlay)
       m.assertTrue(session.duration >= 0)
 
+      'bs:disable-next-line
+      m.node.didVideoPlay = true
+      'bs:disable-next-line
+      onSourceUnloaded()
+      'bs:disable-next-line
+      m.assertTrue(m.node.pendingErrorSession.didVideoPlay, "snapshot must carry the value from before the reset")
+      'bs:disable-next-line
+      m.assertFalse(m.node.didVideoPlay, "the next source starts its own startup")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("clears didVideoPlay so the next source starts its own startup")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg = invalid)
+          return true
+        end function
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didVideoPlay = true
+
+      'bs:disable-next-line
+      onSourceUnloaded()
+
+      'bs:disable-next-line
+      m.assertFalse(m.node.didVideoPlay)
+
       m.node.collectorCore = originalCollectorCore
     end function
 
@@ -1569,6 +1604,42 @@ namespace tests
 
         m.node.collectorCore = originalCollectorCore
       end for
+    end function
+
+    @it("degrades to a metadata update during the startup of a source loaded after the first")
+    function _()
+      testContext = { capturedMetadata: invalid, calledFunctions: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
+          m.testContext.calledFunctions[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.didVideoPlay = true
+      'bs:disable-next-line
+      onSourceUnloaded()
+
+      'bs:disable-next-line
+      m.node.currentState = "stalling"
+      testContext.calledFunctions = {}
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertEqual(testContext.capturedMetadata.title, "New Program")
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
+
+      m.node.collectorCore = originalCollectorCore
     end function
 
     @it("passes skipHeartbeatReset true for both programChange sends")
