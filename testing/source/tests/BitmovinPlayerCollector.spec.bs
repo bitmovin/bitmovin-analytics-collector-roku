@@ -52,6 +52,8 @@ namespace tests
       }
       'bs:disable-next-line
       m.node.didVideoPlay = false
+      'bs:disable-next-line
+      m.node.observersTornDown = false
 
       m.realCollectorCore = m.node.collectorCore
     end function
@@ -1720,6 +1722,10 @@ function stubCollectorCore(node)
       capturedMetadata: invalid
       capturedSkipHeartbeatReset: []
     }
+    observeFieldScoped: function(fieldName as string, funcName as string)
+    end function
+    unobserveFieldScoped: function(fieldName as string)
+    end function
     callFunc: function(funcName as string, arg = invalid)
       m.testContext.callCount++
       m.testContext.callOrder.Push(funcName)
