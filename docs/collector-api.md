@@ -242,7 +242,7 @@ m.collector.callFunc("adQuartileFinished", "completed", { failedBeaconUrl: "http
 
 ### `programChange(newSourceMetadata)`
 
-> Not yet implemented for the native player collector, where it is a no-op.
+> Not yet implemented for the native player collector, where it remains a no-op.
 
 Reports a program change within a live stream. Finalizes the current impression, starts a new one, and applies updated metadata for the new program. Playback is not interrupted.
 
