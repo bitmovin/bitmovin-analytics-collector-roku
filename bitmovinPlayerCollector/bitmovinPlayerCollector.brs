@@ -476,8 +476,7 @@ end function
 sub programChange(newSourceMetadata = invalid)
   if newSourceMetadata = invalid then return
 
-  ' m.playerStates does not exist until initializePlayer has run; invalid state names route
-  ' handleProgramChange to its metadata-only path instead of throwing.
+  ' m.playerStates is not set before initializePlayer has run
   stateNames = invalid
   if m.playerStates <> invalid
     stateNames = {
@@ -486,8 +485,6 @@ sub programChange(newSourceMetadata = invalid)
     }
   end if
 
-  ' SETUP alone is too narrow - the player passes through READY and STALLING before the first
-  ' frame. m.didVideoPlay records having reached PLAYING, set in onVideoStart().
   startupFinished = m.didVideoPlay = true
 
   if not isBeforeFirstProgram(stateNames, startupFinished) then settlePriorStateBeforeReady()
