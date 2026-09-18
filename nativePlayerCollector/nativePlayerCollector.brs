@@ -560,7 +560,7 @@ function setAnalyticsConfig(config)
   return m.collectorCore.callFunc("updateAnalyticsConfig", config)
 end function
 
-sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
+sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState, skipHeartbeatReset = false)
   sampleData = eventData
   sampleData.Append({
     state: state,
@@ -570,7 +570,7 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
   decorateSampleWithPlaybackData(sampleData)
 
   updateSample(sampleData)
-  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
+  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues", skipHeartbeatReset)
 end sub
 
 sub setVideoTimeStart()

@@ -3149,13 +3149,12 @@ namespace tests
 
     @it("applies metadata update but does not start new impression when called in SETUP state")
     function _()
-      testContext = { capturedFuncName: invalid, capturedMetadata: invalid }
+      testContext = { capturedMetadata: invalid }
       originalCollectorCore = m.node.collectorCore
 
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
-          m.testContext.capturedFuncName = funcName
-          m.testContext.capturedMetadata = sampleData
+          if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
           return true
         end function,
         testContext: testContext
@@ -3167,7 +3166,6 @@ namespace tests
       'bs:disable-next-line
       programChange({ title: "New Program" })
 
-      m.assertEqual(testContext.capturedFuncName, "updateAnalyticsConfig")
       m.assertEqual(testContext.capturedMetadata.title, "New Program")
       m.node.collectorCore = originalCollectorCore
     end function
@@ -3192,6 +3190,33 @@ namespace tests
       programChange({ title: "New Program" })
 
       m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    ' m.currentState and m.playerStateTimer are both set in initializePlayer, so a programChange
+    ' before that used to reach a nonexistent timer.
+    @it("degrades to a metadata update when no state has been recorded yet")
+    function _()
+      testContext = { capturedMetadata: invalid, calledFunctions: {} }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = sampleData
+          m.testContext.calledFunctions[funcName] = true
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = invalid
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertTrue(testContext.calledFunctions.doesExist("updateAnalyticsConfig"))
       m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
       m.node.collectorCore = originalCollectorCore
     end function
@@ -3243,7 +3268,7 @@ namespace tests
       programChangeSample = testContext.capturedSamples[testContext.capturedSamples.Count() - 1]
       m.assertTrue(programChangeSample.isProgramChange)
       m.assertEqual(programChangeSample.videoStartupTime, 1)
-      m.assertEqual(programChangeSample.state, "programChange")
+      m.assertEqual(programChangeSample.state, "programchange")
 
       m.node.collectorCore = originalCollectorCore
     end function
@@ -3442,6 +3467,16 @@ namespace tests
       result = getProgramChangeSourceMetadata(metadata)
 
       m.assertEqual(result.path, "/channel/news")
+    end function
+
+    @it("getProgramChangeSourceMetadata infers no streamFormat without a URL field")
+    function _()
+      metadata = { title: "No URL" }
+
+      'bs:disable-next-line
+      result = getProgramChangeSourceMetadata(metadata)
+
+      m.assertInvalid(result.streamFormat)
     end function
 
     @it("does not carry isProgramChange flag on samples after programChange")
