@@ -40,9 +40,11 @@ sub handleProgramChange(newSourceMetadata, stateNames)
   setVideoTimeStart()
 end sub
 
-' getMetadataFromAnalyticsConfig keeps config fields only, so the URLs go through updateSample.
 sub applyProgramMetadata(newSourceMetadata)
+  ' Apply new program metadata (config-level fields: title, videoId, cdnProvider, isLive, customData, experimentName)
   m.collectorCore.callFunc("updateAnalyticsConfig", newSourceMetadata)
+
+  ' Apply URL fields (mpdUrl, m3u8Url, progUrl, path) and infer streamFormat
   updateSample(getProgramChangeSourceMetadata(newSourceMetadata))
 end sub
 
