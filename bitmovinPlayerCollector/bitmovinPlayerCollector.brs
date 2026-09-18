@@ -492,6 +492,10 @@ sub programChange(newSourceMetadata = invalid)
   handleProgramChange(newSourceMetadata, stateNames, startupFinished)
 end sub
 
+'Flush a potentially pending state snapshot as a played/paused sample and clear it.
+'
+'A PLAYING/PAUSED→READY transition creates the snapshot, since its closing sample is suppressed
+'to avoid double-counting on source changes.
 sub settlePriorStateBeforeReady()
   if m.priorStateBeforeReady <> invalid and m.priorDurationBeforeReady > 0
     duration = m.priorDurationBeforeReady
