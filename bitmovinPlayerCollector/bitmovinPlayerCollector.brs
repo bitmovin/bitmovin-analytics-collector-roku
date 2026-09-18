@@ -483,15 +483,16 @@ sub programChange(newSourceMetadata = invalid)
     stateNames = {
       playing: m.playerStates.PLAYING
       paused: m.playerStates.PAUSED
-      ' SETUP alone is too narrow - the player passes through READY and STALLING before the first
-      ' frame. m.didVideoPlay records having reached PLAYING, set in onVideoStart().
-      startupFinished: m.didVideoPlay = true
     }
   end if
 
-  if not isBeforeFirstProgram(stateNames) then settlePriorStateBeforeReady()
+  ' SETUP alone is too narrow - the player passes through READY and STALLING before the first
+  ' frame. m.didVideoPlay records having reached PLAYING, set in onVideoStart().
+  startupFinished = m.didVideoPlay = true
 
-  handleProgramChange(newSourceMetadata, stateNames)
+  if not isBeforeFirstProgram(stateNames, startupFinished) then settlePriorStateBeforeReady()
+
+  handleProgramChange(newSourceMetadata, stateNames, startupFinished)
 end sub
 
 sub settlePriorStateBeforeReady()

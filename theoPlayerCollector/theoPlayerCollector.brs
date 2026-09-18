@@ -146,13 +146,16 @@ sub finishRunningSample()
 end sub
 
 sub programChange(newSourceMetadata = invalid)
-  handleProgramChange(newSourceMetadata, {
+  stateNames = {
     playing: m.collectorStates.PLAYING
     paused: m.collectorStates.PAUSED
-    ' The collector sits in SETUP until the first `playing` event, so leaving SETUP is exactly
-    ' "startup finished" here.
-    startupFinished: m.currentState <> m.collectorStates.SETUP
-  })
+  }
+
+  ' The collector sits in SETUP until the first `playing` event, so leaving SETUP is exactly
+  ' "startup finished" here.
+  startupFinished = m.currentState <> m.collectorStates.SETUP
+
+  handleProgramChange(newSourceMetadata, stateNames, startupFinished)
 end sub
 
 ' ===== HELPER METHODS =====

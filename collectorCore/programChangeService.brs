@@ -1,10 +1,10 @@
 ' The primitives called here - setVideoTimeStart/End, updateSample and
 ' sendAnalyticsRequestAndClearValues - are implemented by each concrete collector and declared as
 ' stubs in baseCollector.brs, so this scope validates.
-sub handleProgramChange(newSourceMetadata, stateNames)
+sub handleProgramChange(newSourceMetadata, stateNames, startupFinished)
   if newSourceMetadata = invalid then return
 
-  if isBeforeFirstProgram(stateNames)
+  if isBeforeFirstProgram(stateNames, startupFinished)
     applyProgramMetadata(newSourceMetadata)
     return
   end if
@@ -51,11 +51,11 @@ end sub
 
 ' A programChange during startup is a normal startup carrying different metadata, so it must not
 ' open a second session - mirrors !isStartupFinished in the Android state machine.
-function isBeforeFirstProgram(stateNames)
+function isBeforeFirstProgram(stateNames, startupFinished)
   if stateNames = invalid then return true
   if m.currentState = invalid then return true
 
-  return not stateNames.startupFinished
+  return not startupFinished
 end function
 
 function getProgramChangeSourceMetadata(metadata)
