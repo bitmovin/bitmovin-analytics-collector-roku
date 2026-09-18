@@ -151,8 +151,7 @@ sub programChange(newSourceMetadata = invalid)
     paused: m.collectorStates.PAUSED
   }
 
-  ' The collector sits in SETUP until the first `playing` event, so leaving SETUP is exactly
-  ' "startup finished" here.
+  ' The collector sits in SETUP until the first `playing` event
   startupFinished = m.currentState <> m.collectorStates.SETUP
 
   handleProgramChange(newSourceMetadata, stateNames, startupFinished)
