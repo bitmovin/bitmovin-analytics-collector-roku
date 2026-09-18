@@ -29,9 +29,10 @@ sub handleProgramChange(newSourceMetadata, stateNames)
 
   applyProgramMetadata(newSourceMetadata)
 
-  ' videoStartupTime and duration are both 1 so plays, playAttempts and billing work without this
-  ' counting as real startup time; the backend excludes it by the isProgramChange flag. Lower-case
-  ' state name matches the other platforms (Android: DefaultStateMachineListener.onProgramChange).
+  ' The new impression opens with a synthetic startup sample:
+  ' - videoStartupTime/duration = 1: the minimum that registers the impression as a started play
+  '   (plays, playAttempts and billing require a nonzero startup)
+  ' - isProgramChange: lets the backend keep the placeholder 1ms out of startup-time metrics
   setVideoTimeStart()
   setVideoTimeEnd()
   sendAnalyticsRequestAndClearValues({ isProgramChange: true, videoStartupTime: 1 }, 1, "programchange", true)
