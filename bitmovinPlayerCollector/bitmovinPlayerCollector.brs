@@ -506,7 +506,11 @@ sub settlePriorStateBeforeReady()
       eventData.paused = duration
     end if
 
-    sendAnalyticsRequestAndClearValues(eventData, duration, m.priorStateBeforeReady, true)
+    ' Only ever fires as part of a program change, so it leaves the heartbeat alone like the two
+    ' boundary sends do.
+    skipHeartbeatReset = true
+
+    sendAnalyticsRequestAndClearValues(eventData, duration, m.priorStateBeforeReady, skipHeartbeatReset)
   end if
 
   m.priorStateBeforeReady = invalid

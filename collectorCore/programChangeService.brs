@@ -19,10 +19,11 @@ sub handleProgramChange(newSourceMetadata, stateNames, startupFinished)
     finalSampleData.paused = stateDuration
   end if
 
-  ' skipHeartbeatReset on both sends: every client of a live stream hits the same program boundary
-  ' at the same moment, and resetting the heartbeat timer would synchronise them into one
-  ' thundering herd a minute later.
-  sendAnalyticsRequestAndClearValues(finalSampleData, stateDuration, m.currentState, true)
+  ' Every client of a live stream hits the same program boundary at the same moment, and resetting
+  ' the heartbeat timer would synchronise them into one thundering herd a minute later.
+  skipHeartbeatReset = true
+
+  sendAnalyticsRequestAndClearValues(finalSampleData, stateDuration, m.currentState, skipHeartbeatReset)
 
   ' Also closes any open SSAI ad break on the outgoing impression, via ssaiOnSourceChange().
   m.collectorCore.callFunc("setupSample")
@@ -35,7 +36,7 @@ sub handleProgramChange(newSourceMetadata, stateNames, startupFinished)
   ' - isProgramChange: lets the backend keep the placeholder 1ms out of startup-time metrics
   setVideoTimeStart()
   setVideoTimeEnd()
-  sendAnalyticsRequestAndClearValues({ isProgramChange: true, videoStartupTime: 1 }, 1, "programchange", true)
+  sendAnalyticsRequestAndClearValues({ isProgramChange: true, videoStartupTime: 1 }, 1, "programchange", skipHeartbeatReset)
 
   m.playerStateTimer.Mark()
   setVideoTimeStart()
