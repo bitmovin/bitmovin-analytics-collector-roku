@@ -24,9 +24,12 @@ namespace tests
       }
 
       m.node.player = m.mockPlayer
+
+      m.realCollectorCore = m.node.collectorCore
     end function
 
     protected override function afterEach()
+      m.node.collectorCore = m.realCollectorCore
       m.cleanStubs()
       m.cleanMocks()
     end function
