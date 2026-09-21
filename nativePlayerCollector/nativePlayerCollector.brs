@@ -507,8 +507,6 @@ end function
 
 'Report a program change on a live stream. Concludes the current impression and starts a new one
 'carrying the given metadata, without interrupting playback.
-'
-'The body lives in collectorCore/programChangeService.brs and is shared with the other collectors.
 '@param {Object} newSourceMetadata - AnalyticsConfig fields for the new program, optionally plus
 '                                    `mpdUrl` / `m3u8Url` / `progUrl` / `path`.
 sub programChange(newSourceMetadata = invalid)
