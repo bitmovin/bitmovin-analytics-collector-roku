@@ -523,10 +523,7 @@ sub programChange(newSourceMetadata = invalid)
     }
   end if
 
-  ' Unlike the Bitmovin collector, m.didVideoPlay is only cleared in setUpHelperVariables, so this
-  ' means "playback has started at least once since initializePlayer" rather than "since the
-  ' current source loaded". A programChange during the startup of a second source is therefore
-  ' treated as a real boundary here.
+  ' m.didVideoPlay is cleared in setUpHelperVariables, so this spans the whole collector session
   startupFinished = m.didVideoPlay = true
 
   handleProgramChange(newSourceMetadata, stateNames, startupFinished)
