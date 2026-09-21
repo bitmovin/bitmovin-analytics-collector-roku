@@ -505,6 +505,33 @@ function shouldFinishRunningSample()
   return m.currentState = m.playerStates.PLAYING or m.currentState = m.playerStates.PAUSED
 end function
 
+'Report a program change on a live stream. Concludes the current impression and starts a new one
+'carrying the given metadata, without interrupting playback.
+'
+'The body lives in collectorCore/programChangeService.brs and is shared with the other collectors.
+'@param {Object} newSourceMetadata - AnalyticsConfig fields for the new program, optionally plus
+'                                    `mpdUrl` / `m3u8Url` / `progUrl` / `path`.
+sub programChange(newSourceMetadata = invalid)
+  if newSourceMetadata = invalid then return
+
+  ' m.playerStates is not set before initializePlayer has run
+  stateNames = invalid
+  if m.playerStates <> invalid
+    stateNames = {
+      playing: m.playerStates.PLAYING
+      paused: m.playerStates.PAUSED
+    }
+  end if
+
+  ' Unlike the Bitmovin collector, m.didVideoPlay is only cleared in setUpHelperVariables, so this
+  ' means "playback has started at least once since initializePlayer" rather than "since the
+  ' current source loaded". A programChange during the startup of a second source is therefore
+  ' treated as a real boundary here.
+  startupFinished = m.didVideoPlay = true
+
+  handleProgramChange(newSourceMetadata, stateNames, startupFinished)
+end sub
+
 function setCustomData(customData)
   if customData = invalid then return invalid
   sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
