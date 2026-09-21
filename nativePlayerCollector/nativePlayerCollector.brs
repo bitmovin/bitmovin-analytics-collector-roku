@@ -512,8 +512,6 @@ end function
 '@param {Object} newSourceMetadata - AnalyticsConfig fields for the new program, optionally plus
 '                                    `mpdUrl` / `m3u8Url` / `progUrl` / `path`.
 sub programChange(newSourceMetadata = invalid)
-  if newSourceMetadata = invalid then return
-
   ' m.playerStates is not set before initializePlayer has run
   stateNames = invalid
   if m.playerStates <> invalid
