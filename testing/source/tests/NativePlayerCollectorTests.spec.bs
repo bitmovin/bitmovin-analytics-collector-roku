@@ -614,11 +614,10 @@ namespace tests
       m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
     end function
 
-    ' Documents an accepted divergence from the Bitmovin collector: m.didVideoPlay is only cleared
-    ' in setUpHelperVariables, never on a source change, so the startup window of a second source
-    ' is a boundary here where Bitmovin would merge metadata. Changing it would mean resetting a
-    ' flag videoStartFailed also reads.
-    @it("treats the startup of a source loaded after the first as a boundary")
+    ' The startup guard is per source, not per collector session: a source change already opens a
+    ' new impression, so a programChange before the new source plays must merge into that one
+    ' rather than open a second. Matches the Bitmovin collector's onSourceLoaded().
+    @it("degrades to a metadata update during the startup of a source loaded after the first")
     function _()
       testContext = stubNativeCollectorCore(m.node)
       giveNativePlayingSession(m.node, "playing")
@@ -631,7 +630,7 @@ namespace tests
         end function
       }
 
-      ' A real manual source change, which is the moment Bitmovin clears its equivalent flag.
+      ' A real manual source change, which is the moment the startup guard is re-armed.
       'bs:disable-next-line
       onSourceChanged()
       testContext.calledFunctions = {}
@@ -643,8 +642,10 @@ namespace tests
       programChange({ title: "New Program" })
 
       'bs:disable-next-line
-      m.assertTrue(m.node.didVideoPlay, "a source change must not have cleared the startup guard")
-      m.assertTrue(testContext.calledFunctions.doesExist("setupSample"))
+      m.assertFalse(m.node.didVideoPlay, "a source change must re-arm the startup guard")
+      m.assertEqual(testContext.capturedMetadata.title, "New Program")
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
     end function
 
     @it("passes skipHeartbeatReset true for both programChange sends")

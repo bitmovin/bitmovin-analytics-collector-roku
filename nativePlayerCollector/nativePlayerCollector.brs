@@ -397,6 +397,8 @@ sub handleManualSourceChange()
     m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   end if
 
+  m.didVideoPlay = false
+
   startVideoStartUpTimer()
   transitionToState(m.playerStates.SOURCE_CHANGING)
   handlePreviousState(m.previousState)
