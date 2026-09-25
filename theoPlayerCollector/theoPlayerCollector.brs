@@ -63,6 +63,8 @@ sub destroy(param = invalid)
       sampleData.played = duration
     else if m.currentState = m.collectorStates.PAUSED
       sampleData.paused = duration
+    else if m.currentState = m.collectorStates.AD
+      applyAdBreakPositionToSample(sampleData)
     end if
     decorateSampleWithPlaybackData(sampleData)
     updateSample(sampleData)

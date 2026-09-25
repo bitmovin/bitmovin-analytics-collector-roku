@@ -4456,6 +4456,58 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("pins both ends of the ad sample closed by destroy to the ad break position")
+    function _()
+      testContext = { capturedSamples: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          if funcName = "updateSample" then m.testContext.capturedSamples.Push(arg1)
+          return true
+        end function,
+        unobserveFieldScoped: function(field as string)
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.callFunc = function(funcName as string, arg1 = invalid, arg2 = invalid, arg3 = invalid)
+        return invalid
+      end function
+
+      ' the player reports the running ad's playhead, not the content position
+      m.mockPlayer.currentTime = 7
+      ' unobserveFields calls unobserveFieldScoped on the video node, which a mocked AA lacks
+      'bs:disable-next-line
+      m.node.videoNode = invalid
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentState = "ad"
+      'bs:disable-next-line
+      m.node.currentTimeAtAdBreakStart = 15000
+
+      'bs:disable-next-line
+      destroy()
+
+      closingAdSample = invalid
+      for each sampleData in testContext.capturedSamples
+        if sampleData.DoesExist("state") and sampleData.state = "ad"
+          closingAdSample = sampleData
+        end if
+      end for
+
+      m.assertNotInvalid(closingAdSample)
+      m.assertEqual(closingAdSample.videoTimeStart, 15000)
+      m.assertEqual(closingAdSample.videoTimeEnd, 15000)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("resetCollectorState — SSAI flag")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
