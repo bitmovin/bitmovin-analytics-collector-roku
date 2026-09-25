@@ -21,5 +21,21 @@ sub adBreakEnd()
 end sub
 sub adQuartileFinished()
 end sub
-sub programChange()
+sub programChange(newSourceMetadata = invalid)
+end sub
+
+
+' Implemented by every concrete collector; declared here so scripts attached at this level resolve
+' against a defined contract.
+function updateSample(sampleData)
+  return false
+end function
+
+sub setVideoTimeStart()
+end sub
+
+sub setVideoTimeEnd()
+end sub
+
+sub sendAnalyticsRequestAndClearValues(eventData, duration, state = "", skipHeartbeatReset = false)
 end sub
