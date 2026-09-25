@@ -159,7 +159,7 @@ sub programChange(newSourceMetadata = invalid)
   handleProgramChange(newSourceMetadata, stateNames, startupFinished)
 
   ' A new impression was opened, so no ad break state may carry over into it
-  if newSourceMetadata <> invalid and startupFinished then resetAdBreakHelperVariables()
+  if newSourceMetadata <> invalid and not isBeforeFirstProgram(stateNames, startupFinished) then resetAdBreakHelperVariables()
 end sub
 
 ' ===== HELPER METHODS =====
