@@ -3308,7 +3308,7 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("pauses the video start timeout for the duration of a startup ad break")
+    @it("keeps the video start timeout running through a startup ad break and restarts it at the end")
     function _()
       originalCollectorCore = m.node.collectorCore
 
@@ -3340,9 +3340,9 @@ namespace tests
       'bs:disable-next-line
       onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
 
-      ' the viewer is watching an ad, so the budget must not run against them
+      ' the Timer keeps running, a fire during the break re-arms instead of reporting
       'bs:disable-next-line
-      m.assertEqual(getVideoStartTimeoutTimerControl(), "stop")
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "start")
 
       'bs:disable-next-line
       onAdBreakEnd(invalid)
@@ -3352,6 +3352,81 @@ namespace tests
       m.assertEqual(getVideoStartTimeoutTimerControl(), "start")
       'bs:disable-next-line
       m.assertEqual(getVideoStartTimeoutTimerDuration(), 60)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("re-arms the video start timeout instead of reporting when it fires during a startup ad break")
+    function _()
+      testContext = { sentSamples: 0 }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          if funcName = "sendAnalyticsRequestAndClearValues" then m.testContext.sentSamples++
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      ' a break opened during startup and is still running
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = 1404
+
+      'bs:disable-next-line
+      startVideoStartTimeout()
+      'bs:disable-next-line
+      onVideoStartTimeout()
+
+      m.assertEqual(testContext.sentSamples, 0)
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "start")
+
+      'bs:disable-next-line
+      clearVideoStartTimeout()
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not restart a video start timeout that an error stopped during a startup ad break")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { readings: [1404, 12572], index: 0, TotalMilliseconds: function() as integer
+        value = m.readings[m.index]
+        if m.index < m.readings.Count() - 1 then m.index++
+        return value
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 0
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      startVideoStartTimeout()
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
+
+      ' stands in for onError, which stops the Timer before reporting videoStartFailed
+      'bs:disable-next-line
+      clearVideoStartTimeout()
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      ' the failure was reported once, so no second one may follow 60 s later
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "stop")
 
       m.node.collectorCore = originalCollectorCore
     end function
