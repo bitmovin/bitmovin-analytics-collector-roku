@@ -15,7 +15,7 @@ All three collector variants (`bitmovinPlayerCollector`, `nativePlayerCollector`
 | [`adStart(adMetadata)`](#adstartadmetadata) | SSAI | Signal the start of an individual ad |
 | [`adBreakEnd()`](#adbreakend) | SSAI | Signal the end of an ad break |
 | [`adQuartileFinished(adQuartile, adQuartileMetadata)`](#adquartilefinishedadquartile-adquartilemetadata) | SSAI | Report an ad quartile milestone |
-| [`programChange(newSourceMetadata)`](#programchangenewsourcemetadata) | Live | Report a program change in a live stream *(THEO and Bitmovin Player)* |
+| [`programChange(newSourceMetadata)`](#programchangenewsourcemetadata) | Live | Report a program change in a live stream |
 
 ---
 
@@ -241,8 +241,6 @@ m.collector.callFunc("adQuartileFinished", "completed", { failedBeaconUrl: "http
 ## Live / Program Change
 
 ### `programChange(newSourceMetadata)`
-
-> Not yet implemented for the native player collector, where it remains a no-op.
 
 Reports a program change within a live stream. Finalizes the current impression, starts a new one, and applies updated metadata for the new program. Playback is not interrupted.
 
