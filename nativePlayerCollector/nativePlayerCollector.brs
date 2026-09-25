@@ -521,7 +521,8 @@ sub programChange(newSourceMetadata = invalid)
     }
   end if
 
-  ' m.didVideoPlay is cleared in setUpHelperVariables, so this spans the whole collector session
+  ' m.didVideoPlay is cleared by setUpHelperVariables and by handleManualSourceChange, so this is
+  ' per source rather than per collector session
   startupFinished = m.didVideoPlay = true
 
   handleProgramChange(newSourceMetadata, stateNames, startupFinished)
