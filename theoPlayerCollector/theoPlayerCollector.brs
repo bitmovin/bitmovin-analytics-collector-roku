@@ -383,18 +383,14 @@ sub markCsaiAdBreakStartDuringStartup()
   if m.startupTimerAtAdBreakBegin >= 0 then return
 
   m.startupTimerAtAdBreakBegin = getVideoStartupTimerElapsed()
-
-  clearVideoStartTimeout()
 end sub
 
-function markCsaiAdBreakEndDuringStartup() as boolean
-  if m.startupTimerAtAdBreakBegin < 0 then return false
+sub markCsaiAdBreakEndDuringStartup()
+  if m.startupTimerAtAdBreakBegin < 0 then return
 
   m.adBreakTimeDuringStartup = m.adBreakTimeDuringStartup + (getVideoStartupTimerElapsed() - m.startupTimerAtAdBreakBegin)
   m.startupTimerAtAdBreakBegin = -1
-
-  return true
-end function
+end sub
 
 sub stopVideoStartUpTimer()
   if not isVideoStartupMeasurementRunning() then return
@@ -432,7 +428,19 @@ sub clearVideoStartTimeout()
   m.videoStartTimeoutTimer.control = "stop"
 end sub
 
+' Content gets the full budget after a startup ad break. A Timer that onError
+' stopped stays stopped, so a failed startup is reported once.
+sub restartVideoStartTimeoutIfRunning()
+  if m.videoStartTimeoutTimer.control = "start" then m.videoStartTimeoutTimer.control = "start"
+end sub
+
 sub onVideoStartTimeout()
+  ' A CSAI break blocks content startup, so the budget does not count while one is open
+  if m.startupTimerAtAdBreakBegin >= 0
+    m.videoStartTimeoutTimer.control = "start"
+    return
+  end if
+
   durationMilliseconds = m.videoStartTimeoutTimer.duration * 1000
   clearVideoStartTimeout()
   sendVideoStartError(m.videoStartFailedEvents.Timeout, durationMilliseconds, "error")
@@ -856,7 +864,8 @@ sub onAdBreakEnd(eventData = invalid)
     adBreakEnd()
   else
     m.collectorCore.callFunc("csaiOnAdBreakEnd")
-    if markCsaiAdBreakEndDuringStartup() then startVideoStartTimeout()
+    markCsaiAdBreakEndDuringStartup()
+    restartVideoStartTimeoutIfRunning()
   end if
   m.isCurrentAdBreakSsai = false
 end sub
