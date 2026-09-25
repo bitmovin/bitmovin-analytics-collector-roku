@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - spurious `seeking` sample after every CSAI ad break on THEOplayer
 - `videoTimeEnd` of the closing `ad` sample pointing at the resumed content position instead of the ad break position
 
+## v2.25.0
+
+### Added
+- `programChange` support for the native player collector
+
+## v2.24.0
+
+### Added
+- `programChange` support for the Bitmovin Player collector
+
+### Changed
+- `programChange` now reports the state name `programchange` instead of `programChange`, matching the other platforms
+- the first sample after a `programchange` now reports `duration` 1 instead of 0, matching the other platforms
+
 ## v2.23.0
 
 ### Fixed

@@ -469,6 +469,55 @@ function shouldFinishRunningSample()
   return m.currentState = m.playerStates.PLAYING or m.currentState = m.playerStates.PAUSED
 end function
 
+'Report a program change on a live stream. Concludes the current impression and starts a new one
+'carrying the given metadata, without interrupting playback.
+'@param {Object} newSourceMetadata - AnalyticsConfig fields for the new program, optionally plus
+'                                    `mpdUrl` / `m3u8Url` / `progUrl` / `path`.
+sub programChange(newSourceMetadata = invalid)
+  if newSourceMetadata = invalid then return
+
+  ' m.playerStates is not set before initializePlayer has run
+  stateNames = invalid
+  if m.playerStates <> invalid
+    stateNames = {
+      playing: m.playerStates.PLAYING
+      paused: m.playerStates.PAUSED
+    }
+  end if
+
+  startupFinished = m.didVideoPlay = true
+
+  if not isBeforeFirstProgram(stateNames, startupFinished) then settlePriorStateBeforeReady()
+
+  handleProgramChange(newSourceMetadata, stateNames, startupFinished)
+end sub
+
+'Flush a potentially pending state snapshot as a played/paused sample and clear it.
+'
+'A PLAYING/PAUSED→READY transition creates the snapshot, since its closing sample is suppressed
+'to avoid double-counting on source changes.
+sub settlePriorStateBeforeReady()
+  if m.priorStateBeforeReady <> invalid and m.priorDurationBeforeReady > 0
+    duration = m.priorDurationBeforeReady
+
+    eventData = {}
+    if m.priorStateBeforeReady = m.playerStates.PLAYING
+      eventData.played = duration
+    else if m.priorStateBeforeReady = m.playerStates.PAUSED
+      eventData.paused = duration
+    end if
+
+    ' Only ever fires as part of a program change, so it leaves the heartbeat alone like the two
+    ' boundary sends do.
+    skipHeartbeatReset = true
+
+    sendAnalyticsRequestAndClearValues(eventData, duration, m.priorStateBeforeReady, skipHeartbeatReset)
+  end if
+
+  m.priorStateBeforeReady = invalid
+  m.priorDurationBeforeReady = invalid
+end sub
+
 function setCustomData(customData)
   if customData = invalid then return invalid
   sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
@@ -543,6 +592,8 @@ sub onSourceLoaded()
   playerConfig = m.player.callFunc("getConfig", invalid)
 
   checkForSourceSpecificMetadata(playerConfig.source)
+
+  m.didVideoPlay = false
 
   startVideoStartUpTimer()
 
@@ -678,7 +729,12 @@ sub checkForSourceSpecificMetadata(sourceConfig)
   updateSample(updatedVideoMetadata)
 end sub
 
-sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
+'@param {Object} eventData - Sample fields to merge before sending.
+'@param {number} duration - Duration this sample accounts for, in milliseconds.
+'@param {String} state - Player state the sample is attributed to.
+'@param {Boolean} skipHeartbeatReset - Leave the heartbeat timer running instead of restarting it
+'                                      with this send.
+sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState, skipHeartbeatReset = false)
   sampleData = eventData
   sampleData.Append({
     state: state,
@@ -688,7 +744,7 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
   decorateSampleWithPlaybackData(sampleData)
 
   updateSample(sampleData)
-  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
+  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues", skipHeartbeatReset)
 end sub
 
 

@@ -3,6 +3,7 @@
   <script type="text/brightscript" uri="./collectorConstants.brs"/>
   <script type="text/brightscript" uri="./collectorUtils.brs"/>
   <script type="text/brightscript" uri="./baseCollector.brs"/>
+  <script type="text/brightscript" uri="./programChangeService.brs"/>
   <interface>
     <function name="initializeAnalytics" />
     <function name="setAnalyticsConfig"/>

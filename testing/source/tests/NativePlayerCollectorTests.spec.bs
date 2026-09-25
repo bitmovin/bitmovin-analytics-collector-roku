@@ -24,9 +24,12 @@ namespace tests
       }
 
       m.node.player = m.mockPlayer
+
+      m.realCollectorCore = m.node.collectorCore
     end function
 
     protected override function afterEach()
+      m.node.collectorCore = m.realCollectorCore
       m.cleanStubs()
       m.cleanMocks()
     end function
@@ -478,6 +481,278 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("programChange")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing when called with invalid metadata")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+
+      'bs:disable-next-line
+      programChange(invalid)
+
+      m.assertEqual(testContext.callCount, 0)
+    end function
+
+    ' Between initializeAnalytics and initializePlayer, m.playerStates is invalid. The state is
+    ' deliberately not a startup state, to show the guard is the missing vocabulary and not the state.
+    @it("degrades to a metadata update when called before initializePlayer")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+      'bs:disable-next-line
+      m.node.playerStates = invalid
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertEqual(testContext.capturedMetadata.title, "New Program")
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
+    end function
+
+    @it("degrades to a metadata update when no state has been recorded yet")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, invalid)
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertTrue(testContext.calledFunctions.doesExist("updateAnalyticsConfig"))
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
+    end function
+
+    @it("concludes current impression and starts new one when playing")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program", videoId: "prog-2" })
+
+      m.assertTrue(testContext.capturedSamples.Count() >= 3)
+      finalSample = testContext.capturedSamples[0]
+      m.assertTrue(finalSample.isProgramChange)
+      m.assertNotInvalid(finalSample.played)
+      m.assertEqual(finalSample.state, "playing")
+
+      m.assertNotInvalid(testContext.capturedMetadata)
+      m.assertEqual(testContext.capturedMetadata.title, "New Program")
+
+      programChangeSample = testContext.capturedSamples[testContext.capturedSamples.Count() - 1]
+      m.assertTrue(programChangeSample.isProgramChange)
+      m.assertEqual(programChangeSample.videoStartupTime, 1)
+      m.assertEqual(programChangeSample.state, "programchange")
+      m.assertEqual(programChangeSample.duration, 1)
+    end function
+
+    @it("concludes current impression when paused")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "paused")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      finalSample = testContext.capturedSamples[0]
+      m.assertTrue(finalSample.isProgramChange)
+      m.assertNotInvalid(finalSample.paused)
+      m.assertEqual(finalSample.state, "paused")
+    end function
+
+    ' Any state other than playing/paused still concludes the impression - it just attributes no
+    ' played/paused time to the closing sample. BUFFERING is the one that happens mid-stream.
+    @it("sends final sample without duration fields when buffering")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "buffering")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      finalSample = testContext.capturedSamples[0]
+      m.assertTrue(finalSample.isProgramChange)
+      m.assertInvalid(finalSample.played)
+      m.assertInvalid(finalSample.paused)
+      m.assertEqual(finalSample.state, "buffering")
+      m.assertTrue(testContext.calledFunctions.doesExist("setupSample"))
+    end function
+
+    ' The Video node passes through `none` and `buffering` before the first frame. A programChange
+    ' there is a normal startup carrying different metadata, not a boundary. No single state is the
+    ' sentinel - the guard is whether playback ever started. Matches `!isStartupFinished` on Android.
+    @it("degrades to a metadata update while playback is still starting up")
+    function _()
+      for each startupState in ["none", "buffering"]
+        testContext = stubNativeCollectorCore(m.node)
+        giveNativeStartingUpSession(m.node, startupState)
+
+        'bs:disable-next-line
+        programChange({ title: "New Program" })
+
+        m.assertEqual(testContext.capturedMetadata.title, "New Program")
+        m.assertFalse(testContext.calledFunctions.doesExist("setupSample"), "state " + startupState + " should not open a new impression")
+        m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"), "state " + startupState + " should not send a sample")
+      end for
+    end function
+
+    ' The startup path applies the config fields and the stream URL, same as a real boundary -
+    ' getMetadataFromAnalyticsConfig whitelists config fields, so the URLs need updateSample.
+    @it("applies the new program's stream URL while playback is still starting up")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativeStartingUpSession(m.node, "buffering")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program", m3u8Url: "http://example.com/news.m3u8" })
+
+      m.assertEqual(testContext.capturedMetadata.title, "New Program")
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].m3u8Url, "http://example.com/news.m3u8")
+      m.assertEqual(testContext.capturedSamples[0].streamFormat, "hls")
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
+    end function
+
+    ' The startup guard is per source, not per collector session: a source change already opens a
+    ' new impression, so a programChange before the new source plays must merge into that one
+    ' rather than open a second. Matches the Bitmovin collector's onSourceLoaded().
+    @it("degrades to a metadata update during the startup of a source loaded after the first")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+
+      m.mockPlayer.content = {
+        STREAMFORMAT: "dash"
+        URL: "http://example.com/second.mpd"
+        getChildCount: function() as integer
+          return 0
+        end function
+      }
+
+      ' A real manual source change, which is the moment the startup guard is re-armed.
+      'bs:disable-next-line
+      onSourceChanged()
+      testContext.calledFunctions = {}
+
+      'bs:disable-next-line
+      m.node.currentState = "buffering"
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      'bs:disable-next-line
+      m.assertFalse(m.node.didVideoPlay, "a source change must re-arm the startup guard")
+      m.assertEqual(testContext.capturedMetadata.title, "New Program")
+      m.assertFalse(testContext.calledFunctions.doesExist("setupSample"))
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
+    end function
+
+    @it("passes skipHeartbeatReset true for both programChange sends")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertEqual(testContext.capturedSkipHeartbeatReset.Count(), 2)
+      m.assertTrue(testContext.capturedSkipHeartbeatReset[0])
+      m.assertTrue(testContext.capturedSkipHeartbeatReset[1])
+    end function
+
+    ' Ordinary sends must keep the heartbeat reset they have always had - the 4th parameter is
+    ' additive, not a behaviour change for existing call sites.
+    @it("leaves skipHeartbeatReset false for ordinary sends")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+
+      'bs:disable-next-line
+      sendAnalyticsRequestAndClearValues({ played: 100 }, 100, "playing")
+
+      m.assertEqual(testContext.capturedSkipHeartbeatReset.Count(), 1)
+      m.assertFalse(testContext.capturedSkipHeartbeatReset[0])
+    end function
+
+    @it("sends final sample before setupSample")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      firstUpdateSampleIndex = -1
+      setupSampleIndex = -1
+      for i = 0 to testContext.callOrder.Count() - 1
+        if testContext.callOrder[i] = "updateSample" and firstUpdateSampleIndex = -1 then firstUpdateSampleIndex = i
+        if testContext.callOrder[i] = "setupSample" then setupSampleIndex = i
+      end for
+
+      m.assertTrue(firstUpdateSampleIndex >= 0, "updateSample should have been called")
+      m.assertTrue(setupSampleIndex >= 0, "setupSample should have been called")
+      m.assertTrue(firstUpdateSampleIndex < setupSampleIndex, "final sample should be sent before setupSample")
+    end function
+
+    ' The timer must restart at the boundary: destroy() and the heartbeat both read
+    ' m.playerStateTimer, and a stale mark would misattribute the time to the new impression.
+    @it("attributes pre-boundary time to the closing sample and re-marks the state timer")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+      sleep(60)
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      finalSample = testContext.capturedSamples[0]
+      m.assertTrue(finalSample.played >= 50, "closing sample should carry the time spent before the boundary")
+      m.assertTrue(finalSample.duration >= 50, "closing sample duration should match the state duration")
+
+      'bs:disable-next-line
+      m.assertTrue(m.node.playerStateTimer.TotalMilliseconds() < 50, "state timer should have been re-marked at the boundary")
+    end function
+
+    ' The URL fields are applied through updateSample rather than updateAnalyticsConfig, because
+    ' getMetadataFromAnalyticsConfig whitelists config fields and would drop them.
+    @it("applies the new program's stream URL to the sample")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program", mpdUrl: "http://example.com/new.mpd" })
+
+      foundStreamFormat = invalid
+      foundMpdUrl = invalid
+      for each sample in testContext.capturedSamples
+        if sample.streamFormat <> invalid then foundStreamFormat = sample.streamFormat
+        if sample.mpdUrl <> invalid then foundMpdUrl = sample.mpdUrl
+      end for
+
+      m.assertEqual(foundStreamFormat, "dash")
+      m.assertEqual(foundMpdUrl, "http://example.com/new.mpd")
+    end function
+
+    ' Guards the seam: handleProgramChange lives in a baseCollector-level script, so if its call
+    ' sites resolved to the baseCollector stubs the API would silently no-op. Only the native
+    ' implementation adds the video window fields.
+    @it("resolves the collector's own send primitives, not the baseCollector stubs")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      m.assertTrue(testContext.capturedSamples.Count() >= 3, "base stubs would have swallowed every send")
+      finalSample = testContext.capturedSamples[0]
+      m.assertEqual(finalSample.videoWindowHeight, 1080)
+      m.assertEqual(finalSample.videoWindowWidth, 1920)
+      m.assertNotInvalid(finalSample.time)
+    end function
+
   end class
 
 end namespace
@@ -491,3 +766,67 @@ function modifyNativeErrorData(errorEvent)
 
   m.top.error = errorData
 end function
+
+'Swap a recording stub in for the collectorCore child node, and return what it records.
+'@param {Object} node - The collector's `m`.
+'@return {Object} - callCount, callOrder, calledFunctions, capturedSamples, capturedMetadata and
+'                   capturedSkipHeartbeatReset, filled in as the collector calls collectorCore.
+function stubNativeCollectorCore(node)
+  stub = {
+    testContext: {
+      callCount: 0
+      callOrder: []
+      calledFunctions: {}
+      capturedSamples: []
+      capturedMetadata: invalid
+      capturedSkipHeartbeatReset: []
+    }
+    observeFieldScoped: function(fieldName as string, funcName as string)
+    end function
+    unobserveFieldScoped: function(fieldName as string)
+    end function
+    callFunc: function(funcName as string, arg = invalid)
+      m.testContext.callCount++
+      m.testContext.callOrder.Push(funcName)
+      m.testContext.calledFunctions[funcName] = true
+
+      if funcName = "updateSample" then m.testContext.capturedSamples.Push(arg)
+      if funcName = "updateAnalyticsConfig" then m.testContext.capturedMetadata = arg
+      if funcName = "sendAnalyticsRequestAndClearValues" then m.testContext.capturedSkipHeartbeatReset.Push(arg)
+
+      return true
+    end function
+  }
+
+  node.collectorCore = stub
+  return stub.testContext
+end function
+
+'Put the collector in the state it holds mid-playback, ready for a program boundary. The empty
+'track lists are what decorateSampleWithPlaybackData iterates over on every send.
+sub giveNativePlayingSession(node, state = "playing")
+  node.currentState = state
+  node.playerStateTimer = CreateObject("roTimespan")
+  node.didVideoPlay = true
+  ' Mirrors getPlayerStates() in nativePlayerEnums.brs, which is not in scope for source-level
+  ' test helpers.
+  node.playerStates = {
+    PLAYING: "playing"
+    BUFFERING: "buffering"
+    PAUSED: "paused"
+    FINISHED: "finished"
+    STOPPED: "stopped"
+    ERROR: "error"
+    NONE: "none"
+    SEEKING: "seeking"
+    SOURCE_CHANGING: "sourceChanging"
+  }
+  node.player.availableAudioTracks = []
+  node.player.availableSubtitleTracks = []
+end sub
+
+'Same, but before playback has ever started - the window programChange must not treat as a boundary.
+sub giveNativeStartingUpSession(node, state)
+  giveNativePlayingSession(node, state)
+  node.didVideoPlay = false
+end sub

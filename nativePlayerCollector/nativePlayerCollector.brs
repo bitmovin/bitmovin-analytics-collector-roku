@@ -397,6 +397,8 @@ sub handleManualSourceChange()
     m.player.observeFieldScoped("contentIndex", "onSourceChanged")
   end if
 
+  m.didVideoPlay = false
+
   startVideoStartUpTimer()
   transitionToState(m.playerStates.SOURCE_CHANGING)
   handlePreviousState(m.previousState)
@@ -505,6 +507,27 @@ function shouldFinishRunningSample()
   return m.currentState = m.playerStates.PLAYING or m.currentState = m.playerStates.PAUSED
 end function
 
+'Report a program change on a live stream. Concludes the current impression and starts a new one
+'carrying the given metadata, without interrupting playback.
+'@param {Object} newSourceMetadata - AnalyticsConfig fields for the new program, optionally plus
+'                                    `mpdUrl` / `m3u8Url` / `progUrl` / `path`.
+sub programChange(newSourceMetadata = invalid)
+  ' m.playerStates is not set before initializePlayer has run
+  stateNames = invalid
+  if m.playerStates <> invalid
+    stateNames = {
+      playing: m.playerStates.PLAYING
+      paused: m.playerStates.PAUSED
+    }
+  end if
+
+  ' m.didVideoPlay is cleared by setUpHelperVariables and by handleManualSourceChange, so this is
+  ' per source rather than per collector session
+  startupFinished = m.didVideoPlay = true
+
+  handleProgramChange(newSourceMetadata, stateNames, startupFinished)
+end sub
+
 function setCustomData(customData)
   if customData = invalid then return invalid
   sanitized = m.collectorCore.callFunc("extractCustomDataFields", customData)
@@ -560,7 +583,7 @@ function setAnalyticsConfig(config)
   return m.collectorCore.callFunc("updateAnalyticsConfig", config)
 end function
 
-sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState)
+sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousState, skipHeartbeatReset = false)
   sampleData = eventData
   sampleData.Append({
     state: state,
@@ -570,7 +593,7 @@ sub sendAnalyticsRequestAndClearValues(eventData, duration, state = m.previousSt
   decorateSampleWithPlaybackData(sampleData)
 
   updateSample(sampleData)
-  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues")
+  m.collectorCore.callFunc("sendAnalyticsRequestAndClearValues", skipHeartbeatReset)
 end sub
 
 sub setVideoTimeStart()
