@@ -3558,6 +3558,76 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    ' programChange leaves m.currentState untouched, so a CSAI ad break open at the program boundary
+    ' would otherwise pin and suppress seeks in the new impression with the previous program's cue point
+    @it("clears the ad break state when a program change during a CSAI ad opens a new impression")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function
+      }
+
+      m.mockPlayer.currentTime = 4
+      mockVideoNode({ height: 1080, width: 1920 })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "ad"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+      'bs:disable-next-line
+      m.node.currentTimeAtAdBreakStart = 15000
+      'bs:disable-next-line
+      m.node.isRestoringContentAfterAdBreak = true
+      'bs:disable-next-line
+      m.node.isCurrentAdBreakPostroll = true
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      'bs:disable-next-line
+      m.assertInvalid(m.node.currentTimeAtAdBreakStart)
+      'bs:disable-next-line
+      m.assertFalse(m.node.isRestoringContentAfterAdBreak)
+      'bs:disable-next-line
+      m.assertFalse(m.node.isCurrentAdBreakPostroll)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("keeps the ad break state when a program change in SETUP opens no new impression")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function
+      }
+
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.currentTimeAtAdBreakStart = 15000
+      'bs:disable-next-line
+      m.node.isRestoringContentAfterAdBreak = true
+
+      'bs:disable-next-line
+      programChange({ title: "New Program" })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentTimeAtAdBreakStart, 15000)
+      'bs:disable-next-line
+      m.assertTrue(m.node.isRestoringContentAfterAdBreak)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("getProgramChangeSourceMetadata maps m3u8Url to hls streamFormat")
     function _()
       metadata = { m3u8Url: "http://example.com/stream.m3u8" }
