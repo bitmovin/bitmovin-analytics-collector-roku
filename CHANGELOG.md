@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+## v2.25.0
+
 ### Added
 - `programChange` support for the native player collector
 
