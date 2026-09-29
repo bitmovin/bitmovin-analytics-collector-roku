@@ -89,11 +89,8 @@ sub applyCsaiAdCustomData(adSample, ad)
   if adSample.adTitle = invalid and isNonEmptyCsaiValue(ad.id) then adSample.adTitle = ad.id
 end sub
 
-' Comparing a non-string with "" is a runtime type mismatch in BrightScript, so check the type first.
 function isNonEmptyCsaiValue(value) as boolean
-  if value = invalid then return false
-  if GetInterface(value, "ifString") = invalid then return true
-  return value <> ""
+  return value <> invalid and value <> ""
 end function
 
 function csaiOnAdEnd(ad = invalid) as object
