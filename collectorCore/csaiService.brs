@@ -78,15 +78,23 @@ end sub
 sub applyCsaiAdCustomData(adSample, ad)
   customData = ad.customData
   if customData <> invalid
-    if customData.creativeadid <> invalid then adSample.creativeAdId = customData.creativeadid
-    if customData.advertiser <> invalid then adSample.advertiserName = customData.advertiser
-    if customData.adtitle <> invalid then adSample.adTitle = customData.adtitle
-    if customData.streamformat <> invalid then adSample.streamFormat = customData.streamformat
+    ' RAF sends "" for VAST elements that are missing (e.g. no Creative@AdID), so empty means absent.
+    if isNonEmptyCsaiValue(customData.creativeadid) then adSample.creativeAdId = customData.creativeadid
+    if isNonEmptyCsaiValue(customData.advertiser) then adSample.advertiserName = customData.advertiser
+    if isNonEmptyCsaiValue(customData.adtitle) then adSample.adTitle = customData.adtitle
+    if isNonEmptyCsaiValue(customData.streamformat) then adSample.streamFormat = customData.streamformat
   end if
 
   ' Same fallback as the Android collector's IMA mapping.
-  if adSample.adTitle = invalid and ad.id <> invalid then adSample.adTitle = ad.id
+  if adSample.adTitle = invalid and isNonEmptyCsaiValue(ad.id) then adSample.adTitle = ad.id
 end sub
+
+' Comparing a non-string with "" is a runtime type mismatch in BrightScript, so check the type first.
+function isNonEmptyCsaiValue(value) as boolean
+  if value = invalid then return false
+  if GetInterface(value, "ifString") = invalid then return true
+  return value <> ""
+end function
 
 function csaiOnAdEnd(ad = invalid) as object
   if m.csaiState <> m.CSAI_STATES.ACTIVE then return invalid

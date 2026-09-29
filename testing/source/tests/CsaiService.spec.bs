@@ -97,6 +97,25 @@ namespace tests
       m.assertInvalid(sample.universalAdIdRegistry)
     end function
 
+    @it("treats empty customData values as absent")
+    function _()
+      adBreak = m.fakeAdBreak(0)
+      ad = m.fakeAd(adBreak)
+      ' Seen on device for creativeadid (VAST without Creative@AdID); the others are covered in case RAF does the same.
+      ad.customData = { adtitle: "", advertiser: "", creativeadid: "", streamformat: "" }
+      'bs:disable-next-line
+      csaiOnAdBreakBegin(adBreak)
+      'bs:disable-next-line
+      csaiOnAdBegin(ad)
+      'bs:disable-next-line
+      sample = csaiOnAdEnd(ad)
+
+      m.assertInvalid(sample.creativeAdId)
+      m.assertInvalid(sample.advertiserName)
+      m.assertInvalid(sample.streamFormat)
+      m.assertEqual(sample.adTitle, "test-ad-id")
+    end function
+
     @it("falls back to the ad id for adTitle when customData has none")
     function _()
       sample = m.runFullAd(0)
