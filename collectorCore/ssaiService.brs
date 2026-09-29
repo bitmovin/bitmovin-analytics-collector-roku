@@ -45,7 +45,7 @@ sub resetSsaiHelpers()
     creativeId: invalid
     creativeAdId: invalid
     advertiserName: invalid
-    adTitle: invalid
+    title: invalid
     universalAdIdValue: invalid
     universalAdIdRegistry: invalid
   }
@@ -63,7 +63,7 @@ function getSsaiAdSample()
     adSample.creativeId = m.currentAdMetadata.creativeId
     adSample.creativeAdId = m.currentAdMetadata.creativeAdId
     adSample.advertiserName = m.currentAdMetadata.advertiserName
-    adSample.adTitle = m.currentAdMetadata.title
+    adSample.title = m.currentAdMetadata.title
     adSample.universalAdIdValue = m.currentAdMetadata.universalAdIdValue
     adSample.universalAdIdRegistry = m.currentAdMetadata.universalAdIdRegistry
   end if
@@ -215,7 +215,7 @@ sub manipulateSampleForSsai()
     sampleUpdate.creativeId = m.currentAdMetadata.creativeId
     sampleUpdate.creativeAdId = m.currentAdMetadata.creativeAdId
     sampleUpdate.advertiserName = m.currentAdMetadata.advertiserName
-    sampleUpdate.adTitle = m.currentAdMetadata.title
+    sampleUpdate.title = m.currentAdMetadata.title
     sampleUpdate.universalAdIdValue = m.currentAdMetadata.universalAdIdValue
     sampleUpdate.universalAdIdRegistry = m.currentAdMetadata.universalAdIdRegistry
   end if
