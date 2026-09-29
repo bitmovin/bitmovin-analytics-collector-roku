@@ -11,6 +11,21 @@ namespace tests
     end function
 
     @describe("getSsaiAdSample")
+
+    @it("sends the ad title as adTitle")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ title: "Acme Summer Sale" })
+
+      'bs:disable-next-line
+      sample = getSsaiAdSample()
+
+      m.assertEqual(sample.adTitle, "Acme Summer Sale")
+      m.assertInvalid(sample.title)
+    end function
+
     @it("should set the elapsed time to -1 if no timer is active")
     function _()
       expectedTime = -1
@@ -447,6 +462,19 @@ namespace tests
       manipulateSampleForSsai()
 
       m.assertInvalid(m.node.sample.creativeId)
+    end function
+
+    @it("stamps the ad title as adTitle on the regular sample")
+    function _()
+      'bs:disable-next-line
+      adBreakStart({ adPosition: "preroll" })
+      'bs:disable-next-line
+      adStart({ title: "Acme Summer Sale" })
+      'bs:disable-next-line
+      manipulateSampleForSsai()
+
+      m.assertEqual(m.node.sample.adTitle, "Acme Summer Sale")
+      m.assertInvalid(m.node.sample.title)
     end function
 
     @describe("adPodPosition")

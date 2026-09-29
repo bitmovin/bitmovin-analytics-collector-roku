@@ -63,7 +63,70 @@ namespace tests
       m.assertEqual(sample.adSystem, ad.adSystem)
       m.assertEqual(sample.adDuration, ad.duration * 1000)
       m.assertEqual(sample.creativeId, ad.creativeId)
-      m.assertEqual(sample.mediaUrl, ad.resourceUri)
+      m.assertEqual(sample.adTagUrl, ad.resourceUri)
+      m.assertInvalid(sample.mediaUrl)
+      m.assertEqual(sample.adClickthroughUrl, ad.clickThrough)
+      m.assertTrue(sample.isLinear)
+      m.assertFalse(sample.isSlate)
+    end function
+
+    @it("populates the extended ad fields from ad.customData")
+    function _()
+      adBreak = m.fakeAdBreak(0)
+      ad = m.fakeAd(adBreak)
+      ' Shape and casing as THEO 11.9 / RAF deliver it on device.
+      ad.customData = {
+        adtitle: "Probe-AdTitle-Dd44"
+        advertiser: "Probe-Advertiser-Gg77"
+        creativeadid: "probe-creativeadid-jj00"
+        requestid: "dbbeffc9-332c-4eea-a6f8-29c5f2ac12d9"
+        streamformat: "mp4"
+      }
+      'bs:disable-next-line
+      csaiOnAdBreakBegin(adBreak)
+      'bs:disable-next-line
+      csaiOnAdBegin(ad)
+      'bs:disable-next-line
+      sample = csaiOnAdEnd(ad)
+
+      m.assertEqual(sample.adTitle, "Probe-AdTitle-Dd44")
+      m.assertEqual(sample.advertiserName, "Probe-Advertiser-Gg77")
+      m.assertEqual(sample.creativeAdId, "probe-creativeadid-jj00")
+      m.assertEqual(sample.streamFormat, "mp4")
+      m.assertInvalid(sample.universalAdIdValue)
+      m.assertInvalid(sample.universalAdIdRegistry)
+    end function
+
+    @it("falls back to the ad id for adTitle when customData has none")
+    function _()
+      sample = m.runFullAd(0)
+
+      m.assertEqual(sample.adTitle, "test-ad-id")
+    end function
+
+    @it("does not carry the content's streamFormat onto the ad sample")
+    function _()
+      'bs:disable-next-line
+      updateSample({ streamFormat: "hls" })
+
+      sample = m.runFullAd(0)
+
+      m.assertInvalid(sample.streamFormat)
+    end function
+
+    @it("sets isLinear to false for a non-linear ad")
+    function _()
+      adBreak = m.fakeAdBreak(0)
+      ad = m.fakeAd(adBreak)
+      ad.type = "nonlinear"
+      'bs:disable-next-line
+      csaiOnAdBreakBegin(adBreak)
+      'bs:disable-next-line
+      csaiOnAdBegin(ad)
+      'bs:disable-next-line
+      sample = csaiOnAdEnd(ad)
+
+      m.assertFalse(sample.isLinear)
     end function
 
     @it("adPodPosition increments across ads within the same break")
@@ -476,7 +539,9 @@ namespace tests
         width: 1920,
         height: 1080,
         creativeId: "test-creative-id",
-        resourceUri: "https://example.com/ad.mp4",
+        resourceUri: "https://example.com/vast.xml",
+        clickThrough: "https://example.com/click",
+        type: "linear",
         adBreak: adBreak
       }
     end function

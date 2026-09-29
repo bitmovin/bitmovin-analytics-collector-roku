@@ -47,6 +47,10 @@ sub csaiOnAdBegin(ad = invalid)
   adSample.adPodPosition = m.csaiAdPodPosition
   m.csaiAdPodPosition++
   adSample.started = 1
+  ' CSAI has no slate concept; matches Android, which never sets it on client-side ads.
+  adSample.isSlate = false
+  ' The base sample carries the content's streamFormat, which is wrong for the ad.
+  adSample.streamFormat = invalid
 
   if ad <> invalid
     adSample.adId = ad.id
@@ -55,7 +59,11 @@ sub csaiOnAdBegin(ad = invalid)
     if ad.width <> invalid then adSample.adPlaybackWidth = ad.width
     if ad.height <> invalid then adSample.adPlaybackHeight = ad.height
     if ad.creativeId <> invalid then adSample.creativeId = ad.creativeId
-    if ad.resourceUri <> invalid then adSample.mediaUrl = ad.resourceUri
+    ' THEO's resourceUri is the VAST tag URL, not the media file.
+    if ad.resourceUri <> invalid then adSample.adTagUrl = ad.resourceUri
+    if ad.clickThrough <> invalid then adSample.adClickthroughUrl = ad.clickThrough
+    if ad.type <> invalid then adSample.isLinear = ad.type = "linear"
+    applyCsaiAdCustomData(adSample, ad)
   end if
 
   adBreakForPosition = m.csaiCurrentAdBreak
@@ -63,6 +71,21 @@ sub csaiOnAdBegin(ad = invalid)
   adSample.adPosition = csaiMapTimeOffsetToPosition(adBreakForPosition)
 
   m.activeCsaiAdSample = adSample
+end sub
+
+' THEO fills ad.customData from RAF's parsed VAST. RAF drops <UniversalAdId> entirely, and
+' `creativeadid` is Creative@AdID (lowercased by RAF), so no universalAdId can be mapped here.
+sub applyCsaiAdCustomData(adSample, ad)
+  customData = ad.customData
+  if customData <> invalid
+    if customData.creativeadid <> invalid then adSample.creativeAdId = customData.creativeadid
+    if customData.advertiser <> invalid then adSample.advertiserName = customData.advertiser
+    if customData.adtitle <> invalid then adSample.adTitle = customData.adtitle
+    if customData.streamformat <> invalid then adSample.streamFormat = customData.streamformat
+  end if
+
+  ' Same fallback as the Android collector's IMA mapping.
+  if adSample.adTitle = invalid and ad.id <> invalid then adSample.adTitle = ad.id
 end sub
 
 function csaiOnAdEnd(ad = invalid) as object
@@ -90,6 +113,8 @@ function csaiOnAdError(error = invalid) as object
     adSample = getBaseAdSample()
     adSample.adImpressionId = getRandomImpressionId()
     adSample.adType = getAdTypes().CSAI
+    adSample.isSlate = false
+    adSample.streamFormat = invalid
     if m.csaiAdBreakStartTimer <> invalid
       adSample.adStartupTime = m.csaiAdBreakStartTimer.TotalMilliseconds()
       m.csaiAdBreakStartTimer = invalid
