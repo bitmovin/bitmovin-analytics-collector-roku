@@ -381,6 +381,18 @@ namespace tests
       m.assertInvalid(sample.started)
     end function
 
+    @it("sets isSlate=false and does not carry the content's streamFormat")
+    function _()
+      'bs:disable-next-line
+      updateSample({ streamFormat: "hls" })
+      m.enterFakeAdBreak(0)
+      'bs:disable-next-line
+      sample = csaiOnAdError({ errorCode: 405, errorMessage: "Problem displaying MediaFile" })
+
+      m.assertFalse(sample.isSlate)
+      m.assertInvalid(sample.streamFormat)
+    end function
+
     @it("subsequent adBreakEnd does not crash")
     function _()
       m.enterFakeAdBreak(0)
