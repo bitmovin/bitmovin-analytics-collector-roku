@@ -368,12 +368,44 @@ end sub
 
 sub startVideoStartUpTimer()
   m.videoStartupTimer = CreateObject("roTimeSpan")
+  m.adBreakTimeDuringStartup = 0
+  m.startupTimerAtAdBreakBegin = -1
+end sub
+
+function isVideoStartupMeasurementRunning() as boolean
+  return m.videoStartupTimer <> invalid and m.videoStartUpTime < 0
+end function
+
+function getVideoStartupTimerElapsed() as integer
+  if m.videoStartupTimer = invalid then return -1
+
+  return m.videoStartupTimer.TotalMilliseconds()
+end function
+
+sub markCsaiAdBreakStartDuringStartup()
+  if not isVideoStartupMeasurementRunning() then return
+  ' A break is already open, so a repeated begin must not move the mark forward
+  if m.startupTimerAtAdBreakBegin >= 0 then return
+
+  m.startupTimerAtAdBreakBegin = getVideoStartupTimerElapsed()
+end sub
+
+sub markCsaiAdBreakEndDuringStartup()
+  if m.startupTimerAtAdBreakBegin < 0 then return
+
+  m.adBreakTimeDuringStartup = m.adBreakTimeDuringStartup + (getVideoStartupTimerElapsed() - m.startupTimerAtAdBreakBegin)
+  m.startupTimerAtAdBreakBegin = -1
 end sub
 
 sub stopVideoStartUpTimer()
-  if m.videoStartupTimer = invalid or m.videoStartUpTime >= 0 then return
+  if not isVideoStartupMeasurementRunning() then return
 
-  m.videoStartUpTime = m.videoStartupTimer.TotalMilliseconds()
+  ' Conclude a break that is still open, so its elapsed part is excluded too
+  markCsaiAdBreakEndDuringStartup()
+
+  m.videoStartUpTime = getVideoStartupTimerElapsed() - m.adBreakTimeDuringStartup
+
+  if m.videoStartUpTime < 1 then m.videoStartUpTime = 1
 
   startupEventData = {
     videoStartupTime: m.videoStartUpTime,
@@ -401,7 +433,19 @@ sub clearVideoStartTimeout()
   m.videoStartTimeoutTimer.control = "stop"
 end sub
 
+' Content gets the full budget after a startup ad break. A Timer that onError
+' stopped stays stopped, so a failed startup is reported once.
+sub restartVideoStartTimeoutIfRunning()
+  if m.videoStartTimeoutTimer.control = "start" then m.videoStartTimeoutTimer.control = "start"
+end sub
+
 sub onVideoStartTimeout()
+  ' A CSAI break blocks content startup, so the budget does not count while one is open
+  if m.startupTimerAtAdBreakBegin >= 0
+    m.videoStartTimeoutTimer.control = "start"
+    return
+  end if
+
   durationMilliseconds = m.videoStartTimeoutTimer.duration * 1000
   clearVideoStartTimeout()
   sendVideoStartError(m.videoStartFailedEvents.Timeout, durationMilliseconds, "error")
@@ -432,6 +476,9 @@ sub onSourceChange(eventData = invalid)
     m.collectorCore.callFunc("setupSample") ' new analytics impression
     resetCollectorState()
   end if
+
+  m.adBreakTimeDuringStartup = 0
+  m.startupTimerAtAdBreakBegin = -1
 
   if m.player.autoplay = true
     startVideoStartUpTimer()
@@ -751,6 +798,8 @@ sub resetCollectorState()
   m.isSeeking = false
   m.seekStartPosition = invalid
   m.currentTimeAtPauseStart = invalid
+  m.adBreakTimeDuringStartup = 0
+  m.startupTimerAtAdBreakBegin = -1
   m.lastKnownCurrentTime = 0
   m.isCurrentAdBreakSsai = false
   resetAdBreakHelperVariables()
@@ -814,6 +863,7 @@ sub onAdBreakBegin(eventData = invalid)
     m.currentTimeAtAdBreakStart = getCurrentPlayerTimeInMs()
     m.isCurrentAdBreakPostroll = (mapTimeOffsetToAdPosition(adBreak?.timeOffset) = "postroll")
     m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
+    markCsaiAdBreakStartDuringStartup()
   end if
 end sub
 
@@ -851,6 +901,8 @@ sub onAdBreakEnd(eventData = invalid)
     adBreakEnd()
   else
     m.collectorCore.callFunc("csaiOnAdBreakEnd")
+    markCsaiAdBreakEndDuringStartup()
+    restartVideoStartTimeoutIfRunning()
     ' A postroll has no content to restore, so nothing is expected to seek after it
     m.isRestoringContentAfterAdBreak = not m.isCurrentAdBreakPostroll
   end if
