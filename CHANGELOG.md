@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Fixed
+- spurious `seeking` sample after every CSAI ad break on THEOplayer
+- `videoTimeEnd` of the closing `ad` sample pointing at the resumed content position instead of the ad break position
+
 ## v2.25.0
 
 ### Added
