@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - THEOplayer client-side ad samples reporting the VAST tag URL as `mediaUrl` instead of `adTagUrl`
 - THEOplayer client-side ad samples reporting the content's `streamFormat` instead of the ad's
+- spurious `seeking` sample after every CSAI ad break on THEOplayer
+- `videoTimeEnd` of the closing `ad` sample pointing at the resumed content position instead of the ad break position
 
 ## v2.25.0
 
