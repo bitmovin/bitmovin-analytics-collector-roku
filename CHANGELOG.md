@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - `videoStartupTime` on THEOplayer including the playback time of a client-side pre-roll
+- spurious `seeking` sample after every CSAI ad break on THEOplayer
+- `videoTimeEnd` of the closing `ad` sample pointing at the resumed content position instead of the ad break position
 
 ## v2.25.0
 

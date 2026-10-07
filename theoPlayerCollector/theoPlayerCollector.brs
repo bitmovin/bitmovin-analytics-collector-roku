@@ -63,6 +63,8 @@ sub destroy(param = invalid)
       sampleData.played = duration
     else if m.currentState = m.collectorStates.PAUSED
       sampleData.paused = duration
+    else if m.currentState = m.collectorStates.AD
+      applyAdBreakPositionToSample(sampleData)
     end if
     decorateSampleWithPlaybackData(sampleData)
     updateSample(sampleData)
@@ -155,6 +157,9 @@ sub programChange(newSourceMetadata = invalid)
   startupFinished = m.currentState <> m.collectorStates.SETUP
 
   handleProgramChange(newSourceMetadata, stateNames, startupFinished)
+
+  ' A new impression was opened, so no ad break state may carry over into it
+  if newSourceMetadata <> invalid and not isBeforeFirstProgram(stateNames, startupFinished) then resetAdBreakHelperVariables()
 end sub
 
 ' ===== HELPER METHODS =====
@@ -608,6 +613,8 @@ sub onError(eventData = invalid)
   m.collectorCore.callFunc("onError", errorSample)
 
   m.collectorCore.callFunc("adBreakEnd")
+  m.collectorCore.callFunc("csaiOnAdBreakEnd")
+  resetAdBreakHelperVariables()
 end sub
 
 sub onDestroy(eventData = invalid)
@@ -690,9 +697,13 @@ sub handlePreviousState()
     resetSeekHelperVariables()
   else if m.previousState = m.collectorStates.AD
     ' AD → any (ad finished or next ad started)
-    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.previousState)
+    sample = { played: stateDuration }
+    applyAdBreakPositionToSample(sample)
+
+    sendAnalyticsRequestAndClearValues(sample, stateDuration, m.previousState)
     if m.currentState <> m.collectorStates.AD
       updateSample({ videoBitrate: m.currentVideoBitrate })
+      resetAdBreakHelperVariables()
     end if
   end if
 end sub
@@ -711,7 +722,9 @@ sub sendClosingSampleForCurrentState()
       sendAnalyticsRequestAndClearValues({ paused: stateDuration }, stateDuration, m.currentState)
     end if
   else if m.currentState = m.collectorStates.AD
-    sendAnalyticsRequestAndClearValues({ played: stateDuration }, stateDuration, m.currentState)
+    sample = { played: stateDuration }
+    applyAdBreakPositionToSample(sample)
+    sendAnalyticsRequestAndClearValues(sample, stateDuration, m.currentState)
   end if
 
   m.playerStateTimer.Mark()
@@ -725,6 +738,19 @@ function getCurrentPlayerTimeInMs()
   return Cint(time%)
 end function
 
+sub resetAdBreakHelperVariables()
+  m.currentTimeAtAdBreakStart = invalid
+  m.isRestoringContentAfterAdBreak = false
+  m.isCurrentAdBreakPostroll = false
+end sub
+
+sub applyAdBreakPositionToSample(sample)
+  if m.currentTimeAtAdBreakStart = invalid then return
+
+  sample.videoTimeStart = m.currentTimeAtAdBreakStart
+  sample.videoTimeEnd = m.currentTimeAtAdBreakStart
+end sub
+
 sub setVideoTimeStart()
   m.collectorCore.callFunc("setVideoTimeStart", getCurrentPlayerTimeInMs())
 end sub
@@ -735,6 +761,14 @@ end sub
 
 sub onSeeking(eventData = invalid)
   if m.isSeeking = true or m.currentState = m.collectorStates.SETUP then return
+
+  if m.collectorCore.callFunc("isCsaiAdBreakInProgress") then return
+
+  if m.isRestoringContentAfterAdBreak
+    ' Only the single seek the player uses to restore the content is suppressed, every later seek is the user's
+    m.isRestoringContentAfterAdBreak = false
+    return
+  end if
 
   m.isSeeking = true
 
@@ -768,6 +802,7 @@ sub resetCollectorState()
   m.startupTimerAtAdBreakBegin = -1
   m.lastKnownCurrentTime = 0
   m.isCurrentAdBreakSsai = false
+  resetAdBreakHelperVariables()
 end sub
 
 sub onVideoNodeStateChanged()
@@ -825,6 +860,8 @@ sub onAdBreakBegin(eventData = invalid)
     adBreakStart(buildSsaiAdBreakMetadata(adBreak))
   else
     updateSample({ videoBitrate: invalid })
+    m.currentTimeAtAdBreakStart = getCurrentPlayerTimeInMs()
+    m.isCurrentAdBreakPostroll = (mapTimeOffsetToAdPosition(adBreak?.timeOffset) = "postroll")
     m.collectorCore.callFunc("csaiOnAdBreakBegin", adBreak)
     markCsaiAdBreakStartDuringStartup()
   end if
@@ -866,6 +903,8 @@ sub onAdBreakEnd(eventData = invalid)
     m.collectorCore.callFunc("csaiOnAdBreakEnd")
     markCsaiAdBreakEndDuringStartup()
     restartVideoStartTimeoutIfRunning()
+    ' A postroll has no content to restore, so nothing is expected to seek after it
+    m.isRestoringContentAfterAdBreak = not m.isCurrentAdBreakPostroll
   end if
   m.isCurrentAdBreakSsai = false
 end sub
