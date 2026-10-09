@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased]
 
 ### Fixed
+- `videoStartupTime` on THEOplayer including the playback time of a client-side pre-roll
+- `videoStartFailed` with reason `TIMEOUT` on THEOplayer reported for client-side pre-rolls of 60 seconds or longer
 - spurious `seeking` sample after every CSAI ad break on THEOplayer
 - `videoTimeEnd` of the closing `ad` sample pointing at the resumed content position instead of the ad break position
 

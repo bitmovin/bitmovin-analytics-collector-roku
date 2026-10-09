@@ -38,6 +38,13 @@ namespace tests
       ' Tests that need videoNode should set up their own mock with the required methods
       'bs:disable-next-line
       m.node.videoNode = invalid
+
+      'bs:disable-next-line
+      m.node.collectorCore = m.top.findNode("collectorCore")
+
+      ' Mirrors initializePlayer, so every test starts from initialized collector state
+      'bs:disable-next-line
+      resetCollectorState()
     end function
 
     protected override function afterEach()
@@ -841,6 +848,36 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("clears a startup ad break left open by the previous source")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          return true
+        end function
+      }
+
+      ' adbreakbegin arrived but no adbegin, so the state never left SETUP and
+      ' resetCollectorState is skipped below
+      m.mockPlayer.autoplay = false
+      'bs:disable-next-line
+      m.node.currentState = "setup"
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 999
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = 1404
+
+      'bs:disable-next-line
+      onSourceChange()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.adBreakTimeDuringStartup, 0)
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, -1)
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("initializePlayer")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1086,6 +1123,23 @@ namespace tests
 
       'bs:disable-next-line
       m.assertNotInvalid(m.node.videoStartupTimer)
+    end function
+
+    @it("initializes the startup ad-break fields")
+    function _()
+      ' dirty state from a previous impression
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 999
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = 555
+
+      'bs:disable-next-line
+      startVideoStartUpTimer()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.adBreakTimeDuringStartup, 0)
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, -1)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -3147,6 +3201,487 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("videoStartupTime - CSAI ad break exclusion")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("subtracts the accumulated ad break time from the reported startup time")
+    function _()
+      testContext = { capturedSamples: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          if funcName = "updateSample" then m.testContext.capturedSamples.Push(arg1)
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 0
+      m.mockPlayer.autoplay = false
+      mockVideoNode({ height: 1080, width: 1920 })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      ' the numbers measured on device for a 10s pre-roll
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { TotalMilliseconds: function() as integer
+        return 13415
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 11168
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      stopVideoStartUpTimer()
+
+      startupSample = invalid
+      for each sampleData in testContext.capturedSamples
+        if sampleData.DoesExist("videoStartupTime") then startupSample = sampleData
+      end for
+
+      m.assertNotInvalid(startupSample)
+      m.assertEqual(startupSample.videoStartupTime, 2247)
+      m.assertEqual(startupSample.startupTime, 2247)
+      'bs:disable-next-line
+      m.assertEqual(m.node.videoStartUpTime, 2247)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("excludes a break that is still open when the startup measurement ends")
+    function _()
+      testContext = { capturedSamples: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          if funcName = "updateSample" then m.testContext.capturedSamples.Push(arg1)
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 0
+      m.mockPlayer.autoplay = false
+      mockVideoNode({ height: 1080, width: 1920 })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { TotalMilliseconds: function() as integer
+        return 13415
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 0
+      ' break began 1404ms into the startup window and never got an adBreakEnd
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = 1404
+
+      'bs:disable-next-line
+      stopVideoStartUpTimer()
+
+      startupSample = invalid
+      for each sampleData in testContext.capturedSamples
+        if sampleData.DoesExist("videoStartupTime") then startupSample = sampleData
+      end for
+
+      m.assertNotInvalid(startupSample)
+      m.assertEqual(startupSample.videoStartupTime, 1404)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("reports at least 1ms when the ad break consumed the whole startup window")
+    function _()
+      testContext = { capturedSamples: [] }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          if funcName = "updateSample" then m.testContext.capturedSamples.Push(arg1)
+          return true
+        end function,
+        playerState: "",
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 0
+      m.mockPlayer.autoplay = false
+      mockVideoNode({ height: 1080, width: 1920 })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { TotalMilliseconds: function() as integer
+        return 5000
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 5000
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      stopVideoStartUpTimer()
+
+      startupSample = invalid
+      for each sampleData in testContext.capturedSamples
+        if sampleData.DoesExist("videoStartupTime") then startupSample = sampleData
+      end for
+
+      m.assertNotInvalid(startupSample)
+      m.assertEqual(startupSample.videoStartupTime, 1)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("accumulates the break span across onAdBreakBegin and onAdBreakEnd")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      ' the timer advances between the two reads, mirroring the device timeline
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { readings: [1404, 12572], index: 0, TotalMilliseconds: function() as integer
+        value = m.readings[m.index]
+        m.index++
+        return value
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 0
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, 1404)
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.adBreakTimeDuringStartup, 11168)
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, -1)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("ignores a repeated onAdBreakBegin within the same break")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      ' same device timeline as above. The last reading repeats, so an extra read
+      ' on the unguarded path shows up as a wrong total instead of running dry
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { readings: [1404, 12572], index: 0, TotalMilliseconds: function() as integer
+        value = m.readings[m.index]
+        if m.index < m.readings.Count() - 1 then m.index++
+        return value
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 0
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, 1404)
+
+      ' csaiOnAdBreakBegin ignores this one, so the mark has to ignore it too
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, 1404)
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      ' the whole break, not just the part after the duplicate
+      'bs:disable-next-line
+      m.assertEqual(m.node.adBreakTimeDuringStartup, 11168)
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, -1)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("keeps the video start timeout running through a startup ad break and restarts it at the end")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { readings: [1404, 12572], index: 0, TotalMilliseconds: function() as integer
+        value = m.readings[m.index]
+        if m.index < m.readings.Count() - 1 then m.index++
+        return value
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 0
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      startVideoStartTimeout()
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "start")
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
+
+      ' the Timer keeps running, a fire during the break re-arms instead of reporting
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "start")
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      ' restarted with the full budget, matching the Android collector
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "start")
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerDuration(), 60)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("re-arms the video start timeout instead of reporting when it fires during a startup ad break")
+    function _()
+      testContext = { sentSamples: 0 }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          if funcName = "sendAnalyticsRequestAndClearValues" then m.testContext.sentSamples++
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      ' a break opened during startup and is still running
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = 1404
+
+      'bs:disable-next-line
+      startVideoStartTimeout()
+      'bs:disable-next-line
+      onVideoStartTimeout()
+
+      m.assertEqual(testContext.sentSamples, 0)
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "start")
+
+      'bs:disable-next-line
+      clearVideoStartTimeout()
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not restart a video start timeout that an error stopped during a startup ad break")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { readings: [1404, 12572], index: 0, TotalMilliseconds: function() as integer
+        value = m.readings[m.index]
+        if m.index < m.readings.Count() - 1 then m.index++
+        return value
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 0
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      startVideoStartTimeout()
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "csai" } })
+
+      ' stands in for onError, which stops the Timer before reporting videoStartFailed
+      'bs:disable-next-line
+      clearVideoStartTimeout()
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      ' the failure was reported once, so no second one may follow 60 s later
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "stop")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("leaves the video start timeout alone for a break after startup")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { TotalMilliseconds: function() as integer
+        return 29029
+      end function }
+      ' startup already concluded, so a mid-roll must not touch the timeout
+      'bs:disable-next-line
+      m.node.videoStartUpTime = 2247
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 11168
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      clearVideoStartTimeout()
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 15, integration: "csai" } })
+
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "stop")
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      ' nothing was paused, so nothing gets restarted
+      'bs:disable-next-line
+      m.assertEqual(getVideoStartTimeoutTimerControl(), "stop")
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not track ad break time once the startup measurement is done")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { TotalMilliseconds: function() as integer
+        return 29029
+      end function }
+      ' startup already concluded - a mid-roll must not touch the accumulator
+      'bs:disable-next-line
+      m.node.videoStartUpTime = 2247
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 11168
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 15, integration: "csai" } })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, -1)
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.adBreakTimeDuringStartup, 11168)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    @it("does not track ad break time for an SSAI break")
+    function _()
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, arg1 = invalid)
+          return true
+        end function,
+        playerState: ""
+      }
+
+      'bs:disable-next-line
+      m.node.videoStartupTimer = { TotalMilliseconds: function() as integer
+        return 1404
+      end function }
+      'bs:disable-next-line
+      m.node.videoStartUpTime = -1
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 0
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = -1
+
+      ' SSAI ads are part of the content stream, so they never block content startup
+      'bs:disable-next-line
+      onAdBreakBegin({ adBreak: { timeOffset: 0, integration: "google-dai" } })
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, -1)
+
+      'bs:disable-next-line
+      onAdBreakEnd(invalid)
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.adBreakTimeDuringStartup, 0)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("trackVideoStart")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -4579,7 +5114,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("resetCollectorState — SSAI flag")
+    @describe("resetCollectorState")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("initializes isCurrentAdBreakSsai to false")
@@ -4592,6 +5127,23 @@ namespace tests
 
       'bs:disable-next-line
       m.assertFalse(m.node.isCurrentAdBreakSsai)
+    end function
+
+    @it("initializes the startup ad-break fields")
+    function _()
+      ' dirty state from a previous impression
+      'bs:disable-next-line
+      m.node.adBreakTimeDuringStartup = 999
+      'bs:disable-next-line
+      m.node.startupTimerAtAdBreakBegin = 555
+
+      'bs:disable-next-line
+      resetCollectorState()
+
+      'bs:disable-next-line
+      m.assertEqual(m.node.adBreakTimeDuringStartup, 0)
+      'bs:disable-next-line
+      m.assertEqual(m.node.startupTimerAtAdBreakBegin, -1)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -5312,6 +5864,10 @@ end namespace
 
 function getVideoStartTimeoutTimerControl() as string
   return m.videoStartTimeoutTimer.control
+end function
+
+function getVideoStartTimeoutTimerDuration() as integer
+  return Int(m.videoStartTimeoutTimer.duration)
 end function
 
 function mockVideoNode(node) as object
