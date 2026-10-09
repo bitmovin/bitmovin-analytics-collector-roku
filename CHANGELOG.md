@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+## v2.26.0
+
 ### Fixed
 - `videoStartupTime` on THEOplayer including the playback time of a client-side pre-roll
 - `videoStartFailed` with reason `TIMEOUT` on THEOplayer reported for client-side pre-rolls of 60 seconds or longer
