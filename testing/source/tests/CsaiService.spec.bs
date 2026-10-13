@@ -133,6 +133,22 @@ namespace tests
       m.assertInvalid(sample.streamFormat)
     end function
 
+    @it("prefers the ad's MIME type over RAF's format name for streamFormat")
+    function _()
+      adBreak = m.fakeAdBreak(0)
+      ad = m.fakeAd(adBreak)
+      ad.customData = { streamformat: "mp4" }
+      ad.mimeType = "video/mp4"
+      'bs:disable-next-line
+      csaiOnAdBreakBegin(adBreak)
+      'bs:disable-next-line
+      csaiOnAdBegin(ad)
+      'bs:disable-next-line
+      sample = csaiOnAdEnd(ad)
+
+      m.assertEqual(sample.streamFormat, "video/mp4")
+    end function
+
     @it("sets isLinear to false for a non-linear ad")
     function _()
       adBreak = m.fakeAdBreak(0)

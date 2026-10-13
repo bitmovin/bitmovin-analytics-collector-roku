@@ -82,8 +82,12 @@ sub applyCsaiAdCustomData(adSample, ad)
     if isNonEmptyCsaiValue(customData.creativeadid) then adSample.creativeAdId = customData.creativeadid
     if isNonEmptyCsaiValue(customData.advertiser) then adSample.advertiserName = customData.advertiser
     if isNonEmptyCsaiValue(customData.adtitle) then adSample.adTitle = customData.adtitle
+    ' Fallback only: RAF's format name ("mp4", "dash", "hls"), not the MIME type Android and Web send.
     if isNonEmptyCsaiValue(customData.streamformat) then adSample.streamFormat = customData.streamformat
   end if
+
+  ' The ad's MIME type, which THEO's Ad does not carry; the player collector looks it up from RAF.
+  if isNonEmptyCsaiValue(ad.mimeType) then adSample.streamFormat = ad.mimeType
 
   ' Same fallback as the Android collector's IMA mapping.
   if adSample.adTitle = invalid and isNonEmptyCsaiValue(ad.id) then adSample.adTitle = ad.id
