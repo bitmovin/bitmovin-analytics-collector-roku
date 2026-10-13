@@ -53,7 +53,7 @@ sub csaiOnAdBegin(ad = invalid)
     if ad.resourceUri <> invalid then adSample.adTagUrl = ad.resourceUri
     if ad.clickThrough <> invalid then adSample.adClickthroughUrl = ad.clickThrough
     if ad.type <> invalid then adSample.isLinear = ad.type = "linear"
-    applyCsaiAdCustomData(adSample, ad)
+    applyCsaiRafMetadata(adSample, ad)
   end if
 
   adBreakForPosition = m.csaiCurrentAdBreak
@@ -80,12 +80,13 @@ function createCsaiAdSample() as object
   return adSample
 end function
 
-' THEO fills ad.customData from RAF's parsed VAST. RAF drops <UniversalAdId> entirely, and
-' `creativeadid` is Creative@AdID (lowercased by RAF), so no universalAdId can be mapped here.
-sub applyCsaiAdCustomData(adSample, ad)
+' Copies the VAST metadata that RAF puts in ad.customData to the ad sample.
+' RAF drops <UniversalAdId>, so no universal ad id is available here.
+sub applyCsaiRafMetadata(adSample, ad)
   customData = ad.customData
   if customData <> invalid
     ' RAF sends "" for VAST elements that are missing (e.g. no Creative@AdID), so empty means absent.
+    ' `creativeadid` is Creative@AdID, lowercased by RAF, not the Universal Ad ID.
     if isNonEmptyCsaiValue(customData.creativeadid) then adSample.creativeAdId = customData.creativeadid
     if isNonEmptyCsaiValue(customData.advertiser) then adSample.advertiserName = customData.advertiser
     if isNonEmptyCsaiValue(customData.adtitle) then adSample.adTitle = customData.adtitle
