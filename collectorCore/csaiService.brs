@@ -38,19 +38,9 @@ sub csaiOnAdBegin(ad = invalid)
   m.csaiState = m.CSAI_STATES.ACTIVE
   m.csaiReportedQuartiles = {}
 
-  adSample = getBaseAdSample()
-  adSample.adImpressionId = getRandomImpressionId()
-  adSample.adType = getAdTypes().CSAI
+  adSample = createCsaiAdSample()
   adSample.adStartupTime = adStartupTime
-  adSample.adIndex = m.csaiAdIndex
-  m.csaiAdIndex++
-  adSample.adPodPosition = m.csaiAdPodPosition
-  m.csaiAdPodPosition++
   adSample.started = 1
-  ' CSAI has no slate concept; matches Android, which never sets it on client-side ads.
-  adSample.isSlate = false
-  ' The base sample carries the content's streamFormat, which is wrong for the ad.
-  adSample.streamFormat = invalid
 
   if ad <> invalid
     adSample.adId = ad.id
@@ -72,6 +62,23 @@ sub csaiOnAdBegin(ad = invalid)
 
   m.activeCsaiAdSample = adSample
 end sub
+
+' A fresh CSAI ad sample with the fields every CSAI ad sample shares; takes the next adIndex and
+' adPodPosition.
+function createCsaiAdSample() as object
+  adSample = getBaseAdSample()
+  adSample.adImpressionId = getRandomImpressionId()
+  adSample.adType = getAdTypes().CSAI
+  ' CSAI has no slate concept; matches Android, which never sets it on client-side ads.
+  adSample.isSlate = false
+  ' The base sample carries the content's streamFormat, which is wrong for the ad.
+  adSample.streamFormat = invalid
+  adSample.adIndex = m.csaiAdIndex
+  m.csaiAdIndex++
+  adSample.adPodPosition = m.csaiAdPodPosition
+  m.csaiAdPodPosition++
+  return adSample
+end function
 
 ' THEO fills ad.customData from RAF's parsed VAST. RAF drops <UniversalAdId> entirely, and
 ' `creativeadid` is Creative@AdID (lowercased by RAF), so no universalAdId can be mapped here.
@@ -119,19 +126,11 @@ function csaiOnAdError(error = invalid) as object
   if m.csaiState = m.CSAI_STATES.IDLE then return invalid
 
   if m.csaiState = m.CSAI_STATES.AD_BREAK_STARTED
-    adSample = getBaseAdSample()
-    adSample.adImpressionId = getRandomImpressionId()
-    adSample.adType = getAdTypes().CSAI
-    adSample.isSlate = false
-    adSample.streamFormat = invalid
+    adSample = createCsaiAdSample()
     if m.csaiAdBreakStartTimer <> invalid
       adSample.adStartupTime = m.csaiAdBreakStartTimer.TotalMilliseconds()
       m.csaiAdBreakStartTimer = invalid
     end if
-    adSample.adIndex = m.csaiAdIndex
-    m.csaiAdIndex++
-    adSample.adPodPosition = m.csaiAdPodPosition
-    m.csaiAdPodPosition++
     adSample.adPosition = csaiMapTimeOffsetToPosition(m.csaiCurrentAdBreak)
     m.activeCsaiAdSample = adSample
   end if
