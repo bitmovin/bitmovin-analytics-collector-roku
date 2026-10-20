@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+## v2.27.0
+
 ### Added
 - `adTitle`, `creativeAdId`, `advertiserName`, `adClickthroughUrl`, `isLinear` and `isSlate` on THEOplayer client-side ad samples
 
