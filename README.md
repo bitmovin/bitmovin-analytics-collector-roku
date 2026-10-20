@@ -103,8 +103,10 @@ m.theoPlayerCollector.callFunc("initializeAnalytics", analyticsConfig)
 m.theoPlayerCollector.callFunc("initializePlayer", m.theoPlayer)
 ```
 
-### Limitations
-- Client-side ad tracking not supported yet
+### Ad tracking
+Ads are tracked automatically from the THEO player's ad events:
+- Client-side ads (`csai` integration)
+- Server-side ads (`google-dai` and `mediakind` integrations)
 
 ## Optional configuration parameters for Bitmovin Analytics
 

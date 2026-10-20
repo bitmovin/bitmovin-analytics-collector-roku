@@ -38,14 +38,8 @@ sub csaiOnAdBegin(ad = invalid)
   m.csaiState = m.CSAI_STATES.ACTIVE
   m.csaiReportedQuartiles = {}
 
-  adSample = getBaseAdSample()
-  adSample.adImpressionId = getRandomImpressionId()
-  adSample.adType = getAdTypes().CSAI
+  adSample = createCsaiAdSample()
   adSample.adStartupTime = adStartupTime
-  adSample.adIndex = m.csaiAdIndex
-  m.csaiAdIndex++
-  adSample.adPodPosition = m.csaiAdPodPosition
-  m.csaiAdPodPosition++
   adSample.started = 1
 
   if ad <> invalid
@@ -55,7 +49,11 @@ sub csaiOnAdBegin(ad = invalid)
     if ad.width <> invalid then adSample.adPlaybackWidth = ad.width
     if ad.height <> invalid then adSample.adPlaybackHeight = ad.height
     if ad.creativeId <> invalid then adSample.creativeId = ad.creativeId
-    if ad.resourceUri <> invalid then adSample.mediaUrl = ad.resourceUri
+    ' THEO's resourceUri is the VAST tag URL, not the media file.
+    if ad.resourceUri <> invalid then adSample.adTagUrl = ad.resourceUri
+    if ad.clickThrough <> invalid then adSample.adClickthroughUrl = ad.clickThrough
+    if ad.type <> invalid then adSample.isLinear = ad.type = "linear"
+    applyCsaiRafMetadata(adSample, ad)
   end if
 
   adBreakForPosition = m.csaiCurrentAdBreak
@@ -64,6 +62,48 @@ sub csaiOnAdBegin(ad = invalid)
 
   m.activeCsaiAdSample = adSample
 end sub
+
+' A fresh CSAI ad sample with the fields every CSAI ad sample shares; takes the next adIndex and
+' adPodPosition.
+function createCsaiAdSample() as object
+  adSample = getBaseAdSample()
+  adSample.adImpressionId = getRandomImpressionId()
+  adSample.adType = getAdTypes().CSAI
+  ' CSAI has no slate concept; matches Android, which never sets it on client-side ads.
+  adSample.isSlate = false
+  ' The base sample carries the content's streamFormat, which is wrong for the ad.
+  adSample.streamFormat = invalid
+  adSample.adIndex = m.csaiAdIndex
+  m.csaiAdIndex++
+  adSample.adPodPosition = m.csaiAdPodPosition
+  m.csaiAdPodPosition++
+  return adSample
+end function
+
+' Copies the VAST metadata that RAF puts in ad.customData to the ad sample.
+' RAF drops <UniversalAdId>, so no universal ad id is available here.
+sub applyCsaiRafMetadata(adSample, ad)
+  customData = ad.customData
+  if customData <> invalid
+    ' RAF sends "" for VAST elements that are missing (e.g. no Creative@AdID), so empty means absent.
+    ' `creativeadid` is Creative@AdID, lowercased by RAF, not the Universal Ad ID.
+    if isNonEmptyCsaiValue(customData.creativeadid) then adSample.creativeAdId = customData.creativeadid
+    if isNonEmptyCsaiValue(customData.advertiser) then adSample.advertiserName = customData.advertiser
+    if isNonEmptyCsaiValue(customData.adtitle) then adSample.adTitle = customData.adtitle
+    ' Fallback only: RAF's format name ("mp4", "dash", "hls"), not the MIME type Android and Web send.
+    if isNonEmptyCsaiValue(customData.streamformat) then adSample.streamFormat = customData.streamformat
+  end if
+
+  ' The ad's MIME type, which THEO's Ad does not carry; the player collector looks it up from RAF.
+  if isNonEmptyCsaiValue(ad.mimeType) then adSample.streamFormat = ad.mimeType
+
+  ' Same fallback as the Android collector's IMA mapping.
+  if adSample.adTitle = invalid and isNonEmptyCsaiValue(ad.id) then adSample.adTitle = ad.id
+end sub
+
+function isNonEmptyCsaiValue(value) as boolean
+  return value <> invalid and value <> ""
+end function
 
 function csaiOnAdEnd(ad = invalid) as object
   if m.csaiState <> m.CSAI_STATES.ACTIVE then return invalid
@@ -87,17 +127,11 @@ function csaiOnAdError(error = invalid) as object
   if m.csaiState = m.CSAI_STATES.IDLE then return invalid
 
   if m.csaiState = m.CSAI_STATES.AD_BREAK_STARTED
-    adSample = getBaseAdSample()
-    adSample.adImpressionId = getRandomImpressionId()
-    adSample.adType = getAdTypes().CSAI
+    adSample = createCsaiAdSample()
     if m.csaiAdBreakStartTimer <> invalid
       adSample.adStartupTime = m.csaiAdBreakStartTimer.TotalMilliseconds()
       m.csaiAdBreakStartTimer = invalid
     end if
-    adSample.adIndex = m.csaiAdIndex
-    m.csaiAdIndex++
-    adSample.adPodPosition = m.csaiAdPodPosition
-    m.csaiAdPodPosition++
     adSample.adPosition = csaiMapTimeOffsetToPosition(m.csaiCurrentAdBreak)
     m.activeCsaiAdSample = adSample
   end if

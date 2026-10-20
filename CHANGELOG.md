@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- `adTitle`, `creativeAdId`, `advertiserName`, `adClickthroughUrl`, `isLinear` and `isSlate` on THEOplayer client-side ad samples
+
+### Fixed
+- THEOplayer client-side ad samples reporting the VAST tag URL as `mediaUrl` instead of `adTagUrl`
+- THEOplayer client-side ad samples reporting the content's `streamFormat` instead of the ad's
+
 ## v2.26.0
 
 ### Fixed

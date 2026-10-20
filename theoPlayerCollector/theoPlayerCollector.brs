@@ -833,6 +833,35 @@ sub setUpCsaiAdObservers()
   m.player.ads.callFunc("addEventListener", adEvents.aderror, m.top, "onAdError")
 end sub
 
+' THEO's Ad has no MIME type, but RAF's own ad, streams[].mimetype included, is on the
+' `ads.rafProxy` node: its `trackingUpdate` field holds RAF's last tracking event. Not public API
+' (a hint from THEO's engineers), so a miss returns invalid and the core falls back to RAF's format
+' name. On device RAF's `Impression` for an ad always lands before THEO's `adbegin`, so reading
+' the field here yields the current ad; the adid check guards against a stale one.
+function getRafMimeType(ad) as dynamic
+  if ad = invalid or m.player = invalid or m.player.ads = invalid then return invalid
+  rafProxy = m.player.ads.rafProxy
+  if type(rafProxy) <> "roSGNode" then return invalid
+
+  rafAd = rafProxy.trackingUpdate?.ctx?.ad
+  if rafAd = invalid or rafAd.adid <> ad.id then return invalid
+
+  streams = rafAd.streams
+  if streams = invalid or streams.Count() = 0 then return invalid
+
+  ' THEO's width/height come from the stream RAF plays.
+  chosen = streams[0]
+  for each stream in streams
+    if stream.width = ad.width and stream.height = ad.height
+      chosen = stream
+      exit for
+    end if
+  end for
+
+  if chosen.mimetype = invalid or chosen.mimetype = "" then return invalid
+  return chosen.mimetype
+end function
+
 sub tearDownCsaiAdObservers()
   if m.player = invalid or m.player.ads = invalid then return
 
@@ -876,6 +905,7 @@ sub onAdBegin(eventData = invalid)
     'bs:disable-next-line
     adStart(buildSsaiAdMetadata(ad))
   else
+    if ad <> invalid then ad.mimeType = getRafMimeType(ad)
     m.collectorCore.callFunc("csaiOnAdBegin", ad)
     onPlayerStateChanged(m.collectorStates.AD)
   end if
