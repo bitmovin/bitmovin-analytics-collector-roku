@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - `adTitle`, `creativeAdId`, `advertiserName`, `adClickthroughUrl`, `isLinear` and `isSlate` on THEOplayer client-side ad samples
 
-## v2.26.0
-
 ### Fixed
 - THEOplayer client-side ad samples reporting the VAST tag URL as `mediaUrl` instead of `adTagUrl`
 - THEOplayer client-side ad samples reporting the content's `streamFormat` instead of the ad's
+
+## v2.26.0
+
+### Fixed
 - `videoStartupTime` on THEOplayer including the playback time of a client-side pre-roll
 - `videoStartFailed` with reason `TIMEOUT` on THEOplayer reported for client-side pre-rolls of 60 seconds or longer
 - spurious `seeking` sample after every CSAI ad break on THEOplayer
