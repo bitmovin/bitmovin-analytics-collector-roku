@@ -29,6 +29,7 @@ sub initializePlayer(player)
 
   setUpObservers()
   detectSourceFormat()
+  m.collectorCore.callFunc("startDroppedFramesTracking", m.videoNode)
 
   eventData = {
     playerTech: "Roku:THEOplayer"

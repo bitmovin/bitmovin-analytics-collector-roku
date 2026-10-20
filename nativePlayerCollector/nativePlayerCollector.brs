@@ -18,6 +18,7 @@ sub initializePlayer(player)
 
   setUpHelperVariables()
   setUpObservers()
+  m.collectorCore.callFunc("startDroppedFramesTracking", m.player)
   ' Set up content observer seperately since we never intend to unobserve it unless the collector is destroyed
   m.player.observeFieldScoped("content", "onSourceChanged")
 
