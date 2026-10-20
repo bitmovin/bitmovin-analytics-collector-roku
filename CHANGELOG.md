@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- `droppedFrames` reporting for all collectors
+
 ## v2.26.0
 
 ### Fixed
