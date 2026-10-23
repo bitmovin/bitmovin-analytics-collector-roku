@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased]
 
 ### Added
-- `droppedFrames` reporting for all collectors
+- `droppedFrames` reporting for all collectors, on Roku OS 11.0 and later. The collectors set the Video node's [`enableDecoderStats`](https://developer.roku.com/docs/references/scenegraph/media-playback-nodes/video.md) to `true` in `initializePlayer`, and restore its previous value on `destroy`
 
 ## v2.27.0
 
