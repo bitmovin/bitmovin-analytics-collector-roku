@@ -46,10 +46,10 @@ sub accumulateDroppedFrames(decoderStats)
 
   last = m.lastDecoderStats
   if last = invalid or snapshot.renderCount < last.renderCount or snapshot.frameDropCount < last.frameDropCount
-    ' Counters restarted (seek, new source): every drop they show happened since then. `renderCount`
-    ' is the reliable restart signal - drops alone stay flat across a restart when none occurred.
-    ' A restart after less playback than the previous run had is not detectable, and undercounts by
-    ' that run`s drops.
+    ' Counters restarted (seek, new source): every drop they show happened since then.
+    ' Not detected: a restart whose first update has renderCount >= last.renderCount and
+    ' frameDropCount >= last.frameDropCount. The tracker then undercounts the new drops by
+    ' last.frameDropCount.
     m.pendingDroppedFrames = m.pendingDroppedFrames + snapshot.frameDropCount
   else
     m.pendingDroppedFrames = m.pendingDroppedFrames + snapshot.frameDropCount - last.frameDropCount
