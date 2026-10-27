@@ -197,6 +197,246 @@ namespace tests
       m.node.AnalyticsDataTask = m.top.findNode("analyticsDataTask")
     end function
 
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("dropped frames tracking")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("reports the frames dropped since the previous sample")
+    function _()
+      videoNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(videoNode)
+
+      m.updateDecoderStats(videoNode, 2, 25)
+      m.updateDecoderStats(videoNode, 5, 50)
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 5)
+
+      m.updateDecoderStats(videoNode, 9, 75)
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 4)
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 0)
+    end function
+
+    @it("keeps the drops from before a seek when the counters restart")
+    function _()
+      videoNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(videoNode)
+
+      m.updateDecoderStats(videoNode, 7, 460)
+      ' seek: renderCount falls back to 0
+      m.updateDecoderStats(videoNode, 0, 0)
+      m.updateDecoderStats(videoNode, 3, 35)
+
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 10)
+    end function
+
+    @it("detects a restart by renderCount even when the drop count is unchanged")
+    function _()
+      videoNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(videoNode)
+
+      m.updateDecoderStats(videoNode, 4, 485)
+      'bs:disable-next-line
+      takeDroppedFrames()
+      ' new source: its own 4 drops, coincidentally the old count
+      m.updateDecoderStats(videoNode, 4, 34)
+
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 4)
+    end function
+
+    @it("does not count the previous source's stale counters again after a new source load")
+    function _()
+      videoNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(videoNode)
+
+      m.updateDecoderStats(videoNode, 6, 485)
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 6)
+
+      ' The old values stay on the node through the new source's startup sample
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 0)
+
+      m.updateDecoderStats(videoNode, 1, 34)
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 1)
+    end function
+
+    @it("treats counters already running when tracking starts as the baseline")
+    function _()
+      videoNode = m.createMockVideoNode()
+      videoNode.enableDecoderStats = true
+      videoNode.decoderStats = { frameDropCount: 12, renderCount: 900 }
+
+      'bs:disable-next-line
+      startDroppedFramesTracking(videoNode)
+      m.updateDecoderStats(videoNode, 14, 925)
+
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 2)
+    end function
+
+    @it("counts from zero again once the decoder stats were gone")
+    function _()
+      videoNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(videoNode)
+
+      m.updateDecoderStats(videoNode, 3, 300)
+      'bs:disable-next-line
+      onDecoderStatsChanged({ getData: function()
+          return invalid
+      end function })
+      m.updateDecoderStats(videoNode, 3, 400)
+
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 6)
+    end function
+
+    @it("ignores decoder stats without numeric counters")
+    function _()
+      videoNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(videoNode)
+
+      videoNode.decoderStats = { frameDropCount: "3", renderCount: 25 }
+      'bs:disable-next-line
+      onDecoderStatsChanged({ node: videoNode, getData: function()
+          return m.node.decoderStats
+      end function })
+
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 0)
+    end function
+
+    @it("reports 0 when there is no video node or it has no decoder stats")
+    function _()
+      'bs:disable-next-line
+      startDroppedFramesTracking(invalid)
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 0)
+
+      'bs:disable-next-line
+      startDroppedFramesTracking({ hasField: function(field)
+          return false
+      end function })
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 0)
+    end function
+
+    @it("turns decoder stats off again on stop only if it turned them on")
+    function _()
+      ownNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(ownNode)
+      'bs:disable-next-line
+      stopDroppedFramesTracking()
+      m.assertFalse(ownNode.enableDecoderStats)
+      m.assertInvalid(ownNode.observedField)
+
+      appNode = m.createMockVideoNode()
+      appNode.enableDecoderStats = true
+      'bs:disable-next-line
+      startDroppedFramesTracking(appNode)
+      'bs:disable-next-line
+      stopDroppedFramesTracking()
+      m.assertTrue(appNode.enableDecoderStats)
+    end function
+
+    @it("stops tracking the previous video node when tracking starts again")
+    function _()
+      firstNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(firstNode)
+      m.updateDecoderStats(firstNode, 4, 100)
+
+      secondNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(secondNode)
+
+      m.assertFalse(firstNode.enableDecoderStats)
+      m.assertInvalid(firstNode.observedField)
+      'bs:disable-next-line
+      m.assertEqual(takeDroppedFrames(), 0)
+    end function
+
+    @it("stamps the dropped frames on the regular sample and clears them afterwards")
+    function _()
+      mockTask = CreateObject("roSGNode", "Node")
+      mockTask.addFields({ eventData: {}, sendData: false })
+      'bs:disable-next-line
+      m.node.AnalyticsDataTask = mockTask
+
+      videoNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(videoNode)
+      m.updateDecoderStats(videoNode, 3, 50)
+
+      'bs:disable-next-line
+      sendAnalyticsRequestAndClearValues()
+
+      m.assertEqual(mockTask.eventData.requestData.droppedFrames, 3)
+      'bs:disable-next-line
+      m.assertEqual(m.node.sample.droppedFrames, 0)
+
+      'bs:disable-next-line
+      m.node.AnalyticsDataTask = m.top.findNode("analyticsDataTask")
+    end function
+
+    @it("stamps the dropped frames on the final sample and stops tracking on destroy")
+    function _()
+      mockTask = { finalEventData: invalid }
+      'bs:disable-next-line
+      m.node.AnalyticsDataTask = mockTask
+
+      videoNode = m.createMockVideoNode()
+      'bs:disable-next-line
+      startDroppedFramesTracking(videoNode)
+      m.updateDecoderStats(videoNode, 8, 50)
+
+      'bs:disable-next-line
+      internalDestroy()
+
+      m.assertEqual(mockTask.finalEventData.events[0].requestData.droppedFrames, 8)
+      m.assertFalse(videoNode.enableDecoderStats)
+
+      'bs:disable-next-line
+      m.node.AnalyticsDataTask = m.top.findNode("analyticsDataTask")
+    end function
+
+    function createMockVideoNode()
+      return {
+        enableDecoderStats: false,
+        decoderStats: invalid,
+        observedField: invalid,
+        hasField: function(field)
+          return field = "enableDecoderStats" or field = "decoderStats"
+        end function,
+        observeFieldScoped: function(field, callback)
+          m.observedField = field
+        end function,
+        unobserveFieldScoped: function(field)
+          if m.observedField = field then m.observedField = invalid
+        end function
+      }
+    end function
+
+    ' Sets the counters and delivers them like the firmware`s field change notification.
+    sub updateDecoderStats(videoNode, frameDropCount, renderCount)
+      videoNode.decoderStats = { frameDropCount: frameDropCount, renderCount: renderCount, repeatCount: 0, streamErrorCount: 0 }
+      'bs:disable-next-line
+      onDecoderStatsChanged({ node: videoNode, getData: function()
+          return m.node.decoderStats
+      end function })
+    end sub
   end class
 
 end namespace

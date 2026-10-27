@@ -9,6 +9,7 @@ sub init()
   m.AnalyticsRequestTypes = getAnalyticsRequestTypes()
   m.analyticsConfig = CreateObject("roAssociativeArray")
   m.sample = invalid
+  initDroppedFramesTracker()
 end sub
 
 sub initializeAnalytics(config = invalid)
@@ -33,6 +34,8 @@ end sub
 sub internalDestroy(param = invalid)
   manipulateSampleForSsai()
   manipulateSampleForCsai()
+  m.sample.droppedFrames = takeDroppedFrames()
+  stopDroppedFramesTracking()
 
   sampleSnapshot = {}
   sampleSnapshot.Append(m.sample)
@@ -259,6 +262,7 @@ end function
 sub sendAnalyticsRequestAndClearValues(skipHeartbeatReset = false)
   manipulateSampleForSsai()
   manipulateSampleForCsai()
+  m.sample.droppedFrames = takeDroppedFrames()
   m.AnalyticsDataTask.eventData = {
     requestType: m.AnalyticsRequestTypes.REGULAR
     requestData: m.sample

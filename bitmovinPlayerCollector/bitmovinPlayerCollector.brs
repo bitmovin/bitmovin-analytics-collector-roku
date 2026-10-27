@@ -19,6 +19,7 @@ sub initializePlayer(player)
 
   setUpHelperVariables()
   setUpObservers()
+  m.collectorCore.callFunc("startDroppedFramesTracking", m.player.findNode(getMainVideoNodeId()))
   ' Set up sourceLoaded observer seperately since we never intend to unobserve it unless the collector is destroyed
   m.player.observeFieldScoped("sourceLoaded", "onSourceLoaded")
 
@@ -272,7 +273,7 @@ end sub
 sub decorateSampleWithPlaybackData(sampleData)
   if sampleData = invalid then return
 
-  sampleData.Append(getVideoWindowSize(m.player.FindNode("MainVideo")))
+  sampleData.Append(getVideoWindowSize(m.player.FindNode(getMainVideoNodeId())))
   sampleData.Append({size: getSizeType(sampleData.videoWindowHeight, sampleData.videoWindowWidth)})
 
   ' Set audio language

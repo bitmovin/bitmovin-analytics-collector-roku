@@ -1,3 +1,7 @@
+function getMainVideoNodeId()
+  return "MainVideo"
+end function
+
 ' Player controls
 function getPlayerControls()
   controlStates = {
