@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- `videoBitrate` and `qualityChange` samples for the native Roku player collector, based on the Video node's `streamingSegment` field
+
 ## v2.28.0
 
 ### Added

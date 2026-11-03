@@ -64,6 +64,7 @@ sub setUpObservers()
   m.player.observeFieldScoped("seek", "onSeek")
 
   m.player.observeFieldScoped("control", "onControlChanged")
+  m.player.observeFieldScoped("streamingSegment", "onStreamingSegmentChanged")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
@@ -77,6 +78,7 @@ sub unobserveFields(isDestroyed = false)
     m.player.unobserveFieldScoped("seek")
 
     m.player.unobserveFieldScoped("control")
+    m.player.unobserveFieldScoped("streamingSegment")
   end if
 
   if m.collectorCore <> invalid
@@ -98,6 +100,8 @@ sub setUpHelperVariables()
 
   m.didAttemptPlay = false
   m.didVideoPlay = false
+
+  m.currentVideoBitrate = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -335,6 +339,36 @@ sub stopVideoStartUpTimer()
   sendAnalyticsRequestAndClearValues(eventData, m.videoStartUpTime, "startup")
   m.videoStartupTimer = invalid
   m.videoStartUpTime = -1
+end sub
+
+sub onStreamingSegmentChanged()
+  segment = m.player.streamingSegment
+  if segment = invalid then return
+
+  ' segType 2 = video, 0 = mux (HLS transport streams carrying video and audio together). Audio-only (1)
+  ' and caption (3) segments do not describe the video bitrate
+  if segment.segType <> 2 and segment.segType <> 0 then return
+
+  newBitrate = segment.segBitrateBps
+  if newBitrate = invalid then return
+  if newBitrate <= 0 then return
+  if newBitrate = m.currentVideoBitrate then return
+
+  m.currentVideoBitrate = newBitrate
+
+  ' Only send a qualityChange sample when playing; before that the bitrate is only stored on the sample
+  if m.currentState = m.playerStates.PLAYING
+    onHeartbeat()
+
+    sample = {
+      videoBitrate: m.currentVideoBitrate,
+      videoTimeStart: getCurrentPlayerTimeInMs(),
+      videoTimeEnd: getCurrentPlayerTimeInMs()
+    }
+    sendAnalyticsRequestAndClearValues(sample, 0, "qualityChange")
+  end if
+
+  updateSample({ videoBitrate: m.currentVideoBitrate })
 end sub
 
 sub onVideoStart()
