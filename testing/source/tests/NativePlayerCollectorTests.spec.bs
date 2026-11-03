@@ -267,6 +267,36 @@ namespace tests
       m.assertEqual(testContext.callCount, 0)
     end function
 
+    @it("only updates the sample during a manual source change")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+      'bs:disable-next-line
+      m.node.manualSourceChangeInProgress = true
+      m.mockPlayer.streamingSegment = { segType: 2, segBitrateBps: 5000000 }
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 5000000)
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
+    end function
+
+    @it("only updates the sample before startup has finished")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativeStartingUpSession(m.node, "playing")
+      m.mockPlayer.streamingSegment = { segType: 2, segBitrateBps: 5000000 }
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 5000000)
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
+    end function
+
     @it("does not send a qualityChange sample when paused")
     function _()
       testContext = stubNativeCollectorCore(m.node)

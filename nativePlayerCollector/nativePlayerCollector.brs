@@ -356,8 +356,10 @@ sub onStreamingSegmentChanged()
 
   m.currentVideoBitrate = newBitrate
 
-  ' Only send a qualityChange sample when playing; before that the bitrate is only stored on the sample
-  if m.currentState = m.playerStates.PLAYING
+  ' Only send a qualityChange sample once playback is established. During a manual source change
+  ' m.currentState stays PLAYING while the new source loads, and before startup has finished there is
+  ' nothing to flush; in both cases the bitrate is only stored on the sample.
+  if m.currentState = m.playerStates.PLAYING and m.manualSourceChangeInProgress <> true and m.didVideoPlay = true
     onHeartbeat()
 
     sample = {
