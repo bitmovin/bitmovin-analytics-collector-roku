@@ -445,6 +445,11 @@ sub handleManualSourceChange()
 
   checkForSourceSpecificMetadata(m.player.content)
   m.collectorCore.callFunc("setupSample")
+
+  ' The new impression must not inherit the previous source's bitrate, and the new source's first
+  ' segment must not be dropped by the duplicate check in onStreamingSegmentChanged
+  m.currentVideoBitrate = invalid
+  updateSample({ videoBitrate: 0 })
 end sub
 
 sub setNewMetadata(metadata = invalid)
