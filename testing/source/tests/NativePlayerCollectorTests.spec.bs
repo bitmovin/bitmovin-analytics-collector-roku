@@ -24,6 +24,8 @@ namespace tests
       }
 
       m.node.player = m.mockPlayer
+      'bs:disable-next-line
+      m.node.currentVideoBitrate = invalid
 
       m.realCollectorCore = m.node.collectorCore
     end function
@@ -194,6 +196,7 @@ namespace tests
     function _()
       testContext = stubNativeCollectorCore(m.node)
       giveNativePlayingSession(m.node, "playing")
+      m.mockPlayer.state = "playing"
       'bs:disable-next-line
       m.node.currentVideoBitrate = 2000000
       m.mockPlayer.streamingSegment = { segType: 2, segBitrateBps: 5000000 }
@@ -210,8 +213,8 @@ namespace tests
     end function
 
     @it("ignores segments that are not video segments")
-    @Params([1])
-    @Params([3])
+    @Params(1)
+    @Params(3)
     function _(segType)
       testContext = stubNativeCollectorCore(m.node)
       giveNativePlayingSession(m.node, "playing")
