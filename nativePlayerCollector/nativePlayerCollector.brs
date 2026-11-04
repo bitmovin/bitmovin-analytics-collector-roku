@@ -64,6 +64,7 @@ sub setUpObservers()
   m.player.observeFieldScoped("seek", "onSeek")
 
   m.player.observeFieldScoped("control", "onControlChanged")
+  m.player.observeFieldScoped("streamingSegment", "onStreamingSegmentChanged")
 
   m.collectorCore.observeFieldScoped("fireHeartbeat", "onHeartbeat")
 end sub
@@ -77,6 +78,7 @@ sub unobserveFields(isDestroyed = false)
     m.player.unobserveFieldScoped("seek")
 
     m.player.unobserveFieldScoped("control")
+    m.player.unobserveFieldScoped("streamingSegment")
   end if
 
   if m.collectorCore <> invalid
@@ -98,6 +100,8 @@ sub setUpHelperVariables()
 
   m.didAttemptPlay = false
   m.didVideoPlay = false
+
+  m.currentVideoBitrate = invalid
 end sub
 
 sub onPlayerStateChanged()
@@ -337,6 +341,38 @@ sub stopVideoStartUpTimer()
   m.videoStartUpTime = -1
 end sub
 
+sub onStreamingSegmentChanged()
+  segment = m.player.streamingSegment
+  if segment = invalid then return
+
+  ' segType 2 = video, 0 = mux (HLS transport streams carrying video and audio together). Audio-only (1)
+  ' and caption (3) segments do not describe the video bitrate
+  if segment.segType <> 2 and segment.segType <> 0 then return
+
+  newBitrate = segment.segBitrateBps
+  if newBitrate = invalid then return
+  if newBitrate <= 0 then return
+  if newBitrate = m.currentVideoBitrate then return
+
+  m.currentVideoBitrate = newBitrate
+
+  ' Only send a qualityChange sample once playback is established. During a manual source change
+  ' m.currentState stays PLAYING while the new source loads, and before startup has finished there is
+  ' nothing to flush; in both cases the bitrate is only stored on the sample.
+  if m.currentState = m.playerStates.PLAYING and m.manualSourceChangeInProgress <> true and m.didVideoPlay = true
+    onHeartbeat()
+
+    sample = {
+      videoBitrate: m.currentVideoBitrate,
+      videoTimeStart: getCurrentPlayerTimeInMs(),
+      videoTimeEnd: getCurrentPlayerTimeInMs()
+    }
+    sendAnalyticsRequestAndClearValues(sample, 0, "qualityChange")
+  end if
+
+  updateSample({ videoBitrate: m.currentVideoBitrate })
+end sub
+
 sub onVideoStart()
   stopVideoStartUpTimer()
 
@@ -409,6 +445,11 @@ sub handleManualSourceChange()
 
   checkForSourceSpecificMetadata(m.player.content)
   m.collectorCore.callFunc("setupSample")
+
+  ' The new impression must not inherit the previous source's bitrate, and the new source's first
+  ' segment must not be dropped by the duplicate check in onStreamingSegmentChanged
+  m.currentVideoBitrate = invalid
+  updateSample({ videoBitrate: 0 })
 end sub
 
 sub setNewMetadata(metadata = invalid)

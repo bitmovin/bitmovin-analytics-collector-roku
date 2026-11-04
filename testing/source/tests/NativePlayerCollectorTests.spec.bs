@@ -24,6 +24,8 @@ namespace tests
       }
 
       m.node.player = m.mockPlayer
+      'bs:disable-next-line
+      m.node.currentVideoBitrate = invalid
 
       m.realCollectorCore = m.node.collectorCore
     end function
@@ -168,6 +170,181 @@ namespace tests
       m.assertNotInvalid(testContext.capturedSampleData.buffered)
 
       m.node.collectorCore = originalCollectorCore
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onStreamingSegmentChanged")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("only updates the sample when not playing (initial bitrate)")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "buffering")
+      m.mockPlayer.streamingSegment = { segType: 2, segBitrateBps: 5000000 }
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 5000000)
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
+      'bs:disable-next-line
+      m.assertEqual(m.node.currentVideoBitrate, 5000000)
+    end function
+
+    @it("sends played sample before qualityChange sample when playing")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+      m.mockPlayer.state = "playing"
+      'bs:disable-next-line
+      m.node.currentVideoBitrate = 2000000
+      m.mockPlayer.streamingSegment = { segType: 2, segBitrateBps: 5000000 }
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertTrue(testContext.capturedSamples.Count() >= 2)
+      m.assertEqual(testContext.capturedSamples[0].state, "playing")
+      m.assertNotInvalid(testContext.capturedSamples[0].played)
+      m.assertEqual(testContext.capturedSamples[1].state, "qualityChange")
+      m.assertEqual(testContext.capturedSamples[1].videoBitrate, 5000000)
+      m.assertEqual(testContext.capturedSamples[1].duration, 0)
+    end function
+
+    @it("ignores segments that are not video segments")
+    @Params(1)
+    @Params(3)
+    function _(segType)
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+      m.mockPlayer.streamingSegment = { segType: segType, segBitrateBps: 128000 }
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.callCount, 0)
+      'bs:disable-next-line
+      m.assertInvalid(m.node.currentVideoBitrate)
+    end function
+
+    @it("tracks the bitrate of muxed segments (HLS transport streams)")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "buffering")
+      m.mockPlayer.streamingSegment = { segType: 0, segBitrateBps: 2149000 }
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 2149000)
+    end function
+
+    @it("does nothing when the bitrate did not change")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+      'bs:disable-next-line
+      m.node.currentVideoBitrate = 5000000
+      m.mockPlayer.streamingSegment = { segType: 2, segBitrateBps: 5000000 }
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.callCount, 0)
+    end function
+
+    @it("does nothing for an invalid segment or an invalid or zero bitrate")
+    @Params(invalid)
+    @Params({ segType: 2 })
+    @Params({ segType: 2, segBitrateBps: 0 })
+    function _(segment)
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+      m.mockPlayer.streamingSegment = segment
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.callCount, 0)
+    end function
+
+    @it("only updates the sample during a manual source change")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "playing")
+      'bs:disable-next-line
+      m.node.manualSourceChangeInProgress = true
+      m.mockPlayer.streamingSegment = { segType: 2, segBitrateBps: 5000000 }
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 5000000)
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
+    end function
+
+    @it("only updates the sample before startup has finished")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativeStartingUpSession(m.node, "playing")
+      m.mockPlayer.streamingSegment = { segType: 2, segBitrateBps: 5000000 }
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 5000000)
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
+    end function
+
+    @it("tracks the first bitrate of a new source even if it equals the previous source's bitrate")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "stopped")
+      'bs:disable-next-line
+      m.node.currentVideoBitrate = 5000000
+      m.mockPlayer.content = { getChildCount: function() as integer
+          return 0
+        end function }
+
+      'bs:disable-next-line
+      handleManualSourceChange()
+
+      'bs:disable-next-line
+      m.assertInvalid(m.node.currentVideoBitrate)
+      lastSample = testContext.capturedSamples[testContext.capturedSamples.Count() - 1]
+      m.assertEqual(lastSample.videoBitrate, 0)
+      m.assertEqual(testContext.callOrder[testContext.callOrder.Count() - 2], "setupSample", "videoBitrate should be cleared right after setupSample")
+
+      testContext.capturedSamples.Clear()
+      m.mockPlayer.streamingSegment = { segType: 2, segBitrateBps: 5000000 }
+      'bs:disable-next-line
+      m.node.manualSourceChangeInProgress = false
+      'bs:disable-next-line
+      m.node.didVideoPlay = false
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 5000000)
+    end function
+
+    @it("does not send a qualityChange sample when paused")
+    function _()
+      testContext = stubNativeCollectorCore(m.node)
+      giveNativePlayingSession(m.node, "paused")
+      m.mockPlayer.streamingSegment = { segType: 2, segBitrateBps: 5000000 }
+
+      'bs:disable-next-line
+      onStreamingSegmentChanged()
+
+      m.assertEqual(testContext.capturedSamples.Count(), 1)
+      m.assertEqual(testContext.capturedSamples[0].videoBitrate, 5000000)
+      m.assertFalse(testContext.calledFunctions.doesExist("sendAnalyticsRequestAndClearValues"))
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
