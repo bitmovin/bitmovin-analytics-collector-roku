@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - `videoBitrate` and `qualityChange` samples for the native Roku player collector, based on the Video node's `streamingSegment` field
+- attaching `errorObject.message` instead of `errorObject.cause` when sending error samples if the latter is empty in Theo
 
 ## v2.28.0
 
