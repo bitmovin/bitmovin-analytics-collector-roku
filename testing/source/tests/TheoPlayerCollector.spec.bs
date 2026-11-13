@@ -2738,6 +2738,74 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("falls back to message when cause is invalid")
+    function _()
+      testContext = { onErrorSample: invalid }
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "onError"
+            m.testContext.onErrorSample = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string) end function
+      })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onError({ errorObject: { code: 42, cause: invalid, message: "network error" } })
+
+      m.assertEqual(testContext.onErrorSample.errorMessage, "network error")
+    end function
+
+    @it("falls back to message when cause is an empty string")
+    function _()
+      testContext = { onErrorSample: invalid }
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "onError"
+            m.testContext.onErrorSample = sampleData
+          end if
+          return true
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.currentTime = 10
+      mockVideoNode({
+        height: 1080,
+        width: 1920,
+        unobserveFieldScoped: function(field as string) end function
+      })
+      m.mockPlayer.audioTracks = []
+      m.mockPlayer.textTracks = []
+      m.mockPlayer.duration = 60
+
+      'bs:disable-next-line
+      m.node.currentState = "playing"
+      'bs:disable-next-line
+      m.node.playerStateTimer = CreateObject("roTimespan")
+
+      'bs:disable-next-line
+      onError({ errorObject: { code: 42, cause: "", message: "network error" } })
+
+      m.assertEqual(testContext.onErrorSample.errorMessage, "network error")
+    end function
+
     @it("sends analytics sample with error code and message")
     function _()
       testContext = { capturedSampleData: invalid }

@@ -579,6 +579,7 @@ sub onError(eventData = invalid)
   if eventData <> invalid and eventData.errorObject <> invalid
     errorCode = eventData.errorObject.code
     errorMessage = eventData.errorObject.cause
+    if not isNonEmptyString(errorMessage) then errorMessage = eventData.errorObject.message
   end if
 
   m.top.error = {
@@ -617,6 +618,11 @@ sub onError(eventData = invalid)
   m.collectorCore.callFunc("csaiOnAdBreakEnd")
   resetAdBreakHelperVariables()
 end sub
+
+' Comparing a non-string (e.g. an AA) to "" is a runtime type mismatch, so check the interface first.
+function isNonEmptyString(value) as boolean
+  return GetInterface(value, "ifString") <> invalid and value <> ""
+end function
 
 sub onDestroy(eventData = invalid)
   destroy()
