@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+## v2.30.0
+
 ### Changed
 - attaching `errorObject.message` instead of `errorObject.cause` when sending error samples if the latter is empty in Theo
 
