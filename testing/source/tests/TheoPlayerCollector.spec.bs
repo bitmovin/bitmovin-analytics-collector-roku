@@ -2738,8 +2738,11 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
-    @it("falls back to message when cause is invalid")
-    function _()
+    @it("picks cause over message, falling back to message when cause is missing")
+    @params(invalid, "network error", "network error")
+    @params("", "network error", "network error")
+    @params("playback error", "network error", "playback error")
+    function _(cause, message, expectedErrorMessage)
       testContext = { onErrorSample: invalid }
       m.node.collectorCore = {
         callFunc: function(funcName as string, sampleData = invalid)
@@ -2767,77 +2770,9 @@ namespace tests
       m.node.playerStateTimer = CreateObject("roTimespan")
 
       'bs:disable-next-line
-      onError({ errorObject: { code: 42, cause: invalid, message: "network error" } })
+      onError({ errorObject: { code: 42, cause: cause, message: message } })
 
-      m.assertEqual(testContext.onErrorSample.errorMessage, "network error")
-    end function
-
-    @it("falls back to message when cause is an empty string")
-    function _()
-      testContext = { onErrorSample: invalid }
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "onError"
-            m.testContext.onErrorSample = sampleData
-          end if
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      m.mockPlayer.currentTime = 10
-      mockVideoNode({
-        height: 1080,
-        width: 1920,
-        unobserveFieldScoped: function(field as string) end function
-      })
-      m.mockPlayer.audioTracks = []
-      m.mockPlayer.textTracks = []
-      m.mockPlayer.duration = 60
-
-      'bs:disable-next-line
-      m.node.currentState = "playing"
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
-
-      'bs:disable-next-line
-      onError({ errorObject: { code: 42, cause: "", message: "network error" } })
-
-      m.assertEqual(testContext.onErrorSample.errorMessage, "network error")
-    end function
-
-    @it("uses cause when both cause and message are set")
-    function _()
-      testContext = { onErrorSample: invalid }
-      m.node.collectorCore = {
-        callFunc: function(funcName as string, sampleData = invalid)
-          if funcName = "onError"
-            m.testContext.onErrorSample = sampleData
-          end if
-          return true
-        end function,
-        testContext: testContext
-      }
-
-      m.mockPlayer.currentTime = 10
-      mockVideoNode({
-        height: 1080,
-        width: 1920,
-        unobserveFieldScoped: function(field as string) end function
-      })
-      m.mockPlayer.audioTracks = []
-      m.mockPlayer.textTracks = []
-      m.mockPlayer.duration = 60
-
-      'bs:disable-next-line
-      m.node.currentState = "playing"
-      'bs:disable-next-line
-      m.node.playerStateTimer = CreateObject("roTimespan")
-
-      'bs:disable-next-line
-      onError({ errorObject: { code: 42, cause: "playback error", message: "network error" } })
-
-      m.assertEqual(testContext.onErrorSample.errorMessage, "playback error")
+      m.assertEqual(testContext.onErrorSample.errorMessage, expectedErrorMessage)
     end function
 
     @it("sends analytics sample with error code and message")
