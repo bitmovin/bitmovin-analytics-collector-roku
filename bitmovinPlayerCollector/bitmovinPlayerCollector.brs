@@ -382,18 +382,18 @@ sub checkForNewMetadata()
 end sub
 
 sub onError()
-  errorData = m.player.error
+  playerError = m.player.error
 
   setVideoTimeEnd()
 
   m.top.error = {
     error: {
-      code: errorData.code,
-      message: errorData.message,
+      code: playerError.code,
+      message: playerError.message,
       severity: m.errorSeverities.critical
     }
     errorContext: {
-      originalError: errorData
+      originalError: playerError
     }
   }
 
@@ -406,6 +406,7 @@ sub onError()
     errorCode: transformedError.code
     errorMessage: transformedError.message
     errorSeverity: transformedError.severity
+    errorData: FormatJson(playerError)
   }
 
   sendErrorSample(transformedErrorSample, duration)
