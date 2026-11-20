@@ -201,6 +201,7 @@ sub clearSampleValues()
 
   m.sample.errorCode = invalid
   m.sample.errorMessage = invalid
+  m.sample.errorData = invalid
 
   m.sample.videoStartFailed = false
   m.sample.videoStartFailedReason = invalid

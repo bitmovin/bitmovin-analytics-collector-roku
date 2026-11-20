@@ -232,6 +232,44 @@ namespace tests
       m.node.collectorCore = originalCollectorCore
     end function
 
+    @it("sends the original player error as JSON in errorData (AN-6218)")
+    function _()
+      testContext = { onErrorSample: invalid }
+      originalCollectorCore = m.node.collectorCore
+
+      m.node.collectorCore = {
+        callFunc: function(funcName as string, sampleData = invalid)
+          if funcName = "onError"
+            m.testContext.onErrorSample = sampleData
+          end if
+          return true
+        end function,
+        unobserveFieldScoped: function(fieldName as string)
+        end function,
+        testContext: testContext
+      }
+
+      m.mockPlayer.error = {
+        code: 2000
+        message: "General DRM error"
+        data: { errorStr: "license request failed", errorInfo: { drmerrcode: -1 } }
+      }
+
+      'bs:disable-next-line
+      onError()
+
+      m.assertNotInvalid(testContext.onErrorSample)
+      m.assertEqual(testContext.onErrorSample.errorCode, 2000)
+      m.assertNotInvalid(testContext.onErrorSample.errorData)
+      parsedErrorData = ParseJson(testContext.onErrorSample.errorData)
+      m.assertEqual(parsedErrorData.code, 2000)
+      m.assertEqual(parsedErrorData.message, "General DRM error")
+      m.assertEqual(parsedErrorData.data.errorStr, "license request failed")
+      m.assertEqual(parsedErrorData.data.errorInfo.drmerrcode, -1)
+
+      m.node.collectorCore = originalCollectorCore
+    end function
+
     @it("leaves SSAI alone when the error belongs to a previous session (AN-5074)")
     function _()
       testContext = { ssaiCalls: [] }
