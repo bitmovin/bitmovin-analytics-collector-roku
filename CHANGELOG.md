@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+## v2.31.0
+
 ### Added
 - `errorData` on error samples of the Bitmovin Player collector. It holds the original `player.error` as JSON, same as the THEOplayer collector already does
 
